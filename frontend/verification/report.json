@@ -1,0 +1,211 @@
+{
+  "passed": 41,
+  "failed": 0,
+  "results": [
+    {
+      "name": "shot-shell-full-320",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no-horizontal-overflow-320",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "single-canvas-rendered-320",
+      "pass": true,
+      "detail": "1 canvas(es), 292x416"
+    },
+    {
+      "name": "shot-growth-ledger-320",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "shot-terrarium-320",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "badges-inside-canvas-320",
+      "pass": true,
+      "detail": "[{\"text\":\"VPD_leaf 1.17\",\"inside\":true,\"rect\":[35,565,157,594]},{\"text\":\"A_net 13.22\",\"inside\":true,\"rect\":[179,578,285,607]},{\"text\":\"VWC 42% · O₂ 28%\",\"inside\":true,\"rect\":[87,731,233,761]}]"
+    },
+    {
+      "name": "terrarium-not-blank-320",
+      "pass": true,
+      "detail": "{\"width\":296,\"height\":420,\"distinctColors\":4032,\"meanBrightness\":181.2,\"blackFraction\":0.004,\"pass\":true}"
+    },
+    {
+      "name": "shot-shell-full-768",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no-horizontal-overflow-768",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "single-canvas-rendered-768",
+      "pass": true,
+      "detail": "1 canvas(es), 732x476"
+    },
+    {
+      "name": "shot-growth-ledger-768",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "shot-terrarium-768",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "badges-inside-canvas-768",
+      "pass": true,
+      "detail": "[{\"text\":\"VPD_leaf 1.17\",\"inside\":true,\"rect\":[250,444,372,473]},{\"text\":\"A_net 13.22\",\"inside\":true,\"rect\":[414,459,520,488]},{\"text\":\"VWC 42% · O₂ 28%\",\"inside\":true,\"rect\":[311,634,457,664]}]"
+    },
+    {
+      "name": "terrarium-not-blank-768",
+      "pass": true,
+      "detail": "{\"width\":736,\"height\":480,\"distinctColors\":4357,\"meanBrightness\":206.3,\"blackFraction\":0.002,\"pass\":true}"
+    },
+    {
+      "name": "shot-shell-full-1440",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no-horizontal-overflow-1440",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "single-canvas-rendered-1440",
+      "pass": true,
+      "detail": "1 canvas(es), 416x556"
+    },
+    {
+      "name": "shot-growth-ledger-1440",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "shot-terrarium-1440",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "badges-inside-canvas-1440",
+      "pass": true,
+      "detail": "[{\"text\":\"VPD_leaf 1.17\",\"inside\":true,\"rect\":[1067,405,1189,434]},{\"text\":\"A_net 13.22\",\"inside\":true,\"rect\":[1258,422,1364,451]},{\"text\":\"VWC 42% · O₂ 28%\",\"inside\":true,\"rect\":[1141,627,1287,656]}]"
+    },
+    {
+      "name": "terrarium-not-blank-1440",
+      "pass": true,
+      "detail": "{\"width\":420,\"height\":560,\"distinctColors\":4699,\"meanBrightness\":177.5,\"blackFraction\":0.004,\"pass\":true}"
+    },
+    {
+      "name": "diagnostic-drawer-opens-320",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "shot-diagnostics-drawer-320",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "diagnostic-react-trace-renders-320",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "shot-diagnostics-depth-320",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "diagnostic-panel-opens-1440",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "shot-diagnostics-panel-1440",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "irrigation-node-locked-default",
+      "pass": true,
+      "detail": "aria-label=Precision Leaching Irrigation (locked)"
+    },
+    {
+      "name": "irrigation-lock-modal-shows",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "shot-irrigation-locked-1440",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "quest-modal-opens-1440",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "quest-modal-focus-inside-1440",
+      "pass": true,
+      "detail": "active=BUTTON"
+    },
+    {
+      "name": "quest-modal-esc-closes-1440",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "checkin-credits-growth-points",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "checkin-row-pressed-and-streak-1",
+      "pass": true,
+      "detail": "pressed=true streak1=true"
+    },
+    {
+      "name": "checkin-once-per-day",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "species-switch-keeps-canvas",
+      "pass": true,
+      "detail": "errors=0"
+    },
+    {
+      "name": "select-shows-full-scientific-name-320",
+      "pass": true,
+      "detail": "{\"text\":\"Goeppertia makoyana\",\"textWidth\":175,\"clientWidth\":208,\"available\":184}"
+    },
+    {
+      "name": "diagnostic-slider-recalculates",
+      "pass": true,
+      "detail": "VPD leaf 1.17 kPa -> 0.44 kPa"
+    },
+    {
+      "name": "dark-mode-toggles",
+      "pass": true,
+      "detail": "on=true off=true"
+    },
+    {
+      "name": "reduced-motion-renders",
+      "pass": true,
+      "detail": ""
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# Node / frontend build
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Data / local stores
+*.sqlite
+*.sqlite-journal
+*.db
+
+# Env / secrets (never commit)
+.env
+.env.local
+*.pem
+*.key
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

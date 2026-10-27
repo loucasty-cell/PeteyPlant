@@ -1,0 +1,44 @@
+{
+  "dependencies": {
+    "@fontsource/archivo": "^5.3.0",
+    "@fontsource/fraunces": "^5.3.0",
+    "@fontsource/jetbrains-mono": "^5.2.5",
+    "@react-three/drei": "^10.4.0",
+    "@react-three/fiber": "^9.2.0",
+    "canvas-confetti": "^1.9.3",
+    "framer-motion": "^12.15.0",
+    "lucide-react": "^0.525.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "three": "^0.178.0",
+    "vaul": "^1.1.2",
+    "zustand": "^5.0.5"
+  },
+  "description": "Petey Plant \u2014 gamified indoor plant health and biophysical digital twin. React 19 + TypeScript + React Three Fiber frontend. Offline-first: no runtime CDN, font, or API calls.",
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "@types/three": "^0.178.0",
+    "@vitejs/plugin-react": "^4.4.0",
+    "autoprefixer": "^10.4.20",
+    "playwright": "^1.64.1",
+    "pngjs": "^7.0.0",
+    "postcss": "^8.4.49",
+    "tailwindcss": "^3.4.17",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5"
+  },
+  "name": "petey-plant-frontend-r3f",
+  "private": true,
+  "scripts": {
+    "build": "tsc --noEmit && vite build",
+    "dev": "vite",
+    "preview": "vite preview",
+    "verify:screenshots": "node verification/screenshot.mjs",
+    "verify:contrast": "node verification/contrast.mjs"
+  },
+  "type": "module",
+  "version": "1.0.0"
+}

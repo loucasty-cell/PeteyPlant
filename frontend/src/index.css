@@ -1,0 +1,280 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Petey Plant — herbarium-ledger design tokens.
+ * Light theme: archival paper. Dark theme: moss-black paper.
+ * Signal colours (leaf / amber / danger / water / clay) are identical
+ * in both themes; tints and rules swap via variables.
+ */
+:root {
+  --paper: #f8f5ea;
+  --parchment: #efebdd;
+  --surface: #fffef9;
+  --ink: #181b1f;
+  --inksoft: #4a4d53;
+  --inkfaint: #777a80;
+  --rule: #d0cec7;
+  --rulestrong: #b0aea7;
+  --leaftint: #c0eacd;
+  --ambertint: #fde0b9;
+  --dangersoft: #ffdedb;
+}
+
+.dark {
+  --paper: #1b211d;
+  --parchment: #232c24;
+  --surface: #28332a;
+  --ink: #f2efe3;
+  --inksoft: #b9bdb2;
+  --inkfaint: #8a8f86;
+  --rule: #3a443a;
+  --rulestrong: #4a554a;
+  --leaftint: #1e3a2a;
+  --ambertint: #3a2c12;
+  --dangersoft: #3a1e20;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-paper font-sans text-ink antialiased;
+  }
+
+  ::selection {
+    background-color: #c0eacd;
+    color: #181b1f;
+  }
+
+  :focus-visible {
+    outline: 2px solid #007338;
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  input[type='range'] {
+    accent-color: #007338;
+  }
+}
+
+@layer components {
+  /* ---- Herbarium mount: flat surface, 1.5px structural rule ---- */
+  .ledger-card {
+    background-color: var(--surface);
+    border: 1.5px solid var(--rulestrong);
+    border-radius: 12px;
+  }
+
+  /* ---- Seed-packet buttons: flat fill, 1.5px deep frame, hard
+     offset press shadow. Pressing pushes the packet INTO the paper
+     (translate + shadow collapse) — never a bottom lip band. ---- */
+  .ledger-btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-weight: 700;
+    padding: 12px 16px;
+    border-radius: 8px;
+    border: 1.5px solid transparent;
+    box-shadow: 4px 4px 0 rgb(24 27 31 / 0.16);
+    transform: translate(0, 0);
+    transition:
+      transform 80ms cubic-bezier(0.22, 1, 0.36, 1),
+      box-shadow 80ms cubic-bezier(0.22, 1, 0.36, 1),
+      filter 120ms ease;
+    user-select: none;
+    cursor: pointer;
+  }
+
+  .ledger-btn:hover:not(:disabled) {
+    filter: brightness(1.05);
+  }
+
+  .ledger-btn:active:not(:disabled) {
+    transform: translate(4px, 4px);
+    box-shadow: 0 0 0 rgb(24 27 31 / 0);
+  }
+
+  .ledger-btn:disabled {
+    background-color: var(--parchment);
+    border-color: var(--rule);
+    color: var(--inkfaint);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  /* CONTRAST FIX: fills use the deep variants so white labels clear
+     4.5:1 (leaf was 3.36:1, water was 3.54:1). Bright leaf/water remain
+     for non-text fills (progress bar, status dot) where WCAG text
+     contrast does not apply. */
+  .ledger-btn-leaf {
+    background-color: #007338;
+    border-color: #007338;
+    color: #ffffff;
+  }
+
+  .ledger-btn-water {
+    background-color: #1b6e96;
+    border-color: #1b6e96;
+    color: #ffffff;
+  }
+
+  .ledger-btn-amber {
+    background-color: #da950b;
+    border-color: #a75c00;
+    color: #181b1f;
+  }
+
+  .ledger-btn-danger {
+    background-color: #be222a;
+    border-color: #8e1a20;
+    color: #ffffff;
+  }
+
+  .ledger-btn-ink {
+    background-color: #181b1f;
+    border-color: #181b1f;
+    color: #f8f5ea;
+  }
+
+  .ledger-btn-ghost {
+    background-color: transparent;
+    border-color: var(--rulestrong);
+    color: var(--ink);
+    box-shadow: none;
+  }
+
+  .ledger-btn-ghost:active:not(:disabled) {
+    transform: translate(0, 0);
+  }
+
+  .ledger-btn-sm {
+    padding: 8px 12px;
+  }
+
+  .ledger-btn-paper {
+    background-color: var(--surface);
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+
+  /* ---- Ledger rows (growth-ledger entries): rectangular mounts,
+     parchment on hover, no shadow, no pill shapes ---- */
+  .ledger-row {
+    display: grid;
+    text-align: left;
+    background-color: var(--surface);
+    border: 1.5px solid var(--rulestrong);
+    border-radius: 12px;
+    transition: background-color 120ms ease;
+    cursor: pointer;
+  }
+
+  .ledger-row:hover:not(:disabled) {
+    background-color: var(--parchment);
+  }
+
+  .ledger-row:disabled {
+    cursor: not-allowed;
+    opacity: 0.75;
+  }
+
+  /* ---- Specimen labels: 4px radius, tint wash, mono caption ---- */
+  .ledger-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    border-radius: 4px;
+    border: 1px solid var(--rule);
+    padding: 4px 8px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12.8px;
+    font-weight: 600;
+    line-height: 1.4;
+    /* No nowrap: long tags (e.g. the backend-offline note) must wrap
+       at 320px instead of blowing out the viewport. Short status tags
+       are single words and never wrap in practice. */
+  }
+
+  /* ---- Telemetry: tabular numerals so live numbers never jitter ---- */
+  .telemetry {
+    font-family: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  /* ---- 3D HTML telemetry badges inside the terrarium ---- */
+  .ledger-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    border: 1.5px solid var(--rulestrong);
+    border-radius: 8px;
+    background: var(--surface);
+    padding: 4px 8px;
+    font-family: 'JetBrains Mono', ui-monospace, monospace;
+    font-size: 12.8px;
+    font-weight: 600;
+    color: var(--ink);
+    box-shadow: 2px 2px 0 rgb(24 27 31 / 0.16);
+    pointer-events: none;
+    user-select: none;
+  }
+
+  /* ---- Ledger-rule sliders: 4px track, SQUARE 20px thumb ---- */
+  .ledger-range {
+    width: 100%;
+    appearance: none;
+    height: 4px;
+    border-radius: 4px;
+    background: var(--parchment);
+    border: 1px solid var(--rule);
+    outline-offset: 2px;
+  }
+
+  .ledger-range::-webkit-slider-thumb {
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: #00a159;
+    border: 1.5px solid #007338;
+    cursor: pointer;
+  }
+
+  .ledger-range::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    background: #00a159;
+    border: 1.5px solid #007338;
+    cursor: pointer;
+  }
+
+  /* ---- Ledger progress bars: flat fill, square-ish ends ---- */
+  .ledger-track {
+    background: var(--parchment);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
