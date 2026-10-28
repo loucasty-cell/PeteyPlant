@@ -90,9 +90,9 @@ Point the frontend at a non-default backend with `VITE_API_URL`
 
 ```bash
 cd backend
-../.venv/bin/python -m pytest -q        # 116 tests
+../.venv/bin/python -m pytest -q        # 125 tests
 cd ../frontend
-node scripts/check-contrast.mjs          # WCAG AA contrast audit (must exit 0)
+npm run verify:contrast                 # WCAG AA contrast audit (must exit 0)
 ```
 
 ## API endpoints
@@ -276,15 +276,16 @@ petey-plant/
 │   ├── data/seed_10k_species.py# 79 starter species + 3 demo plants (see scale note)
 │   ├── data_pipeline/          # taxonomy_resolver, async_scrapers,
 │   │                           # muse_extractor, build_knowledge_base
-│   ├── tests/                  # pytest suite (116 tests)
+│   ├── tests/                  # pytest suite (125 tests)
 │   └── requirements.txt
 └── frontend/
-    ├── src/App.jsx             # dashboard, sitter routing, herbarium ledger
-    ├── src/components/         # PeteyRigStage, MoistureVpdChart, LeafScannerModal,
-    │                           # DuolingoGuiltBar, PlantSitterModal, AgentBrainDrawer,
-    │                           # SitterView, Num, XpCounter
-    ├── src/components/ui/      # hand-written shadcn-style primitives
-    ├── src/styles/             # tokens.css (OKLCH system), index.css
-    ├── scripts/check-contrast.mjs
+    ├── src/App.tsx             # dashboard, sitter routing, herbarium ledger
+    ├── src/components/         # TopTelemetryBar, diagnostics/MuseDiagnosticSheet,
+    │                           # ledger/GrowthLedger, three/PeteyTerrariumCanvas
+    ├── src/lib/                # api, biophysicsEngine, diagnosisEvidence
+    ├── src/store/              # usePeteyStore (Zustand)
+    ├── src/types/              # botanical types
+    ├── src/index.css           # OKLCH herbarium-ledger tokens
+    ├── verification/           # Playwright screenshots, report.json, contrast + identity audits
     └── package.json
 ```
