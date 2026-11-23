@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const css = fs.readFileSync(path.join(ROOT, 'src/index.css'), 'utf8');
+const gardenCss = fs.readFileSync(path.join(ROOT, 'src/components/garden/garden.css'), 'utf8');
 
 function lum(hex) {
   const h = hex.replace('#', '');
@@ -36,6 +37,12 @@ function btnFill(cls) {
   return m[1].toLowerCase();
 }
 
+function gardenToken(name) {
+  const color = gardenCss.match(new RegExp('--garden-' + name + ':\\s*(#[0-9a-fA-F]{6})'))?.[1];
+  if (!color) throw new Error('Garden color missing: ' + name);
+  return color;
+}
+
 const PAIRS = [
   // [name, foreground, background]
   ['ink on paper (light)', '#181b1f', '#f8f5ea'],
@@ -52,6 +59,17 @@ const PAIRS = [
   ['paper on ink (btn)', '#f8f5ea', '#181b1f'],
   ['white on leaf button', '#ffffff', btnFill('ledger-btn-leaf')],
   ['white on water button', '#ffffff', btnFill('ledger-btn-water')],
+  ['garden ink on cream', gardenToken('ink'), gardenToken('cream')],
+  ['garden muted on cream', gardenToken('muted'), gardenToken('cream')],
+  ['garden muted on paper', gardenToken('muted'), gardenToken('paper')],
+  ['garden primary button', gardenToken('paper'), gardenToken('green')],
+  ['garden status on sage', gardenToken('ink'), gardenToken('sage')],
+  ['garden hero text', gardenToken('paper'), '#264535'],
+  ['garden hero button', '#213425', gardenToken('gold')],
+  ['plant tool links and secondary buttons', gardenToken('green'), gardenToken('paper')],
+  ['plant tool secondary button hover', gardenToken('green'), gardenToken('sage')],
+  ['plant tool error notice', '#8e2c24', '#f9e7db'],
+  ['lens camera placeholder', gardenToken('paper'), '#153327'],
 ];
 
 let failed = 0;

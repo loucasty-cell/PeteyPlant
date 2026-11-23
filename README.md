@@ -12,6 +12,19 @@ forecasting engine with uncertainty bands and anomaly detection.
 > **Demo plants ship with synthetic history.** The 30-day histories are deterministic
 > synthetic data for demo purposes — not real user watering data.
 
+
+### Living companions, Lens and plant health
+
+Garden companions are live React Three Fiber scenes. Care observations change their expressions, and the plant profile has a short dance interaction with reduced-motion support. Petey Lens opens the camera or gallery, shows the capture for review, and offers manual species search if the released classifier is unavailable. Plant health asks about the leaf and its surroundings and gives source-linked next steps based on the observations.
+
+For Model API wiring see [Lens runtime](backend/LENS.md). For dataset provenance, execution and release metrics see [the offline pipeline guide](backend/lens_pipeline/README.md).
+
+## My garden
+
+The default app opens **My garden**. Add a real plant from the catalog, report a soil check, or log watering. The FastAPI garden stores each plant and its history in SQLite. The browser keeps the key to that local garden. Use **Plant Pals** to browse the eight illustrated companions, and open **Plant Lab** for the original synthetic demo.
+
+The garden labels next-check dates as estimates. Observation-led watering suggestions currently cover Monstera deliciosa and Golden Pothos when the pot has drainage. See [PLANS.md](PLANS.md) for verification and current limits.
+
 ## Honest provider disclosure (read this first)
 
 **No live Muse model call happens in this build.** The backend exposes a configurable
@@ -79,7 +92,7 @@ python3 -m venv ../.venv
 ```bash
 cd frontend
 npm install
-npm run dev      # http://localhost:5173
+npm run dev      # http://localhost:5174
 npm run build    # production build into frontend/dist/
 ```
 
@@ -254,7 +267,7 @@ never downloads weights and never crashes when they are absent.
   by code reading + build, not by a visual browser pass. Spot-check them visually.
 - **Demo history is synthetic** (seeded random walk), including Callie's forced
   low-VPD tail that sustains her brake.
-- **CORS** is restricted to `http://localhost:5173` and `http://localhost:4173`
+- **CORS** is restricted to `http://localhost:5174` and `http://localhost:4174` (with 5173 and 4173 retained for older local setups)
   (Vite dev/preview) by default; set `PETEY_CORS_ORIGINS` (comma-separated) to
   change it.
 - **In-memory stores**: plants, quiz answers, sitter tokens, and evidence bundles

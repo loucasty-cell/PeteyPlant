@@ -29,6 +29,9 @@ from models.schemas import (
     WaterResponse,
 )
 from services import ml_vision
+from services.garden import router as garden_router
+from services.lens import router as lens_router
+from services.plant_health import router as plant_health_router
 from services.muse_agent_harness import run_triage
 from services import timeseries_ml
 from services.tool_registry import ToolRegistryError, get_evidence, list_tools
@@ -45,11 +48,14 @@ from services.timeseries_vpd import (
 # would only widen the attack surface (any site could mutate demo plants).
 _CORS_ORIGINS = [
     o.strip() for o in os.environ.get(
-        "PETEY_CORS_ORIGINS", "http://localhost:5173,http://localhost:4173"
+        "PETEY_CORS_ORIGINS", "http://localhost:5174,http://localhost:4174,http://localhost:5173,http://localhost:4173"
     ).split(",") if o.strip()
 ]
 
 app = FastAPI(title="Petey Plant", version="1.0.0")
+app.include_router(garden_router)
+app.include_router(lens_router)
+app.include_router(plant_health_router)
 app.add_middleware(
     CORSMiddleware, allow_origins=_CORS_ORIGINS, allow_credentials=False,
     allow_methods=["*"], allow_headers=["*"],

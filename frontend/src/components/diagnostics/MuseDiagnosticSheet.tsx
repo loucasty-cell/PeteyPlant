@@ -277,7 +277,11 @@ function ReactTrace({ species, metrics }: { species: SpeciesRecord; metrics: Liv
     let cancelled = false;
     void (async () => {
       const plants = await api.plants();
-      const id = plants?.plants?.[0]?.id;
+      const match = plants?.plants.find((plant) =>
+        species.scientific_name === plant.species_scientific_name
+        || species.scientific_name.startsWith(plant.species_scientific_name + ' '),
+      );
+      const id = match?.id;
       if (!id) {
         if (!cancelled) setSource('local');
         return;
@@ -294,7 +298,7 @@ function ReactTrace({ species, metrics }: { species: SpeciesRecord; metrics: Liv
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [species.scientific_name]);
 
   return (
     <section aria-label="ReAct trace" className="space-y-2">
@@ -330,7 +334,7 @@ function ReactTrace({ species, metrics }: { species: SpeciesRecord; metrics: Liv
       {source === 'local' && (
         <>
           <p className="rounded-lg border-[1.5px] border-amber bg-ambertint p-3 text-body font-bold text-ink">
-            Backend triage unreachable — showing the local engine&apos;s own trace, measured live
+            No backend trace is available for this species — showing the local engine&apos;s own trace, measured live
             from the same functions that render the 3D plant. Same structure, same thresholds.
           </p>
           {localTrace.map((step, i) => (
@@ -581,7 +585,7 @@ function DiagnosticContent() {
 
       <DiagnosisEvidenceWidget species={species} metrics={metrics} />
 
-      <ReactTrace species={species} metrics={metrics} />
+      <ReactTrace key={species.taxon_code} species={species} metrics={metrics} />
 
       {/* APG IV + PlantNet provenance */}
       <section aria-label="Provenance" className="rounded-lg border-[1.5px] border-rule bg-parchment p-3">

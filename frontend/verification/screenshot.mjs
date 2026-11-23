@@ -146,7 +146,7 @@ try {
     // Shell shot on a normal-height page (fullPage capture works).
     {
       const page = await browser.newPage({ viewport: vp });
-      await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${BASE}/?view=lab`, { waitUntil: 'domcontentloaded' });
       await page.waitForSelector('canvas', { timeout: 15000 });
       await page.waitForTimeout(2500);
       await page.screenshot({ path: path.join(OUT, `shell-full-${vp.width}.png`), fullPage: true });
@@ -157,7 +157,7 @@ try {
     // Element shots on a tall-viewport page: everything visible at load,
     // zero scrolling, so the canvas never leaves the viewport.
     const page = await browser.newPage({ viewport: { width: vp.width, height: 2600 } });
-    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${BASE}/?view=lab`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('canvas', { timeout: 15000 });
     await page.waitForTimeout(2500); // let R3F render several frames + fonts settle
 
@@ -210,7 +210,7 @@ try {
   // Diagnostic drawer (mobile 320) via bottom nav.
   {
     const page = await browser.newPage({ viewport: { width: 320, height: 800 } });
-    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${BASE}/?view=lab`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('canvas', { timeout: 15000 });
     await page.waitForTimeout(1500);
     await page.locator('nav[aria-label="Mobile"] button', { hasText: 'Diagnose' }).click();
@@ -245,7 +245,7 @@ try {
   // Diagnostic panel (desktop 1440).
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${BASE}/?view=lab`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('canvas', { timeout: 15000 });
     await page.waitForTimeout(1500);
     await page.getByRole('button', { name: 'Open diagnostic inspector' }).click();
@@ -264,7 +264,7 @@ try {
   // Irrigation node, locked state (default Monstera: trough above critical).
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${BASE}/?view=lab`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('canvas', { timeout: 15000 });
     await page.waitForTimeout(1500);
     const lockButton = page.getByRole('button', { name: /Precision Leaching Irrigation/ });
@@ -287,7 +287,7 @@ try {
   // Quest modal: Escape must close it, and focus must land inside it.
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${BASE}/?view=lab`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('canvas', { timeout: 15000 });
     await page.waitForTimeout(1500);
     await page.getByRole('button', { name: 'Microclimate Check-In' }).click();
@@ -319,7 +319,7 @@ try {
   // Check-in flow: credits +25, grows the streak to 1 day, once per day.
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${BASE}/?view=lab`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('canvas', { timeout: 15000 });
     await page.waitForTimeout(1500);
     await page.getByRole('button', { name: 'Microclimate Check-In' }).click();
@@ -355,7 +355,7 @@ try {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     const pageErrors = [];
     page.on('pageerror', (e) => pageErrors.push(String(e)));
-    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${BASE}/?view=lab`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('canvas', { timeout: 15000 });
     await page.waitForTimeout(1500);
     for (const label of ['Goeppertia makoyana', 'Dracaena trifasciata', 'Ficus lyrata', 'Monstera deliciosa']) {
@@ -376,7 +376,7 @@ try {
   // Native select must show the full scientific name (Goeppertia case).
   {
     const page = await browser.newPage({ viewport: { width: 320, height: 800 } });
-    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${BASE}/?view=lab`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('canvas', { timeout: 15000 });
     await page.waitForTimeout(1500);
     await page.selectOption('#plant-switcher', { label: 'Goeppertia makoyana' });
@@ -398,7 +398,7 @@ try {
   // Diagnostic slider must drive a live recalculation.
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${BASE}/?view=lab`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('canvas', { timeout: 15000 });
     await page.waitForTimeout(1500);
     await page.getByRole('button', { name: 'Open diagnostic inspector' }).click();
@@ -440,7 +440,7 @@ try {
   // Dark mode toggle flips the .dark class both ways.
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
-    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${BASE}/?view=lab`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('canvas', { timeout: 15000 });
     await page.waitForTimeout(1500);
     await page.getByRole('button', { name: 'Switch to dark mode' }).click();
@@ -459,7 +459,7 @@ try {
       viewport: { width: 320, height: 800 },
       reducedMotion: 'reduce',
     });
-    await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' });
+    await page.goto(`${BASE}/?view=lab`, { waitUntil: 'domcontentloaded' });
     const canvasOk = await page.waitForSelector('canvas', { timeout: 15000 })
       .then(() => true).catch(() => false);
     record('reduced-motion-renders', canvasOk);

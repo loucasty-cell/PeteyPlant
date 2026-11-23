@@ -1,0 +1,46 @@
+.pal-stage {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  min-width: 0;
+  background: radial-gradient(ellipse at 51% 32%, #f8ebcf 3%, #e1c5a2 72%, #bd916d);
+  overflow: hidden;
+}
+.pal-stage::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(112deg, transparent 48%, #63432614 49%, #63432614 56%, transparent 57%) center / 38% 100%,
+    linear-gradient(0deg, #9f734a24 0%, #c79e7021 18%, transparent 18.4%);
+  pointer-events: none;
+}
+.pal-stage-shelf { aspect-ratio: 5 / 4; }
+.pal-stage[data-mood="concerned"] { background: radial-gradient(ellipse at 50% 30%, #f7e8c8, #c7af97); }
+.pal-stage[data-mood="happy"] { background: radial-gradient(ellipse at 50% 30%, #f9eec4, #d6b677); }
+.pal-stage .pal-fallback { width: 24%; height: 24%; color: #496449; }
+.garden-app:has(canvas[data-pal-renderer="ready"]) .pal-stage:has(.pal-view) .pal-fallback { visibility: hidden; }
+.pal-view { position: absolute; inset: 0; pointer-events: none; }
+.pal-canvas { position: fixed; inset: 0; z-index: 1; }
+.pal-canvas, .pal-canvas * { pointer-events: none !important; }
+.pal-stage .pal-play {
+  position: absolute;
+  z-index: 2;
+  right: .65rem;
+  bottom: .65rem;
+  display: flex;
+  align-items: center;
+  gap: .38rem;
+  padding: .55rem .78rem;
+  min-height: 44px;
+  border-radius: 3rem;
+  color: #264432;
+  background: #fffcf2;
+  box-shadow: 0 2px 12px #4e37252d;
+  font-size: .88rem;
+  font-weight: 700;
+}
+.garden-app:not(:has(canvas[data-pal-renderer="ready"])) .pal-play { display: none; }
+.pal-stage .pal-play:hover { background: #e7eddc; }
