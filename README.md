@@ -1,27 +1,24 @@
 # Petey Plant 🌱
 
-A Duolingo-style gamified indoor plant pet app — built for the **Meta Global AI Developer Hackathon**.
+**A houseplant care app with living 3D companions.** Add the plants you already own, record what you see, and get a practical next care step. Eight Plant Pals bring those observations to life in React Three Fiber.
 
-Petey turns each plant into a reactive, expressive cartoon pet with HP bars, XP levels,
-streaks, Mulch Shields (streak protection), a Duolingo-style "guilt engine", and a
-deterministic ReAct agent that explains its reasoning step by step. Underneath the pet
-is real plant-care math: Vapor Pressure Deficit (VPD), Penman-Monteith-inspired soil
-moisture decay, a camera EXIF light meter, leaf-lesion analysis, and a time-series
-forecasting engine with uncertainty bands and anomaly detection.
+[Walk through the workflows](docs/WORKFLOWS.md) · [Meet all eight Plant Pals](docs/images/petey-live-plant-pals.png) · [See the mobile garden](docs/images/petey-living-garden-mobile.png)
 
-> **Demo plants ship with synthetic history.** The 30-day histories are deterministic
-> synthetic data for demo purposes — not real user watering data.
+![Petey Plant garden with a live Monstera companion and the Plant Pals shelf](docs/images/petey-living-garden.png)
 
+| Workflow | What you can do today |
+| --- | --- |
+| **My garden** | Save your plants, check the soil, log watering, and see the next estimated check. |
+| **Plant Pals** | Meet eight animated companions. A saved plant's care state changes its expression, and its profile has a dance interaction. |
+| **Petey Lens** | Take or choose a photo, review the capture, and find your species by name. Automatic matching awaits a qualified model. |
+| **Plant Health** | Describe symptoms and conditions for source-linked checks and next steps. |
+| **Plant Lab** | Explore the original Meta Global AI Developer Hackathon demo with synthetic histories and experimental care models. |
 
-### Living companions, Lens and plant health
-
-Garden companions are live React Three Fiber scenes. Care observations change their expressions, and the plant profile has a short dance interaction with reduced-motion support. Petey Lens opens the camera or gallery, shows the capture for review, and offers manual species search if the released classifier is unavailable. Plant health asks about the leaf and its surroundings and gives source-linked next steps based on the observations.
-
-For Model API wiring see [Lens runtime](backend/LENS.md). For dataset provenance, execution and release metrics see [the offline pipeline guide](backend/lens_pipeline/README.md).
+**Lens release status is NO-GO.** See the [flight readiness report](docs/FLIGHT_READINESS_REPORT.md), [JSON telemetry](docs/flight_readiness.json), and [offline evaluation workflow](backend/lens_pipeline/README.md).
 
 ## My garden
 
-The default app opens **My garden**. Add a real plant from the catalog, report a soil check, or log watering. The FastAPI garden stores each plant and its history in SQLite. The browser keeps the key to that local garden. Use **Plant Pals** to browse the eight illustrated companions, and open **Plant Lab** for the original synthetic demo.
+The default app opens **My garden**. Add a real plant from the catalog, report a soil check, or log watering. The FastAPI garden stores each plant and its history in SQLite. The browser keeps the key to that local garden. Use **Plant Pals** to browse the eight animated companions, and open **Plant Lab** for the original synthetic demo.
 
 The garden labels next-check dates as estimates. Observation-led watering suggestions currently cover Monstera deliciosa and Golden Pothos when the pot has drainage. See [PLANS.md](PLANS.md) for verification and current limits.
 
@@ -103,7 +100,7 @@ Point the frontend at a non-default backend with `VITE_API_URL`
 
 ```bash
 cd backend
-../.venv/bin/python -m pytest -q        # 125 tests
+../.venv/bin/python -m pytest -q
 cd ../frontend
 npm run verify:contrast                 # WCAG AA contrast audit (must exit 0)
 ```
@@ -112,6 +109,10 @@ npm run verify:contrast                 # WCAG AA contrast audit (must exit 0)
 
 | Method & path | What it does |
 |---|---|
+| `GET /api/v1/garden/species` | Catalog for adding real garden plants |
+| `GET /api/v1/lens/status` | Availability of the photo matching model |
+| `POST /api/v1/lens/identify` | Identify a reviewed photo with the available Lens model |
+| `POST /api/v1/plant-health/triage` | Source-linked next checks from reported observations |
 | `GET /health` | Service + provider/fallback telemetry |
 | `GET /api/v1/species?q=` | Search the 79-record species index (empty `q` returns all) |
 | `GET /api/v1/plants` | All demo plants with full state + 30-day history |
@@ -289,7 +290,7 @@ petey-plant/
 │   ├── data/seed_10k_species.py# 79 starter species + 3 demo plants (see scale note)
 │   ├── data_pipeline/          # taxonomy_resolver, async_scrapers,
 │   │                           # muse_extractor, build_knowledge_base
-│   ├── tests/                  # pytest suite (125 tests)
+│   ├── tests/                  # pytest suite
 │   └── requirements.txt
 └── frontend/
     ├── src/App.tsx             # dashboard, sitter routing, herbarium ledger

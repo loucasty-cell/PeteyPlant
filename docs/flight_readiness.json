@@ -1,0 +1,507 @@
+{
+  "care_fixture_rates": {
+    "harmful_advice_in_wet_cases": 0.0,
+    "soil_check_in_ambiguous_cases": 1.0
+  },
+  "flight_status": "NO-GO",
+  "representative_provenance_declared": false,
+  "provenance": {},
+  "software_notes": [
+    "357 integrated backend tests passed. Frontend production build passed. All 25 automated contrast pairs passed.",
+    "Edge verified the Garden and Petey Lens journeys, click-through, eight live Three.js companions, idle motion, profile dance and reduced motion. The camera used browser test media. Candidate comparison used fixtures.",
+    "The 126 deterministic plant-health cases include 36 wet-soil cases and 30 ambiguous unknown-soil cases. Garden schedule fixtures cover inconsistent, missed, stale and repeated moist checks. A Bayesian winter-temperature model was not exercised.",
+    "One community ONNX candidate ran on one licensed Monstera photo and one synthetic gray control. The gray input ranked Aloe Vera first. Direct model label coverage was three of eight launch species.",
+    "Candidate CPU measurement across 35 repeated decode-to-logit calls after three warmups yielded P50 854.0 ms, P95 1319.0 ms and P99 1510.2 ms. P95 exceeded the 450 ms goal and the 900 ms hard-abort boundary for this candidate. These repeats do not estimate accuracy or qualify a release.",
+    "Public Mendeley V2 metadata verifies a CC BY 4.0 deposit and 787 photos but does not identify independent physical plants per photo. No reviewed indoor holdout or approved release artifact was available.",
+    "Collect independent multi-view groups for each of the eight launch species and recruit a separate household or nursery source before measuring accuracy. Prioritize confirmed pest and spot examples, healthy variegated specimens, warm indoor light captures, and non-plant scenes. No empirical class confidence interval exists to rank priorities statistically."
+  ],
+  "stage_evidence": {
+    "0": "Grouped five-fold symptom probe and held-source runner passed synthetic preflight. A real community ONNX species candidate ran for execution smoke only. No representative comparison or cluster interval.",
+    "1": "Blocked by absence of an independently grouped indoor corpus for supervised fine-tuning and a qualified baseline.",
+    "2": "Offline perturbation and leakage tools passed synthetic tests. No model comparison or hard-negative mining run.",
+    "3": "No fine-tuned weights, OOD comparison, or ensemble promotion result.",
+    "4": "Species and symptom calibration and split conformal helpers are implemented. Software checks use fixtures. No representative OOF calibration or holdout score is available."
+  },
+  "suites": [
+    {
+      "number": 1,
+      "name": "Data integrity and leakage",
+      "status": "INCOMPLETE"
+    },
+    {
+      "number": 2,
+      "name": "Image perturbations",
+      "status": "INCOMPLETE"
+    },
+    {
+      "number": 3,
+      "name": "Domain shift and shortcuts",
+      "status": "INCOMPLETE"
+    },
+    {
+      "number": 4,
+      "name": "Non-plant rejection",
+      "status": "INCOMPLETE"
+    },
+    {
+      "number": 5,
+      "name": "Statistical rigor and calibration",
+      "status": "INCOMPLETE"
+    },
+    {
+      "number": 6,
+      "name": "Care failure modes",
+      "status": "INCOMPLETE"
+    },
+    {
+      "number": 7,
+      "name": "Hardware and production parity",
+      "status": "INCOMPLETE"
+    }
+  ],
+  "gates": [
+    {
+      "suite": 1,
+      "metric": "shared_image_hashes",
+      "description": "Shared image hashes",
+      "value": null,
+      "comparison": "=",
+      "target": 0,
+      "unit": "count",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 1,
+      "metric": "shared_plant_ids",
+      "description": "Shared plant-instance IDs",
+      "value": null,
+      "comparison": "=",
+      "target": 0,
+      "unit": "count",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 1,
+      "metric": "shared_cluster_ids",
+      "description": "Shared duplicate-cluster IDs",
+      "value": null,
+      "comparison": "=",
+      "target": 0,
+      "unit": "count",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 1,
+      "metric": "near_duplicate_test_fraction",
+      "description": "Near-duplicate test images",
+      "value": null,
+      "comparison": "≤",
+      "target": 0.01,
+      "unit": "fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 2,
+      "metric": "warm_light_relative_map_drop",
+      "description": "Relative Macro-mAP drop under warm light",
+      "value": null,
+      "comparison": "<",
+      "target": 0.05,
+      "unit": "signed fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 2,
+      "metric": "perturbation_sweep_complete",
+      "description": "All specified perturbations evaluated",
+      "value": null,
+      "comparison": "=",
+      "target": true,
+      "unit": "proof",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 3,
+      "metric": "variegated_chlorosis_fp_fraction",
+      "description": "Variegated healthy chlorosis false positives",
+      "value": null,
+      "comparison": "<",
+      "target": 0.08,
+      "unit": "fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 3,
+      "metric": "background_map_delta",
+      "description": "Background-only Macro-mAP above prevalence",
+      "value": null,
+      "comparison": "≤",
+      "target": 0.08,
+      "unit": "signed fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 3,
+      "metric": "source_and_species_holdout_complete",
+      "description": "Source and species holdout comparisons",
+      "value": null,
+      "comparison": "=",
+      "target": true,
+      "unit": "proof",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 4,
+      "metric": "ood_negative_count",
+      "description": "Non-plant negative images",
+      "value": null,
+      "comparison": "≥",
+      "target": 300,
+      "unit": "count",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 4,
+      "metric": "ood_fpr_at_95_tpr",
+      "description": "OOD false positives at 95% plant recall",
+      "value": null,
+      "comparison": "<",
+      "target": 0.05,
+      "unit": "fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 4,
+      "metric": "ood_auroc",
+      "description": "OOD AUROC measured",
+      "value": null,
+      "comparison": "≥",
+      "target": 0,
+      "unit": "fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 4,
+      "metric": "ood_average_precision",
+      "description": "OOD AUPR measured",
+      "value": null,
+      "comparison": "≥",
+      "target": 0,
+      "unit": "fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 5,
+      "metric": "accepted_precision",
+      "description": "Precision on accepted predictions",
+      "value": null,
+      "comparison": "≥",
+      "target": 0.98,
+      "unit": "fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 5,
+      "metric": "accepted_coverage",
+      "description": "Coverage at the same operating point",
+      "value": null,
+      "comparison": "≥",
+      "target": 0.8,
+      "unit": "fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 5,
+      "metric": "frozen_probe_map_gain",
+      "description": "Macro-mAP gain over frozen probe",
+      "value": null,
+      "comparison": ">",
+      "target": 0,
+      "unit": "signed fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 5,
+      "metric": "frozen_probe_map_delta_ci95_lower",
+      "description": "Lower 95% CI bound of Macro-mAP gain over frozen probe",
+      "value": null,
+      "comparison": ">",
+      "target": 0,
+      "unit": "signed fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 5,
+      "metric": "pests_f2",
+      "description": "Pest signs F2",
+      "value": null,
+      "comparison": "≥",
+      "target": 0.85,
+      "unit": "fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 5,
+      "metric": "spots_f2",
+      "description": "Leaf spots and lesions F2",
+      "value": null,
+      "comparison": "≥",
+      "target": 0.85,
+      "unit": "fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 5,
+      "metric": "post_scaling_ece",
+      "description": "Post-scaling ECE, 15 bins",
+      "value": null,
+      "comparison": "<",
+      "target": 0.04,
+      "unit": "fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 5,
+      "metric": "full_statistical_audit_complete",
+      "description": "Cluster CIs, reliability and conformal audit",
+      "value": null,
+      "comparison": "=",
+      "target": true,
+      "unit": "proof",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 6,
+      "metric": "care_fmea_cases",
+      "description": "Deterministic care scenarios run",
+      "value": 126,
+      "comparison": "≥",
+      "target": 50,
+      "unit": "count",
+      "evidence_scope": "software fixtures",
+      "status": "PASS",
+      "hard_abort": null
+    },
+    {
+      "suite": 6,
+      "metric": "care_wet_cases",
+      "description": "Wet-soil cases observed",
+      "value": 36,
+      "comparison": ">",
+      "target": 0,
+      "unit": "count",
+      "evidence_scope": "software fixtures",
+      "status": "PASS",
+      "hard_abort": null
+    },
+    {
+      "suite": 6,
+      "metric": "care_harmful_advice_cases",
+      "description": "Wet-soil harmful advice cases",
+      "value": 0,
+      "comparison": "=",
+      "target": 0,
+      "unit": "count",
+      "evidence_scope": "software fixtures",
+      "status": "PASS",
+      "hard_abort": false
+    },
+    {
+      "suite": 6,
+      "metric": "care_ambiguous_cases",
+      "description": "Ambiguous unknown-soil cases observed",
+      "value": 30,
+      "comparison": ">",
+      "target": 0,
+      "unit": "count",
+      "evidence_scope": "software fixtures",
+      "status": "PASS",
+      "hard_abort": null
+    },
+    {
+      "suite": 6,
+      "metric": "care_missing_soil_check_cases",
+      "description": "Ambiguous cases missing a soil check",
+      "value": 0,
+      "comparison": "=",
+      "target": 0,
+      "unit": "count",
+      "evidence_scope": "software fixtures",
+      "status": "PASS",
+      "hard_abort": null
+    },
+    {
+      "suite": 6,
+      "metric": "dry_down_stressor_complete",
+      "description": "Dry-down adversarial and winter tests",
+      "value": null,
+      "comparison": "=",
+      "target": true,
+      "unit": "proof",
+      "evidence_scope": "software fixtures",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 7,
+      "metric": "gpu_p95_ms",
+      "description": "GPU P95 latency",
+      "value": null,
+      "comparison": "<",
+      "target": 120,
+      "unit": "ms",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 7,
+      "metric": "cpu_p95_ms",
+      "description": "CPU P95 latency",
+      "value": 1319,
+      "comparison": "<",
+      "target": 450,
+      "unit": "ms",
+      "evidence_scope": "unqualified run",
+      "status": "UNQUALIFIED",
+      "hard_abort": null
+    },
+    {
+      "suite": 7,
+      "metric": "peak_vram_gb",
+      "description": "Peak VRAM",
+      "value": null,
+      "comparison": "<",
+      "target": 3.5,
+      "unit": "GB",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 7,
+      "metric": "oom_count",
+      "description": "Out of memory failures",
+      "value": null,
+      "comparison": "=",
+      "target": 0,
+      "unit": "count",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 7,
+      "metric": "onnx_max_abs_logit_diff",
+      "description": "ONNX maximum absolute logit difference",
+      "value": null,
+      "comparison": "<",
+      "target": 0.001,
+      "unit": "number",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 7,
+      "metric": "onnx_top_class_agreement",
+      "description": "ONNX top-class agreement",
+      "value": null,
+      "comparison": ">",
+      "target": 0.999,
+      "unit": "fraction",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 7,
+      "metric": "repeat_max_abs_difference",
+      "description": "Independent-repeat maximum difference",
+      "value": null,
+      "comparison": "<",
+      "target": 1e-06,
+      "unit": "number",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    },
+    {
+      "suite": 7,
+      "metric": "hardware_profile_complete",
+      "description": "CPU and GPU single and batch hardware profile",
+      "value": null,
+      "comparison": "=",
+      "target": true,
+      "unit": "proof",
+      "evidence_scope": "representative evidence required",
+      "status": "UNAVAILABLE",
+      "hard_abort": null
+    }
+  ],
+  "per_symptom": {
+    "healthy": null,
+    "chlorosis_yellowing": null,
+    "necrosis_brown_tips_edges": null,
+    "spots_lesions_rot": null,
+    "wilting_turgor_loss": null,
+    "pest_damage_signs": null,
+    "etiolation_light_stress": null,
+    "mechanical_or_senescence": null
+  },
+  "risk_coverage": {
+    "60": null,
+    "70": null,
+    "80": null,
+    "90": null,
+    "100": null
+  },
+  "details": {
+    "worst_errors": null,
+    "hardware": null,
+    "data_priorities": null
+  },
+  "evidence_file_sha256": "884a9e25e7c476a94a299ea85ae0c16c40bdd1ee38a00a6ee07a59abcad1d8b2"
+}
