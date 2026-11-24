@@ -1,27 +1,83 @@
-import { useCallback, useEffect, useRef, useState, type ChangeEvent } from 'react';
-import { ArrowLeft, ArrowRight, Camera, ImagePlus, Leaf, ScanLine, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react';
+import {
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  Camera,
+  Check,
+  ImagePlus,
+  RefreshCw,
+  RotateCcw,
+  RotateCw,
+  ScanLine,
+  SwitchCamera,
+  X,
+} from 'lucide-react';
 import type { GardenSpecies } from '../../lib/gardenApi';
-import { plantToolsApi, type LensCandidate, type LensCapability, type LensResult } from '../../lib/plantToolsApi';
+import {
+  plantToolsApi,
+  type LensCandidate,
+  type LensCapability,
+  type LensResult,
+} from '../../lib/plantToolsApi';
 import { encodeLensPhoto, photoFormats, prepareLensUpload } from './lensPhoto';
 import { lensTraits } from './lensTraits';
-import { pals, Portrait } from './PlantPalsArt';
+import { InteractivePlantStage } from './InteractivePlantStage';
+import { BotanicalThumbnail } from '../../lib/three/BotanicalThumbnails';
+import { resolveSpeciesAsset } from '../../lib/three/speciesAssetRegistry';
+import { WEATHER_THEMES } from '../../lib/weatherService';
 
-type Stage = 'welcome' | 'camera' | 'review' | 'identifying' | 'result' | 'compare' | 'confirmed';
+/**
+ * Explicit Petey Lens state machine covering happy path and every error/fallback branch.
+ */
+export type LensState =
+  | 'idle'
+  | 'requesting_permission'
+  | 'camera_ready'
+  | 'capture'
+  | 'preview'
+  | 'submit'
+  | 'processing'
+  | 'response'
+  | 'compare'
+  | 'user_confirmation'
+  | 'garden_addition'
+  | 'permission_denied'
+  | 'camera_unavailable'
+  | 'offline_error';
 
-function cameraError(error: unknown) {
+function classifyCameraError(error: unknown): { state: LensState; message: string } {
   if (error instanceof DOMException) {
-    if (error.name === 'NotAllowedError') return 'Camera access was blocked. Check your browser permissions or choose a photo.';
-    if (error.name === 'NotFoundError') return 'Petey couldn’t find a camera. Choose a photo instead.';
-    if (error.name === 'NotReadableError') return 'The camera may be in use. Close other camera apps or choose a photo.';
+    if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+      return {
+        state: 'permission_denied',
+        message: 'Camera access was blocked in your browser. Allow camera permission in browser settings, choose a photo from your library, or search by name.',
+      };
+    }
+    if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+      return {
+        state: 'camera_unavailable',
+        message: 'No camera was found on this device. Choose a photo from your library or search by plant name instead.',
+      };
+    }
+    if (error.name === 'NotReadableError' || error.name === 'TrackStartError') {
+      return {
+        state: 'camera_unavailable',
+        message: 'The camera appears to be in use by another app. Close other camera apps or choose a photo instead.',
+      };
+    }
   }
-  return 'The camera couldn’t start. Try again or choose a photo.';
+  return {
+    state: 'camera_unavailable',
+    message: 'The camera could not start. Try again, choose a photo from your library, or search by name.',
+  };
 }
 
 function candidateName(candidate: LensCandidate) {
   return candidate.common_name ?? candidate.scientific_name ?? candidate.original_label;
 }
 
-function useLensPreview(photo: Blob | null) {
+function useLensPreviewUrl(photo: Blob | null) {
   const [url, setUrl] = useState('');
   useEffect(() => {
     if (!photo) {
@@ -35,201 +91,269 @@ function useLensPreview(photo: Blob | null) {
   return url;
 }
 
-export default function PeteyLens({ catalog, onBack, onManual, onAdd }: {
+export default function PeteyLens({
+  catalog,
+  onBack,
+  onManual,
+  onAdd,
+  reducedMotion = false,
+}: {
   catalog: GardenSpecies[];
   onBack: () => void;
   onManual: () => void;
   onAdd: (species: string) => void;
+  reducedMotion?: boolean;
 }) {
-  const [stage, setStage] = useState<Stage>('welcome');
+  const [lensState, setLensState] = useState<LensState>('idle');
   const [capability, setCapability] = useState<LensCapability | null>(null);
   const [statusRetry, setStatusRetry] = useState(0);
   const [statusFailed, setStatusFailed] = useState(false);
+
   const [photo, setPhoto] = useState<Blob | null>(null);
   const [photoSource, setPhotoSource] = useState<'camera' | 'gallery'>('gallery');
+  const [facingMode, setFacingMode] = useState<'environment' | 'user'>('environment');
+  const [canSwitchCamera, setCanSwitchCamera] = useState(false);
+
   const [result, setResult] = useState<LensResult | null>(null);
   const [confirmed, setConfirmed] = useState<LensCandidate | null>(null);
   const [error, setError] = useState('');
   const [preparing, setPreparing] = useState(false);
-  const [cameraStarting, setCameraStarting] = useState(false);
-  const [cameraReady, setCameraReady] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const camera = useRef<MediaStream | null>(null);
-  const work = useRef(0);
-  const scan = useRef<AbortController | null>(null);
-  const picker = useRef<HTMLInputElement>(null);
-  const video = useRef<HTMLVideoElement>(null);
-  const heading = useRef<HTMLHeadingElement>(null);
-  const previousStage = useRef<Stage>('welcome');
-  const activeStage = useRef<Stage>('welcome');
-  const preview = useLensPreview(photo);
+  const [orbitCommand, setOrbitCommand] = useState<{ seq: number; action: 'left' | 'right' | 'reset' }>({
+    seq: 0,
+    action: 'reset',
+  });
+  const [previewPlay, setPreviewPlay] = useState(0);
+
+  const cameraRef = useRef<MediaStream | null>(null);
+  const workRef = useRef(0);
+  const scanRef = useRef<AbortController | null>(null);
+  const pickerRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  const activeStateRef = useRef<LensState>('idle');
+  const previewUrl = useLensPreviewUrl(photo);
 
   const stopCamera = useCallback(() => {
-    camera.current?.getTracks().forEach((track) => track.stop());
-    camera.current = null;
+    cameraRef.current?.getTracks().forEach((track) => track.stop());
+    cameraRef.current = null;
+    setStream(null);
   }, []);
 
-  function changeStage(next: Stage) {
-    activeStage.current = next;
-    work.current += 1;
-    stopCamera();
-    setStream(null);
-    setCameraStarting(false);
-    setCameraReady(false);
-    setPreparing(false);
-    setError('');
-    setStage(next);
-  }
+  const transitionTo = useCallback(
+    (next: LensState, keepError = false) => {
+      activeStateRef.current = next;
+      workRef.current += 1;
+      if (next !== 'camera_ready' && next !== 'requesting_permission' && next !== 'capture') {
+        stopCamera();
+      }
+      setPreparing(false);
+      if (!keepError) setError('');
+      setLensState(next);
+    },
+    [stopCamera],
+  );
 
+  // Query backend identification capability (honest backend source of truth)
   useEffect(() => {
     const controller = new AbortController();
-    plantToolsApi.lensStatus(AbortSignal.any([controller.signal, AbortSignal.timeout(8_000)]))
+    plantToolsApi
+      .lensStatus(AbortSignal.any([controller.signal, AbortSignal.timeout(6_000)]))
       .then((status) => {
-        if (!controller.signal.aborted) setCapability(status);
+        if (!controller.signal.aborted) {
+          setCapability(status);
+          setStatusFailed(false);
+        }
       })
       .catch(() => {
-        if (!controller.signal.aborted) setStatusFailed(true);
+        if (!controller.signal.aborted) {
+          setStatusFailed(true);
+        }
       });
     return () => controller.abort();
   }, [statusRetry]);
 
+  // Detect multiple video input devices for optional camera flip control
+  useEffect(() => {
+    if (!navigator.mediaDevices?.enumerateDevices) return;
+    void navigator.mediaDevices
+      .enumerateDevices()
+      .then((devices) => {
+        const cameras = devices.filter((d) => d.kind === 'videoinput');
+        setCanSwitchCamera(cameras.length > 1);
+      })
+      .catch(() => setCanSwitchCamera(false));
+  }, []);
+
+  // Guarantee camera release on background tab, pagehide, or unmount
   useEffect(() => {
     function releaseHiddenCamera() {
-      if (!document.hidden || activeStage.current !== 'camera') return;
-      activeStage.current = 'welcome';
-      work.current += 1;
-      stopCamera();
-      setStream(null);
-      setCameraStarting(false);
-      setCameraReady(false);
-      setPreparing(false);
-      setStage('welcome');
-      setError('The camera closed while Petey was in the background.');
+      if (!document.hidden) return;
+      if (activeStateRef.current === 'camera_ready' || activeStateRef.current === 'requesting_permission') {
+        stopCamera();
+        activeStateRef.current = 'idle';
+        workRef.current += 1;
+        setLensState('idle');
+        setError('Camera paused while Petey Plant was in the background.');
+      }
     }
     window.addEventListener('pagehide', stopCamera);
     document.addEventListener('visibilitychange', releaseHiddenCamera);
     return () => {
       window.removeEventListener('pagehide', stopCamera);
       document.removeEventListener('visibilitychange', releaseHiddenCamera);
-      work.current += 1;
+      workRef.current += 1;
       stopCamera();
-      scan.current?.abort();
+      scanRef.current?.abort();
     };
   }, [stopCamera]);
 
+  // Focus management on major stage transitions
   useEffect(() => {
-    if (previousStage.current === stage) return;
-    previousStage.current = stage;
-    heading.current?.focus();
-    window.scrollTo(0, 0);
-  }, [stage]);
+    headingRef.current?.focus();
+  }, [lensState]);
 
+  // Bind MediaStream to <video> element and listen for unexpected track termination
   useEffect(() => {
-    if (!stream || !video.current) return;
-    const node = video.current;
+    if (!stream || !videoRef.current) return;
+    const node = videoRef.current;
     const track = stream.getVideoTracks()[0];
     let active = true;
-    function interrupted() {
+
+    function handleInterrupted() {
       if (!active) return;
       stopCamera();
-      setStream(null);
-      setCameraReady(false);
-      setError('The camera was interrupted. Open it again or choose a photo.');
+      setLensState('camera_unavailable');
+      setError('The camera feed was interrupted. Reopen the camera or choose a photo instead.');
     }
-    track?.addEventListener('ended', interrupted);
+
+    track?.addEventListener('ended', handleInterrupted);
     node.srcObject = stream;
-    void node.play().catch(interrupted);
+    void node.play().catch(handleInterrupted);
+
     return () => {
       active = false;
-      track?.removeEventListener('ended', interrupted);
+      track?.removeEventListener('ended', handleInterrupted);
       node.srcObject = null;
     };
   }, [stream, stopCamera]);
 
-  async function openCamera() {
-    changeStage('camera');
-    const operation = work.current;
+  async function openCamera(requestedFacing: 'environment' | 'user' = facingMode) {
+    stopCamera();
     setPhoto(null);
+    setError('');
+    setFacingMode(requestedFacing);
+    activeStateRef.current = 'requesting_permission';
+    setLensState('requesting_permission');
+    const operation = ++workRef.current;
+
     if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
-      setError('Your browser needs a secure connection for camera access. Choose a photo instead.');
+      setLensState('camera_unavailable');
+      setError('Camera access requires a secure browser context (HTTPS). Choose a photo from your library instead.');
       return;
     }
-    setCameraStarting(true);
+
     try {
       const opened = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+        video: {
+          facingMode: { ideal: requestedFacing },
+          width: { ideal: 1920 },
+          height: { ideal: 1080 },
+        },
         audio: false,
       });
-      if (operation !== work.current || document.hidden) {
+
+      if (operation !== workRef.current || document.hidden) {
         opened.getTracks().forEach((track) => track.stop());
-        if (operation === work.current) setError('The camera closed while Petey was in the background.');
+        if (operation === workRef.current) {
+          setLensState('idle');
+          setError('Camera closed while Petey Plant was in the background.');
+        }
         return;
       }
-      camera.current = opened;
+
+      cameraRef.current = opened;
       setStream(opened);
+      activeStateRef.current = 'camera_ready';
+      setLensState('camera_ready');
     } catch (failure) {
-      if (operation === work.current) setError(cameraError(failure));
-    } finally {
-      if (operation === work.current) setCameraStarting(false);
+      if (operation !== workRef.current) return;
+      const classified = classifyCameraError(failure);
+      activeStateRef.current = classified.state;
+      setLensState(classified.state);
+      setError(classified.message);
     }
   }
 
-  async function capture() {
-    const node = video.current;
-    if (!node?.videoWidth || !cameraReady || preparing) return;
-    const operation = ++work.current;
+  async function captureFrame() {
+    const node = videoRef.current;
+    if (!node?.videoWidth || lensState !== 'camera_ready' || preparing) return;
+    const operation = ++workRef.current;
     setPreparing(true);
+    setLensState('capture');
     setError('');
     try {
       const captured = await encodeLensPhoto(node, node.videoWidth, node.videoHeight);
-      if (operation !== work.current) return;
-      changeStage('review');
+      if (operation !== workRef.current) return;
+      stopCamera();
       setPhotoSource('camera');
       setPhoto(captured);
+      activeStateRef.current = 'preview';
+      setLensState('preview');
     } catch (failure) {
-      if (operation === work.current) setError(failure instanceof Error ? failure.message : 'Petey couldn’t capture that frame.');
+      if (operation === workRef.current) {
+        activeStateRef.current = 'camera_ready';
+        setLensState('camera_ready');
+        setError(failure instanceof Error ? failure.message : 'Petey could not capture that frame. Try again.');
+      }
     } finally {
-      if (operation === work.current) setPreparing(false);
+      if (operation === workRef.current) setPreparing(false);
     }
   }
 
-  async function selectPhoto(event: ChangeEvent<HTMLInputElement>) {
+  async function selectLibraryPhoto(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file) return;
-    const operation = ++work.current;
+    const operation = ++workRef.current;
     stopCamera();
-    setStream(null);
-    setCameraReady(false);
-    setCameraStarting(false);
     setPreparing(true);
     setError('');
     try {
       const prepared = await prepareLensUpload(file);
-      if (operation !== work.current) return;
-      changeStage('review');
+      if (operation !== workRef.current) return;
       setPhotoSource('gallery');
       setPhoto(prepared);
+      activeStateRef.current = 'preview';
+      setLensState('preview');
     } catch (failure) {
-      if (operation === work.current) setError(failure instanceof Error ? failure.message : 'Petey couldn’t open that photo.');
+      if (operation === workRef.current) {
+        setError(failure instanceof Error ? failure.message : 'Petey could not open that photo. Choose a JPEG, PNG, or WebP image.');
+      }
     } finally {
-      if (operation === work.current) setPreparing(false);
+      if (operation === workRef.current) setPreparing(false);
     }
   }
 
-  function refreshStatus() {
+  function refreshCapability() {
     setCapability(null);
     setStatusFailed(false);
-    setStatusRetry((attempt) => attempt + 1);
+    setStatusRetry((n) => n + 1);
   }
 
-  async function identify() {
-    if (!photo || scan.current || capability?.status !== 'available') return;
+  async function submitForIdentification() {
+    if (!photo || scanRef.current || capability?.status !== 'available') return;
     const request = new AbortController();
-    scan.current = request;
-    changeStage('identifying');
+    scanRef.current = request;
+    transitionTo('submit');
+    activeStateRef.current = 'processing';
+    setLensState('processing');
+
     try {
-      const answer = await plantToolsApi.identify(photo, AbortSignal.any([request.signal, AbortSignal.timeout(25_000)]));
+      const answer = await plantToolsApi.identify(
+        photo,
+        AbortSignal.any([request.signal, AbortSignal.timeout(25_000)]),
+      );
       if (request.signal.aborted) return;
       setResult(answer);
       setPhoto(null);
@@ -241,176 +365,612 @@ export default function PeteyLens({ catalog, onBack, onManual, onAdd }: {
           taxonomy_version: answer.taxonomy_version,
         });
       }
-      changeStage('result');
+      transitionTo('response');
     } catch (failure) {
       if (request.signal.aborted) return;
-      changeStage('review');
-      setError(failure instanceof DOMException && failure.name === 'TimeoutError'
-        ? 'Identification took too long. Try the same photo again.'
-        : failure instanceof TypeError ? 'Petey couldn’t reach identification. Check your connection and try again.'
-        : failure instanceof Error ? failure.message : 'Identification failed. Try again.');
+      const isOffline =
+        failure instanceof TypeError ||
+        (typeof navigator !== 'undefined' && navigator.onLine === false);
+      if (isOffline) {
+        setError('Petey couldn’t reach the plant identification service. Check your connection or search manually by species name.');
+        transitionTo('offline_error', true);
+      } else {
+        setError(
+          failure instanceof DOMException && failure.name === 'TimeoutError'
+            ? 'Identification timed out. Try submitting the same photo again.'
+            : failure instanceof Error
+              ? failure.message
+              : 'Identification could not be completed. Try again.',
+        );
+        transitionTo('preview', true);
+      }
     } finally {
-      if (scan.current === request) scan.current = null;
+      if (scanRef.current === request) scanRef.current = null;
     }
   }
 
-  function cancelScan() {
-    scan.current?.abort();
-    scan.current = null;
-    changeStage('review');
+  function cancelProcessing() {
+    scanRef.current?.abort();
+    scanRef.current = null;
+    transitionTo('preview');
   }
 
-  function startOver() {
+  function resetToStart() {
+    scanRef.current?.abort();
+    scanRef.current = null;
     setPhoto(null);
     setResult(null);
     setConfirmed(null);
-    changeStage('welcome');
+    transitionTo('idle');
   }
 
   const candidates = result?.candidates.slice(0, 3) ?? [];
-  const canCompare = candidates.filter((candidate) => candidate.species_key && lensTraits[candidate.species_key]).length >= 2;
-  const anotherPhoto = result?.status === 'need_another_photo' || result?.another_photo_recommended;
-  const displayMatch = result?.status !== 'unavailable' && candidates.length > 0;
-  const match = confirmed && catalog.find((species) => species.id === confirmed.species_key);
-  const pal = match && pals.find((item) => item.id === match.id);
-  const statusMessage = capability?.status === 'unavailable'
-    ? capability.message
-    : statusFailed ? 'Petey couldn’t check whether identification is available.' : null;
-  const titles = {
-    welcome: 'Meet your plant.',
-    camera: 'Take a plant photo.',
-    review: 'Review your photo.',
-    identifying: 'Looking for matches…',
-    result: displayMatch ? 'Possible matches.' : anotherPhoto ? 'Try a clearer angle.' : 'Photo identification unavailable.',
-    compare: 'Compare your matches.',
-    confirmed: 'You picked a match.',
+  const canCompare =
+    candidates.filter((candidate) => candidate.species_key && lensTraits[candidate.species_key]).length >= 2;
+  const needsAnotherPhoto =
+    result?.status === 'need_another_photo' || Boolean(result?.another_photo_recommended);
+  const hasCandidates = result?.status !== 'unavailable' && candidates.length > 0;
+  const confirmedSpecies = confirmed
+    ? catalog.find((species) => species.id === confirmed.species_key) ?? null
+    : null;
+  const resolvedPreviewAsset = useMemo(
+    () => (confirmedSpecies ? resolveSpeciesAsset(confirmedSpecies.id) : null),
+    [confirmedSpecies],
+  );
+
+  const statusNotice =
+    capability?.status === 'unavailable'
+      ? capability.message
+      : statusFailed
+        ? 'Could not reach the backend identification service. You can still frame/test photos or search manually by species name.'
+        : null;
+
+  const titles: Record<LensState, string> = {
+    idle: 'Identify a plant',
+    requesting_permission: 'Starting camera…',
+    camera_ready: 'Frame your plant',
+    capture: 'Capturing frame…',
+    preview: 'Review your photo',
+    submit: 'Sending photo…',
+    processing: 'Checking possible matches…',
+    response: hasCandidates
+      ? 'Possible species matches'
+      : needsAnotherPhoto
+        ? 'Try a clearer photo'
+        : 'Identification unavailable',
+    compare: 'Compare botanical traits',
+    user_confirmation: 'Confirm your companion',
+    garden_addition: 'Opening plant setup…',
+    permission_denied: 'Camera permission needed',
+    camera_unavailable: 'Camera unavailable',
+    offline_error: 'Identification offline',
   };
 
-  return <section className="garden-inner garden-tool" aria-labelledby="lens-title">
-    <button type="button" className="garden-back" onClick={stage === 'compare' || stage === 'confirmed'
-      ? () => changeStage('result') : stage === 'identifying' ? cancelScan : stage === 'welcome' ? onBack : startOver}>
-      <ArrowLeft />{stage === 'welcome' ? 'My garden' : stage === 'compare' || stage === 'confirmed' ? 'Possible matches' : stage === 'identifying' ? 'Cancel scan' : 'Back to Petey Lens'}
-    </button>
-    <header className="garden-tool-heading">
-      <span className="garden-kicker"><ScanLine /> Petey Lens</span>
-      <h1 id="lens-title" ref={heading} tabIndex={-1}>{titles[stage]}</h1>
-      {stage === 'welcome' && <p className="garden-lede">Take a photo to look for possible species matches.</p>}
-    </header>
-    <input ref={picker} type="file" accept={photoFormats.join(',')} onChange={(event) => void selectPhoto(event)} hidden />
-    {error && <p className="garden-tool-notice garden-error" role="alert">{error}</p>}
+  const isCameraSurface =
+    lensState === 'requesting_permission' ||
+    lensState === 'camera_ready' ||
+    lensState === 'capture';
 
-    {stage === 'welcome' && <div className="garden-tool-grid">
-      <section className="garden-panel garden-tool-stack" aria-labelledby="lens-start">
-        <h2 id="lens-start">Start with a photo</h2>
-        <p>Your browser will ask to use your camera. Petey sends a photo for identification only when you choose Use photo.</p>
-        {(statusMessage || !capability) && <div className="garden-tool-notice" role="status">
-          <p>{statusMessage ?? 'Checking whether photo identification is available…'}</p>
-          {statusMessage && <button type="button" className="garden-text-button" onClick={refreshStatus}>Check again</button>}
-        </div>}
-        <div className="garden-tool-actions">
-          <button type="button" className="garden-primary" onClick={() => void openCamera()} disabled={preparing}><Camera /> Open camera</button>
-          <button type="button" className="garden-secondary" onClick={() => picker.current?.click()} disabled={preparing}><ImagePlus /> Choose a photo</button>
+  return (
+    <section className="petey-lens-shell" aria-labelledby="lens-heading">
+      <div className="petey-lens-topbar">
+        <button
+          type="button"
+          className="petey-back-btn"
+          onClick={
+            lensState === 'compare' || lensState === 'user_confirmation'
+              ? () => transitionTo('response')
+              : lensState === 'processing'
+                ? cancelProcessing
+                : lensState === 'idle'
+                  ? onBack
+                  : resetToStart
+          }
+        >
+          <ArrowLeft className="h-4 w-4" aria-hidden="true" />
+          {lensState === 'idle'
+            ? 'Back'
+            : lensState === 'compare' || lensState === 'user_confirmation'
+              ? 'Possible matches'
+              : lensState === 'processing'
+                ? 'Cancel scan'
+                : 'Petey Lens'}
+        </button>
+
+        <span className="petey-kicker-inline">
+          <ScanLine className="h-4 w-4" aria-hidden="true" />
+          Petey Lens
+        </span>
+      </div>
+
+      <header className="petey-lens-header">
+        <h1 id="lens-heading" ref={headingRef} tabIndex={-1}>
+          {titles[lensState]}
+        </h1>
+        {lensState === 'idle' && (
+          <p className="petey-lens-sub">
+            Take a clear photo of leaves and stems to see possible matches from Petey’s identification pipeline. Photos are sent only after you review and confirm.
+          </p>
+        )}
+      </header>
+
+      <input
+        ref={pickerRef}
+        type="file"
+        accept={photoFormats.join(',')}
+        onChange={(event) => void selectLibraryPhoto(event)}
+        hidden
+      />
+
+      {error && (
+        <div className="petey-alert petey-alert-error" role="alert">
+          <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+          <span>{error}</span>
         </div>
-        <button type="button" className="garden-text-button" onClick={onManual}>Search by plant name <ArrowRight /></button>
-      </section>
-      <aside className="garden-lens-guide" aria-label="Photo framing tips">
-        <div className="garden-lens-illustration"><Portrait pal={pals[0]} mood="curious" /><span aria-hidden="true" className="garden-frame-guide" /></div>
-        <p>Fit one plant in the frame. Use even light and keep the leaves in focus.</p>
-      </aside>
-    </div>}
+      )}
 
-    {stage === 'camera' && <div className="garden-camera-workspace">
-      <div className="garden-viewfinder">
-        <video ref={video} autoPlay muted playsInline onPlaying={() => setCameraReady(Boolean(camera.current))} aria-label="Live camera preview" />
-        {cameraReady && <span className="garden-frame-guide" aria-hidden="true" />}
-        {!cameraReady && <p role="status">{cameraStarting ? 'Allow camera access in your browser, or choose a photo.' : 'Camera preview paused.'}</p>}
-      </div>
-      <p>Fit the whole plant in the frame, with its leaves and stems in view.</p>
-      <div className="garden-tool-actions">
-        {cameraReady ? <button className="garden-primary" type="button" disabled={preparing} onClick={() => void capture()}><Camera /> Take photo</button>
-          : <button className="garden-primary" type="button" disabled={cameraStarting || preparing} onClick={() => void openCamera()}><Camera /> Open camera</button>}
-        <button type="button" className="garden-secondary" disabled={preparing} onClick={() => picker.current?.click()}><ImagePlus /> Choose a photo</button>
-      </div>
-    </div>}
+      {/* IDLE / ENTRY STATE */}
+      {lensState === 'idle' && (
+        <div className="petey-lens-grid">
+          <div className="petey-card petey-stack">
+            <h2 className="petey-card-title">Capture or upload a plant photo</h2>
+            <p className="petey-body-muted">
+              Keep one plant centered in bright, even light so Petey’s backend model can inspect leaf shape and stem attachment.
+            </p>
 
-    {stage === 'review' && <div className="garden-tool-grid">
-      <div className="garden-photo-preview">{preview && <img src={preview} alt="Your plant photo for review" />}</div>
-      <section className="garden-panel garden-tool-stack" aria-labelledby="review-photo-details">
-        <h2 id="review-photo-details">Leaves in focus?</h2>
-        <p>If another plant is in the shot or the leaves are blurred, try a new photo. Petey sends this copy without the original file metadata.</p>
-        {(statusMessage || !capability) && <div className="garden-tool-notice" role="status">
-          <p>{statusMessage ?? 'Checking whether photo identification is available…'}</p>
-          {statusMessage && <button type="button" className="garden-text-button" onClick={refreshStatus}>Check again</button>}
-        </div>}
-        <div className="garden-tool-actions">
-          <button className="garden-primary" type="button" disabled={preparing || capability?.status !== 'available'} onClick={() => void identify()}><ScanLine /> Use photo</button>
-          <button className="garden-secondary" type="button" disabled={preparing} onClick={photoSource === 'camera' ? () => void openCamera() : () => picker.current?.click()}>
-            {photoSource === 'camera' ? 'Retake photo' : 'Choose another photo'}
+            {(statusNotice || !capability) && (
+              <div className="petey-alert petey-alert-info" role="status">
+                <p>{statusNotice ?? 'Checking identification service availability…'}</p>
+                {statusNotice && (
+                  <button type="button" className="petey-link-btn" onClick={refreshCapability}>
+                    <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Check again
+                  </button>
+                )}
+              </div>
+            )}
+
+            <div className="petey-btn-row">
+              <button
+                type="button"
+                className="petey-btn-primary"
+                onClick={() => void openCamera('environment')}
+                disabled={preparing}
+              >
+                <Camera className="h-4 w-4" aria-hidden="true" />
+                Open camera
+              </button>
+              <button
+                type="button"
+                className="petey-btn-secondary"
+                onClick={() => pickerRef.current?.click()}
+                disabled={preparing}
+              >
+                <ImagePlus className="h-4 w-4" aria-hidden="true" />
+                Upload photo
+              </button>
+            </div>
+
+            <button type="button" className="petey-link-btn" onClick={onManual}>
+              Prefer to search by plant name? <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+
+          <aside className="petey-lens-tips-card" aria-label="Framing guide">
+            <div className="petey-lens-frame-preview">
+              <BotanicalThumbnail speciesId="Monstera deliciosa" size={112} />
+              <span className="petey-lens-brackets" aria-hidden="true" />
+            </div>
+            <ul className="petey-tips-list">
+              <li>Fill the guide with a single plant.</li>
+              <li>Show both leaf shape and how stems meet the base.</li>
+              <li>Avoid harsh backlight or heavy shadow across leaves.</li>
+            </ul>
+          </aside>
+        </div>
+      )}
+
+      {/* DARK RESTRAINED CAMERA WORKSPACE */}
+      {isCameraSurface && (
+        <div className="petey-camera-stage">
+          <div className="petey-camera-viewfinder">
+            <video
+              ref={videoRef}
+              autoPlay
+              muted
+              playsInline
+              aria-label="Live camera preview"
+            />
+            <div className="petey-camera-reticle" aria-hidden="true">
+              <span className="corner tl" />
+              <span className="corner tr" />
+              <span className="corner bl" />
+              <span className="corner br" />
+            </div>
+            {lensState === 'requesting_permission' && (
+              <div className="petey-camera-overlay" role="status">
+                Allow camera access in your browser prompt, or choose a photo from your library below.
+              </div>
+            )}
+          </div>
+
+          <p className="petey-camera-hint">
+            Center one plant inside the corners with leaves in clear focus.
+          </p>
+
+          <div className="petey-camera-controls">
+            <button
+              type="button"
+              className="petey-camera-secondary"
+              disabled={preparing}
+              onClick={() => pickerRef.current?.click()}
+              aria-label="Upload photo from library"
+            >
+              <ImagePlus className="h-5 w-5" aria-hidden="true" />
+              <span>Library</span>
+            </button>
+
+            <button
+              type="button"
+              className="petey-shutter-btn"
+              disabled={lensState !== 'camera_ready' || preparing}
+              onClick={() => void captureFrame()}
+              aria-label="Capture plant photo"
+            >
+              <span className="petey-shutter-inner" />
+            </button>
+
+            {canSwitchCamera ? (
+              <button
+                type="button"
+                className="petey-camera-secondary"
+                disabled={preparing}
+                onClick={() => void openCamera(facingMode === 'environment' ? 'user' : 'environment')}
+                aria-label="Switch camera"
+              >
+                <SwitchCamera className="h-5 w-5" aria-hidden="true" />
+                <span>Flip</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="petey-camera-secondary"
+                onClick={resetToStart}
+                aria-label="Close camera"
+              >
+                <X className="h-5 w-5" aria-hidden="true" />
+                <span>Cancel</span>
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* PERMISSION DENIED / CAMERA UNAVAILABLE RECOVERY */}
+      {(lensState === 'permission_denied' || lensState === 'camera_unavailable') && (
+        <div className="petey-card petey-stack">
+          <p className="petey-body-muted">
+            You can continue right away by selecting an existing plant photo or searching our species catalog by name.
+          </p>
+          <div className="petey-btn-row">
+            <button
+              type="button"
+              className="petey-btn-primary"
+              onClick={() => pickerRef.current?.click()}
+            >
+              <ImagePlus className="h-4 w-4" aria-hidden="true" />
+              Choose a photo
+            </button>
+            <button
+              type="button"
+              className="petey-btn-secondary"
+              onClick={() => void openCamera('environment')}
+            >
+              <Camera className="h-4 w-4" aria-hidden="true" />
+              Try camera again
+            </button>
+          </div>
+          <button type="button" className="petey-link-btn" onClick={onManual}>
+            Search by plant name <ArrowRight className="h-4 w-4" aria-hidden="true" />
           </button>
         </div>
-        <button type="button" className="garden-text-button" onClick={onManual}>Search by plant name <ArrowRight /></button>
-      </section>
-    </div>}
-    {preparing && <p className="garden-tool-notice" role="status">Preparing your photo…</p>}
+      )}
 
-    {stage === 'identifying' && <section className="garden-panel garden-tool-stack garden-tool-narrow">
-      <div className="garden-lens-progress-pal"><Portrait pal={pals[0]} mood="curious" /></div>
-      <p role="status">Petey is checking your photo for possible species matches.</p>
-      <button className="garden-secondary" type="button" onClick={cancelScan}><X /> Cancel and return to photo</button>
-    </section>}
+      {/* PHOTO PREVIEW & CONFIRMATION BEFORE UPLOAD */}
+      {(lensState === 'preview' || lensState === 'offline_error') && (
+        <div className="petey-lens-grid">
+          <div className="petey-photo-review-frame">
+            {previewUrl && <img src={previewUrl} alt="Captured plant photo ready for review" />}
+          </div>
 
-    {stage === 'result' && result && <div className="garden-tool-stack">
-      {displayMatch && <p className="garden-lede">Compare the leaf shape and stems before choosing a species.</p>}
-      {displayMatch && <ol className="garden-lens-matches">
-        {candidates.map((candidate, index) => {
-          const species = candidate.species_key ? catalog.find((item) => item.id === candidate.species_key) : undefined;
-          const trait = candidate.species_key ? lensTraits[candidate.species_key] : undefined;
-          return <li className="garden-panel garden-tool-stack" key={candidate.original_label}>
-            <span className="garden-kicker">{index === 0 ? 'First suggestion' : 'Another possibility'}</span>
-            <h2>{candidateName(candidate)}</h2>
-            {candidate.scientific_name && candidate.scientific_name !== candidateName(candidate) && <p><i>{candidate.scientific_name}</i></p>}
-            {candidate.taxonomic_rank === 'genus' && <p>This match suggests a plant group.</p>}
-            {trait && <p>{trait.leaves}</p>}
-            {species && candidate.taxonomic_rank === 'species' && <button className="garden-secondary" type="button" onClick={() => {
-              setConfirmed(candidate);
-              changeStage('confirmed');
-            }}>Choose {candidateName(candidate)} <ArrowRight /></button>}
-          </li>;
-        })}
-      </ol>}
-      {anotherPhoto && <p className="garden-tool-notice">Try another angle showing how the leaves join the stem. Keep one plant in frame and use bright, even light.</p>}
-      {result.limitations.length > 0 && <ul className="garden-tool-list garden-muted">{result.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}</ul>}
-      <div className="garden-tool-actions">
-        {displayMatch && canCompare && <button type="button" className="garden-primary" onClick={() => changeStage('compare')}>Compare leaf and stem features</button>}
-        {result.status !== 'unavailable' && <button type="button" className="garden-secondary" onClick={() => void openCamera()}><Camera /> Take another photo</button>}
-        {result.status !== 'unavailable' && <button type="button" className="garden-secondary" onClick={() => picker.current?.click()} disabled={preparing}><ImagePlus /> Choose a photo</button>}
-        <button type="button" className="garden-text-button" onClick={onManual}>Search by plant name <ArrowRight /></button>
-      </div>
-    </div>}
+          <div className="petey-card petey-stack">
+            <h2 className="petey-card-title">Are the leaves sharp and centered?</h2>
+            <p className="petey-body-muted">
+              Petey strips file metadata before sending this copy to the backend identification model.
+            </p>
 
-    {stage === 'compare' && <div className="garden-lens-matches">
-      {candidates.map((candidate) => {
-        const trait = candidate.species_key ? lensTraits[candidate.species_key] : undefined;
-        return <section key={candidate.original_label} className="garden-panel garden-tool-stack">
-          <h2>{candidateName(candidate)}</h2>
-          {trait ? <>
-            <dl className="garden-comparison">
-              <div><dt>Leaves</dt><dd>{trait.leaves}</dd></div>
-              <div><dt>Growth</dt><dd>{trait.habit}</dd></div>
-            </dl>
-            <a className="garden-tool-source" target="_blank" rel="noreferrer" href={trait.source}>NC State Extension plant guide</a>
-          </> : <p>See other matches for features you can compare.</p>}
-        </section>;
-      })}
-    </div>}
+            {(statusNotice || !capability) && (
+              <div className="petey-alert petey-alert-info" role="status">
+                <p>{statusNotice ?? 'Checking identification service availability…'}</p>
+                {statusNotice && (
+                  <button type="button" className="petey-link-btn" onClick={refreshCapability}>
+                    <RefreshCw className="h-3.5 w-3.5" aria-hidden="true" /> Check again
+                  </button>
+                )}
+              </div>
+            )}
 
-    {stage === 'confirmed' && match && <section className="garden-panel garden-lens-confirm">
-      {pal ? <Portrait pal={pal} mood="happy" interactive /> : <span aria-hidden="true" className="garden-portrait garden-art-fallback"><Leaf /></span>}
-      <div className="garden-tool-stack">
-        <h2>{match.name}</h2>
-        <p><i>{confirmed?.scientific_name ?? match.id}</i></p>
-        <button className="garden-primary" type="button" onClick={() => onAdd(match.id)}>Set up this plant <ArrowRight /></button>
-      </div>
-    </section>}
-  </section>;
+            <div className="petey-btn-row">
+              <button
+                type="button"
+                className="petey-btn-primary"
+                disabled={preparing || capability?.status !== 'available'}
+                onClick={() => void submitForIdentification()}
+              >
+                <ScanLine className="h-4 w-4" aria-hidden="true" />
+                Identify plant
+              </button>
+              <button
+                type="button"
+                className="petey-btn-secondary"
+                disabled={preparing}
+                onClick={
+                  photoSource === 'camera'
+                    ? () => void openCamera(facingMode)
+                    : () => pickerRef.current?.click()
+                }
+              >
+                {photoSource === 'camera' ? 'Retake photo' : 'Choose another'}
+              </button>
+            </div>
+
+            <button type="button" className="petey-link-btn" onClick={onManual}>
+              Search by plant name instead <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* PROCESSING STATE */}
+      {(lensState === 'submit' || lensState === 'processing') && (
+        <div className="petey-card petey-stack petey-lens-narrow" role="status">
+          <div className="petey-lens-processing-mark">
+            <BotanicalThumbnail speciesId="Monstera deliciosa" size={88} />
+          </div>
+          <h2 className="petey-card-title">Checking your photo</h2>
+          <p className="petey-body-muted">
+            Waiting for Petey’s backend identification model to return candidate matches.
+          </p>
+          <button type="button" className="petey-btn-secondary" onClick={cancelProcessing}>
+            <X className="h-4 w-4" aria-hidden="true" />
+            Cancel and return to photo
+          </button>
+        </div>
+      )}
+
+      {/* CANDIDATE RESULTS (NO AUTO-CONFIRM, NO INVENTED ACCURACY) */}
+      {lensState === 'response' && result && (
+        <div className="petey-stack">
+          {hasCandidates && (
+            <>
+              <p className="petey-lens-sub">
+                Review leaf shape and stem habit before confirming. Petey never assumes a match without your selection.
+              </p>
+              <ol className="petey-candidate-grid">
+                {candidates.map((candidate, index) => {
+                  const species = candidate.species_key
+                    ? catalog.find((item) => item.id === candidate.species_key)
+                    : undefined;
+                  const trait = candidate.species_key ? lensTraits[candidate.species_key] : undefined;
+                  return (
+                    <li className="petey-card petey-stack" key={candidate.original_label}>
+                      <div className="petey-candidate-top">
+                        <BotanicalThumbnail speciesId={candidate.species_key} size={56} />
+                        <div>
+                          <span className="petey-small-label">
+                            {index === 0 ? 'Top suggestion' : `Suggestion ${index + 1}`}
+                          </span>
+                          <h2 className="petey-card-title">{candidateName(candidate)}</h2>
+                          {candidate.scientific_name &&
+                            candidate.scientific_name !== candidateName(candidate) && (
+                              <p className="petey-scientific">{candidate.scientific_name}</p>
+                            )}
+                        </div>
+                      </div>
+
+                      {candidate.taxonomic_rank === 'genus' && (
+                        <p className="petey-body-muted">
+                          This backend suggestion identifies a broader plant genus rather than a single species.
+                        </p>
+                      )}
+                      {trait && <p className="petey-body-muted">{trait.leaves}</p>}
+
+                      {species && candidate.taxonomic_rank === 'species' && (
+                        <button
+                          type="button"
+                          className="petey-btn-primary"
+                          onClick={() => {
+                            setConfirmed(candidate);
+                            transitionTo('user_confirmation');
+                          }}
+                        >
+                          <Check className="h-4 w-4" aria-hidden="true" />
+                          Preview {candidateName(candidate)}
+                        </button>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            </>
+          )}
+
+          {needsAnotherPhoto && (
+            <div className="petey-alert petey-alert-warning">
+              <AlertCircle className="h-4 w-4 shrink-0" aria-hidden="true" />
+              <span>
+                The model recommends another angle showing both leaf blades and how stems join the base in even light.
+              </span>
+            </div>
+          )}
+
+          {result.limitations.length > 0 && (
+            <div className="petey-card petey-stack">
+              <h3 className="petey-small-label">Model notes & limitations</h3>
+              <ul className="petey-tips-list">
+                {result.limitations.map((limitation) => (
+                  <li key={limitation}>{limitation}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          <div className="petey-btn-row">
+            {hasCandidates && canCompare && (
+              <button
+                type="button"
+                className="petey-btn-secondary"
+                onClick={() => transitionTo('compare')}
+              >
+                Compare leaf & stem features
+              </button>
+            )}
+            {result.status !== 'unavailable' && (
+              <button
+                type="button"
+                className="petey-btn-secondary"
+                onClick={() => void openCamera('environment')}
+              >
+                <Camera className="h-4 w-4" aria-hidden="true" />
+                Take another photo
+              </button>
+            )}
+            <button type="button" className="petey-link-btn" onClick={onManual}>
+              Search by plant name <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* SIDE-BY-SIDE TRAIT COMPARISON */}
+      {lensState === 'compare' && (
+        <div className="petey-candidate-grid">
+          {candidates.map((candidate) => {
+            const trait = candidate.species_key ? lensTraits[candidate.species_key] : undefined;
+            return (
+              <section key={candidate.original_label} className="petey-card petey-stack">
+                <h2 className="petey-card-title">{candidateName(candidate)}</h2>
+                {trait ? (
+                  <>
+                    <dl className="petey-trait-dl">
+                      <div>
+                        <dt>Leaves</dt>
+                        <dd>{trait.leaves}</dd>
+                      </div>
+                      <div>
+                        <dt>Growth habit</dt>
+                        <dd>{trait.habit}</dd>
+                      </div>
+                    </dl>
+                    <a
+                      className="petey-link-btn"
+                      target="_blank"
+                      rel="noreferrer"
+                      href={trait.source}
+                    >
+                      NC State Extension reference
+                    </a>
+                  </>
+                ) : (
+                  <p className="petey-body-muted">No side-by-side leaf comparison notes available for this entry.</p>
+                )}
+              </section>
+            );
+          })}
+        </div>
+      )}
+
+      {/* USER CONFIRMATION WITH INTERACTIVE 3D VIRTUAL COMPANION PREVIEW */}
+      {lensState === 'user_confirmation' && confirmedSpecies && (
+        <section className="petey-card petey-confirm-grid" aria-label="Virtual plant companion preview">
+          <div className="petey-confirm-stage-box">
+            <div className="petey-confirm-3d">
+              <InteractivePlantStage
+                speciesId={confirmedSpecies.id}
+                mood="happy"
+                animationState="greeting"
+                theme={WEATHER_THEMES['clear-day']}
+                windKmh={4}
+                playCount={previewPlay}
+                reactionKind="pet"
+                reduced={reducedMotion}
+                onPet={() => setPreviewPlay((c) => c + 1)}
+                orbitCommand={orbitCommand}
+                showAtmosphere={false}
+              />
+            </div>
+
+            <div className="petey-orbit-bar" role="group" aria-label="3D preview camera controls">
+              <button
+                type="button"
+                className="petey-orbit-btn"
+                onClick={() => setOrbitCommand((prev) => ({ seq: prev.seq + 1, action: 'left' }))}
+                aria-label="Rotate companion left"
+              >
+                <RotateCcw className="h-4 w-4" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="petey-orbit-btn"
+                onClick={() => setOrbitCommand((prev) => ({ seq: prev.seq + 1, action: 'reset' }))}
+              >
+                Reset view
+              </button>
+              <button
+                type="button"
+                className="petey-orbit-btn"
+                onClick={() => setOrbitCommand((prev) => ({ seq: prev.seq + 1, action: 'right' }))}
+                aria-label="Rotate companion right"
+              >
+                <RotateCw className="h-4 w-4" aria-hidden="true" />
+              </button>
+            </div>
+          </div>
+
+          <div className="petey-stack">
+            <span className="petey-small-label">Confirmed species match</span>
+            <h2 className="petey-confirm-title">{confirmedSpecies.name}</h2>
+            <p className="petey-scientific">{confirmed?.scientific_name ?? confirmedSpecies.id}</p>
+
+            {resolvedPreviewAsset && (
+              <p className="petey-body-muted">{resolvedPreviewAsset.entry.botanicalSilhouetteNote}</p>
+            )}
+
+            <p className="petey-companion-disclaimer">
+              Stylized 3D companion preview — this digital character represents the confirmed species in Petey Plant, not a 3D scan or reconstruction of your real plant.
+            </p>
+
+            <div className="petey-btn-row">
+              <button
+                type="button"
+                className="petey-btn-primary"
+                onClick={() => {
+                  transitionTo('garden_addition');
+                  onAdd(confirmedSpecies.id);
+                }}
+              >
+                Add to my garden <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                className="petey-btn-secondary"
+                onClick={() => transitionTo('response')}
+              >
+                Choose another match
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
+    </section>
+  );
 }

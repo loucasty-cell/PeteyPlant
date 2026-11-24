@@ -1,0 +1,1152 @@
+# PETEY PLANT — PROJECT LIVING INTERFACE V3
+## Consumer Experience, Behavioral Design, Spatial UI & Frontend Engineering
+
+### 01. Your engineering mission
+
+Act as a principal frontend engineer, Apple human interface designer, behavioral product designer, consumer psychology specialist, botanical 3D artist, and accessibility engineer.
+
+Continue the existing Petey Plant application.
+
+Do not create a replacement application.
+
+The previous frontend implementation improved visual structure but remains excessively technical, information-heavy, vertically stretched, and difficult for ordinary plant owners to understand.
+
+Your assignment is to transform Petey Plant into an exceptionally intuitive, emotionally engaging, real-world plant-care companion.
+
+Petey Plant's intelligence should be sophisticated internally and remarkably simple externally.
+
+The application is designed for ordinary people who may have absolutely no knowledge of horticulture, soil science, plant physiology, environmental parameters, or machine learning.
+
+A first-time plant owner should understand the application without reading instructions.
+
+The virtual plant living inside the user's device is the center of the experience.
+
+The existing care engine determines what that plant needs, when it needs attention, and how much water it requires when supported.
+
+Preserve that intelligence. Remove unnecessary interface complexity.
+
+### 02. Non-negotiable product philosophy
+
+Petey Plant is not:
+
+- A horticultural administration dashboard.
+- A technical analytics platform.
+- A spreadsheet of watering parameters.
+- A collection of generic UI cards.
+- A virtual pet game disconnected from real plants.
+- A chatbot that invents plant-care instructions.
+
+Petey Plant is a living digital companion representing a real plant and communicating meaningful care needs through an intelligent engine.
+
+The ideal user experience is:
+
+Open application → understand plant condition → understand next action → perform appropriate care → receive clear feedback.
+
+The user should not need to interpret raw engine data.
+
+All advanced information must remain accessible without dominating the default experience.
+
+### 03. Critically evaluate the supplied screenshots
+
+The current implementation contains the following problems:
+
+- The virtual plant is not given sufficient screen space.
+- The plant name appears multiple times.
+- Profile, Check, 2D, and species controls interfere with the visual environment.
+- The navigation arrows are excessively prominent.
+- The botanical model looks overly glossy and visually artificial.
+- The plant stage contains distracting decorative elements.
+- The care interface is too tall.
+- Multiple actions compete for attention.
+- The watering assessment is presented as a technical table.
+- Soil source, drainage, freshness, and historical metadata dominate the home screen.
+- Ordinary users are required to interpret too much information.
+- The Other Plants section unnecessarily duplicates My Garden.
+- The home screen requires excessive vertical scrolling.
+- The interface feels like several different screens compressed into one page.
+
+Do not simply adjust padding, fonts, border radii, or colors.
+
+Rebuild the information architecture and component hierarchy.
+
+### 04. Mandatory 60:40 home-screen composition
+
+The mobile home screen must use a 60:40 visual allocation.
+
+60%: Living botanical companion environment.
+
+40%: Intelligent care interaction interface.
+
+The ratio applies to the usable viewport between the compact application header and bottom navigation.
+
+Use a viewport-aware layout with appropriate safe-area handling.
+
+Prefer modern dynamic viewport units with compatible fallbacks.
+
+A conceptual implementation may use CSS Grid with a 3:2 row allocation.
+
+Adapt to the existing frontend architecture.
+
+Requirements:
+
+- The botanical environment must remain visually dominant.
+- The primary care recommendation must be visible without unnecessary scrolling.
+- The navigation must remain accessible.
+- The interface must not clip important text or controls.
+- Avoid rigid heights that fail on smaller devices.
+- Allow accessible overflow when required by text scaling or exceptional content.
+- Urgent care information may override the normal ratio when necessary.
+
+Do not achieve the ratio by making the plant unnecessarily tiny within a large empty scene.
+
+The companion must occupy meaningful visual space.
+
+On desktop, adapt the same principle into an approximately 60% botanical workspace and 40% care inspector where appropriate.
+
+### 05. Home screen information budget
+
+The default home screen should contain only the following essential information:
+
+1. Which plant is currently selected.
+2. The living virtual companion.
+3. The plant's most important current condition.
+4. What the user should do next.
+5. When the action should occur.
+6. How much water to provide, if applicable and supported.
+7. One contextually appropriate primary action.
+8. One unobtrusive route to additional details.
+
+Do not display every available data point simply because the backend provides it.
+
+Information availability does not justify information visibility.
+
+Move advanced details into dedicated destinations, contextual sheets, or expandable disclosures.
+
+### 06. Remove Other Plants from Home completely
+
+The home screen must focus on one selected companion.
+
+Remove the following from the home-screen content:
+
+- Other Plants section.
+- Full garden collection.
+- Additional plant cards.
+- Plant collection statistics.
+- Add-plant collection management controls.
+- Repeated garden summaries.
+- Secondary plant lists.
+
+All garden collection functionality belongs in My Garden.
+
+My Garden becomes the dedicated destination for:
+
+- Viewing all owned plants.
+- Adding plants.
+- Selecting the active companion.
+- Managing plant profiles.
+- Editing plant information.
+- Organizing collections.
+- Filtering by care requirements.
+- Reviewing individual plant conditions.
+- Viewing plant-specific history.
+
+When a user selects a plant in My Garden, the home screen should subsequently reflect that selected companion.
+
+Preserve existing selection and persistence mechanisms where available.
+
+If selection is not persisted by the backend, use a compatible frontend preference mechanism scoped appropriately to the account.
+
+Do not modify database schemas for this feature.
+
+### 07. Navigation responsibility boundaries
+
+Establish clear separation between destinations.
+
+HOME:
+
+A living companion, its current condition, and its next meaningful action.
+
+MY GARDEN:
+
+The complete owned plant collection, selection, management, profiles, and plant-specific settings.
+
+PETEY LENS:
+
+Camera-based identification, species confirmation, 3D preview, and adding plants.
+
+CARE:
+
+All actionable care tasks, urgent conditions, assessments, watering history, and detailed care explanations.
+
+MORE:
+
+Application preferences, notification settings, appearance, accessibility, account settings, and supported device integrations.
+
+Do not repeat entire features across multiple navigation destinations.
+
+Contextual shortcuts are acceptable when they direct the user to the correct destination.
+
+### 08. Compact application header
+
+Redesign the header into a restrained native-style toolbar.
+
+Suggested content:
+
+- Small Petey Plant brand mark.
+- Selected plant nickname.
+- Optional environmental context when genuinely relevant.
+- Notification access.
+
+The selected plant name should appear once in the primary home-screen hierarchy.
+
+Do not repeat the same name underneath the botanical stage in another large heading.
+
+Move the scientific name into the plant profile or an optional disclosure.
+
+Use compact, legible controls.
+
+Remove irrelevant weather information.
+
+If temperature is displayed, establish whether it represents outdoor weather, indoor sensor information, or owner-reported conditions.
+
+Never present outdoor weather as the plant's measured indoor temperature.
+
+### 09. The living companion environment
+
+The botanical stage occupies approximately 60% of the available home-screen content.
+
+It should feel like a miniature living habitat inside the user's device.
+
+Create an immersive, carefully composed environment using:
+
+- Species-specific 3D plant geometry.
+- Thoughtful camera positioning.
+- Soft directional lighting.
+- Natural contact shadows.
+- Restrained environmental depth.
+- Subtle companion animation.
+- Appropriate day and night variations.
+- Original botanical visual identity.
+
+Make the plant the focus, not its background scenery.
+
+The model should appear significantly larger, better composed, and more expressive than in the supplied screenshots.
+
+Preserve sufficient space around its silhouette.
+
+Avoid:
+
+- Excessive pedestal geometry.
+- Giant decorative platforms.
+- Repetitive floating particles.
+- Distracting stars and sparkles.
+- Random decorative objects.
+- Overly dramatic lighting.
+- Plastic-looking leaf materials.
+- Unnatural plant geometry.
+- Excessively glossy surfaces.
+- Oversized cartoon eyes.
+- Artificially repetitive leaf arrangements.
+
+The visual target is a handcrafted, premium botanical companion with restrained cartoon personality.
+
+### 10. Remove visual controls from the companion stage
+
+The current Profile, Check, 2D, species label, and large navigation arrow controls clutter the botanical environment.
+
+Remove the persistent button row from the scene.
+
+Move Profile into My Garden.
+
+Move detailed condition checks into the contextual care action or Care destination.
+
+Move 2D/3D rendering preferences into an unobtrusive menu or settings.
+
+Move the full species identity into the plant profile.
+
+Do not use large floating previous and next buttons as the default plant-switching interface.
+
+If quick switching remains useful, use a compact plant selector integrated with the header or a lightweight selection sheet.
+
+Do not reintroduce a full plant collection into Home.
+
+The plant stage should primarily contain the plant, its environment, and meaningful condition communication.
+
+### 11. Living companion communication
+
+Allow the companion to express the engine's result through a short, natural message.
+
+Examples:
+
+Stable:
+
+“I'm doing well!”
+
+Watering approaching:
+
+“I may need water soon.”
+
+Watering required:
+
+“I'm ready for a drink.”
+
+Overwatering risk:
+
+“Please don't water me yet.”
+
+Unknown soil condition:
+
+“Can you check my soil?”
+
+Urgent supported condition:
+
+“I need your attention today.”
+
+Care action recorded:
+
+“Thanks for taking care of me!”
+
+These are example communication templates, not independent plant diagnoses.
+
+Map messages to verified backend recommendations.
+
+Do not generate dramatic emotional messages merely to encourage interaction.
+
+Avoid excessive anthropomorphism when it could obscure the real recommendation.
+
+A companion message must not contradict the factual care guidance.
+
+### 12. The 40% care interface
+
+Design the lower portion of Home as a coherent native-style care surface.
+
+Avoid stacking several independent rounded cards.
+
+The care surface should contain:
+
+- A concise condition heading.
+- A one- or two-sentence explanation.
+- The next recommended action or check date.
+- Water quantity when applicable and supported.
+- A single prominent primary action when necessary.
+- A small additional-details disclosure.
+
+Use restrained material depth, fine separators, careful alignment, and native-feeling controls.
+
+Draw inspiration from macOS High Sierra-era interface craftsmanship without copying desktop window decorations.
+
+The lower surface should feel physically connected to the companion environment.
+
+Do not repeat the companion's message word for word in several different labels.
+
+### 13. Context-sensitive home-screen variants
+
+Do not use the same visual structure and CTA for every plant condition.
+
+Create a reusable care presentation component supporting different engine-backed variants.
+
+STABLE CONDITION:
+
+Heading: Doing well.
+
+Description: No watering needed right now.
+
+Next check: Display the engine-supported check date when available.
+
+Action: Optional soil check or care details, if relevant.
+
+Do not manufacture an action merely to fill the interface.
+
+WATERING REQUIRED:
+
+Heading: Ready for water.
+
+Quantity: Display the engine-supported volume or range.
+
+Timing: Display the supported time window.
+
+Action: Watering guide.
+
+OVERWATERING RISK:
+
+Heading: Hold off on watering.
+
+Description: Explain the supported reason simply.
+
+Action: Check soil or review drainage when recommended.
+
+INSUFFICIENT INFORMATION:
+
+Heading: Let's check your plant.
+
+Description: Explain the missing information.
+
+Action: Answer the relevant condition questions.
+
+URGENT SUPPORTED CONDITION:
+
+Heading: Needs attention.
+
+Description: Concisely explain the supported urgency.
+
+Action: Review urgent care.
+
+ASSESSMENT UNAVAILABLE:
+
+Heading: Condition unavailable.
+
+Description: Explain that current care guidance could not be retrieved.
+
+Action: Retry or view appropriately labeled previous information.
+
+Never represent unavailable information as a healthy condition.
+
+### 14. Progressive disclosure architecture
+
+Implement three information levels.
+
+LEVEL ONE: Immediate understanding.
+
+Visible on Home.
+
+What does my plant need?
+
+What should I do?
+
+When should I do it?
+
+How much water, when relevant?
+
+LEVEL TWO: Actionable guidance.
+
+Accessible through the relevant primary action or a contextual sheet.
+
+How should I perform the care action?
+
+What should I check?
+
+How much water is recommended?
+
+Are there important precautions?
+
+LEVEL THREE: Detailed intelligence.
+
+Accessible through Care or the individual plant profile.
+
+Soil composition.
+
+Observation sources.
+
+Drainage details.
+
+Environmental parameters.
+
+Watering history.
+
+Assessment timestamps.
+
+Engine rationale.
+
+Uncertainty.
+
+Species guidance.
+
+Secondary conditions.
+
+Do not present Level Three content as the default Home experience.
+
+However, do not bury information necessary to prevent an inappropriate care action.
+
+### 15. Redesign the watering assessment
+
+Remove the full Watering Assessment table from Home.
+
+Preserve the underlying functionality.
+
+Move it into a dedicated detailed assessment screen within Care or the individual plant profile.
+
+On Home, translate its contents into concise human-readable guidance.
+
+Instead of:
+
+Timing: No watering needed · Est. next check Nov 28.
+
+Amount: None right now.
+
+Soil & source: Reported dry potting mix on Nov 22.
+
+Drainage: Holes confirmed.
+
+Last watered: Nov 22.
+
+Freshness: Last logged 2d ago.
+
+Use:
+
+No watering needed right now.
+
+Next estimated soil check: Nov 28.
+
+Details remain available through a small disclosure.
+
+Do not interpret old soil observations as current measured conditions.
+
+Keep estimated, reported, measured, and unknown information distinguishable in detailed assessments.
+
+### 16. Ordinary-person language system
+
+Rewrite technical interface copy into short, natural language.
+
+Use:
+
+“Check the soil.”
+
+“Wait before watering.”
+
+“Water today.”
+
+“Your plant needs more information.”
+
+“Watering recorded.”
+
+“Next soil check.”
+
+Avoid unnecessarily technical default labels:
+
+“Assessment freshness.”
+
+“Hydration optimization.”
+
+“Environmental parameter analysis.”
+
+“Substrate retention coefficient.”
+
+“Estimated source confidence.”
+
+Technical terms may appear in advanced explanations when useful.
+
+The target audience includes first-time plant owners, older adults, busy households, office workers, and people who have previously struggled to keep plants alive.
+
+Use plain language without sounding patronizing.
+
+Do not oversimplify to the point of changing the engine's meaning.
+
+### 17. Atomic Habits behavioral interaction framework
+
+Apply the four behavioral principles to appropriate plant care.
+
+CUE — MAKE IT OBVIOUS.
+
+The companion's condition, posture, and short message communicate the next meaningful care need.
+
+CRAVING — MAKE IT ATTRACTIVE.
+
+The user develops a connection with a personal, species-specific digital companion.
+
+RESPONSE — MAKE IT EASY.
+
+The correct action is prominent and accessible without interpreting technical data.
+
+REWARD — MAKE IT SATISFYING.
+
+The companion acknowledges a successfully recorded care action, and the interface confirms the result.
+
+Use these principles to reduce care friction, not maximize app addiction.
+
+Do not introduce artificial streak pressure, guilt, attention traps, unnecessary notifications, or rewards for overwatering.
+
+Correctly choosing not to water must be treated as a positive care outcome.
+
+### 18. End-to-end watering interaction
+
+Implement a coherent interaction lifecycle.
+
+Stage 1:
+
+The engine returns a supported watering recommendation.
+
+Stage 2:
+
+The virtual companion communicates the need.
+
+Stage 3:
+
+Home displays the recommended action and timing.
+
+Stage 4:
+
+The owner opens a focused watering guidance sheet.
+
+Stage 5:
+
+The owner reviews the engine-supported amount and instructions.
+
+Stage 6:
+
+The owner physically waters the plant.
+
+Stage 7:
+
+The owner records the actual care action.
+
+Stage 8:
+
+The backend confirms successful persistence.
+
+Stage 9:
+
+The companion acknowledges the recorded action.
+
+Stage 10:
+
+The application displays the reassessment status.
+
+Do not treat opening the watering guide as completed watering.
+
+Do not mark a plant recovered immediately after an action is logged.
+
+If persistence fails, present a useful retry state.
+
+If the engine cannot calculate a volume, do not invent one.
+
+### 19. Watering guidance sheet
+
+When watering is appropriate, open a focused bottom sheet or equivalent accessible dialog.
+
+It should answer only the relevant questions.
+
+How much?
+
+Display the engine-supported quantity or range.
+
+If unavailable, display supported qualitative guidance.
+
+When?
+
+Display the supported timing.
+
+How?
+
+Display concise existing care instructions.
+
+Record care:
+
+Provide a clear action for recording the actual amount where supported.
+
+Move unit preferences into this sheet or application settings instead of permanently displaying the mL/fl oz toggle on Home.
+
+Use accessible input controls.
+
+Validate entered quantities.
+
+Do not force users to confirm an amount they do not know.
+
+Do not invent backend persistence fields.
+
+### 20. Smart condition-check experience
+
+Replace lengthy technical assessments with adaptive, ordinary-person questions.
+
+Ask one meaningful question at a time when appropriate.
+
+Examples:
+
+“How does the soil feel?”
+
+- Dry.
+- Slightly damp.
+- Wet.
+- Not sure.
+
+“Does your pot have drainage holes?”
+
+- Yes.
+- No.
+- Not sure.
+
+“Have you noticed drooping leaves?”
+
+- Yes.
+- No.
+- Not sure.
+
+Use only questions supported by the existing care workflow.
+
+Implement useful explanations when users do not know how to answer.
+
+Provide simple visual guidance where appropriate.
+
+Do not silently assign unsupported defaults.
+
+Do not require unnecessary questions before every watering action.
+
+Preserve previous valid observations where supported.
+
+Distinguish old observations from new observations.
+
+### 21. Engine-driven 25+ condition states
+
+Retain the comprehensive status system developed through the previous Codex workflow.
+
+Audit all actual backend condition identifiers.
+
+Do not reduce the engine to only happy, sad, and thirsty.
+
+Instead, create a presentation adapter that translates complex conditions into understandable care decisions.
+
+The frontend should support:
+
+- Primary condition.
+- Secondary conditions.
+- Recommended action.
+- Watering guidance.
+- Urgency.
+- Assessment uncertainty.
+- Data freshness.
+- Species-specific character expression.
+
+These concerns must remain separate.
+
+For Home, present the single most important actionable recommendation according to documented engine priorities.
+
+Additional conditions remain available through Care or plant details.
+
+Do not hide conflicting recommendations that could lead to incorrect watering.
+
+Unknown statuses must receive a neutral, safe fallback.
+
+Do not invent new backend conditions.
+
+### 22. Botanical character quality improvement
+
+Inspect the existing Golden Pothos model shown in the screenshot.
+
+Its visual shortcomings include overly glossy foliage, unnatural-looking leaf geometry, and excessive competition between the plant and its pedestal.
+
+Improve the 3D presentation using existing authored assets and the established rendering pipeline.
+
+Golden Pothos should have:
+
+- Recognizable heart-shaped leaves.
+- Natural irregular variegation.
+- Believable leaf thickness.
+- Appropriate vine structure.
+- Species-specific cascading growth.
+- Restrained material roughness.
+- A coherent arrangement of stems and leaves.
+
+Use original character design and tasteful pot expressions.
+
+The character should remain identifiable as a real botanical species.
+
+Apply the same craftsmanship to the other supported plant companions.
+
+Preserve the Blender-ready model asset registry.
+
+Where authored models are missing, implement honest fallbacks and document the outstanding work.
+
+Do not pretend procedural placeholders are completed Blender assets.
+
+### 23. Environmental scene intelligence
+
+Day and night environments should add atmosphere without distracting from care.
+
+The background should remain simple, composed, and visually supportive.
+
+Use subtle lighting changes rather than excessive stars, particles, or theatrical scenery.
+
+Do not imply that the background represents the real plant's exact measured environment unless supported by actual data.
+
+Device-local time may inform decorative appearance.
+
+Engine-supported environmental information may inform care communication.
+
+Keep decorative context and scientific observations separate.
+
+### 24. Native 2017 macOS-inspired craftsmanship
+
+Retain the Project High Sierra visual direction, but apply it more selectively.
+
+Use:
+
+- Precise positioning.
+- Compact native-style controls.
+- Subtle material depth.
+- Fine separators.
+- Restrained translucent surfaces where appropriate.
+- Natural soft shadows.
+- System-oriented typography.
+- Clear hierarchy.
+- Carefully aligned spacing.
+- Functional animation.
+
+Avoid:
+
+- Generic modern SaaS dashboards.
+- Excessive flatness.
+- Giant rounded cards.
+- Aggressive glassmorphism.
+- Repeated beige panels.
+- Oversized headings.
+- Decorative badges.
+- Gratuitous visual effects.
+- Fake desktop window controls.
+
+The visual experience should feel like a premium personal companion application rather than a technical website.
+
+### 25. My Garden architecture
+
+Make My Garden the complete collection-management experience.
+
+Support the existing owned plant collection.
+
+Each plant entry should prioritize:
+
+- Species-specific thumbnail.
+- Personal nickname.
+- Concise condition summary.
+- Meaningful next action, if any.
+
+Use a compact collection layout.
+
+Provide useful filtering where supported:
+
+- All plants.
+- Needs attention.
+- Watering due.
+- Stable.
+- Needs information.
+
+Allow users to select a plant as their active Home companion.
+
+Plant-specific profiles should contain advanced information, species details, care history, environmental settings, and supported management controls.
+
+Keep collection rendering lightweight.
+
+Do not initialize a continuously running WebGL scene for every garden entry.
+
+Use authored thumbnails or efficient static previews.
+
+### 26. Care destination architecture
+
+Care is the dedicated destination for actionable care intelligence across the user's plants.
+
+Organize information by meaningful urgency and timing.
+
+Suggested sections:
+
+Needs attention.
+
+Due today.
+
+Upcoming checks.
+
+Recent care.
+
+Detailed assessments.
+
+Use existing supported backend data.
+
+Do not fabricate schedules.
+
+The user must be able to review urgent needs from other plants without placing the entire garden on Home.
+
+Maintain a compact relevant alert indicator in the application navigation.
+
+Selecting an alert should open the affected plant's specific care context.
+
+Dismissing an alert must not resolve the underlying condition.
+
+### 27. First-time user experience
+
+Design the empty state and onboarding experience for users who know nothing about plants.
+
+The onboarding should establish three concepts:
+
+1. Add your real plant.
+2. Tell Petey Plant about its growing conditions.
+3. Receive personalized care guidance as supported by the engine.
+
+Avoid forcing users through a lengthy application tour.
+
+Provide useful guidance when there is no assessment yet.
+
+Do not present a fictional plant as the user's own plant.
+
+Do not promise accurate personalized watering before sufficient information is available.
+
+### 28. Accessibility and inclusive consumer design
+
+Target WCAG 2.2 AA.
+
+Support:
+
+- Comfortable mobile touch targets.
+- Accessible typography.
+- User-controlled text scaling.
+- Strong text contrast.
+- Non-color urgency indicators.
+- Accessible names for controls.
+- Screen-reader announcements.
+- Keyboard navigation.
+- Reduced-motion preferences.
+- Static alternatives to 3D rendering.
+- Accessible dialogs and bottom sheets.
+- Safe-area support.
+- Appropriate loading and error states.
+
+Do not rely on facial expressions alone to communicate plant condition.
+
+An ordinary user should understand the care recommendation even if the 3D scene cannot render.
+
+Do not sacrifice accessibility to enforce the 60:40 ratio.
+
+### 29. Performance and resource management
+
+Preserve and improve the existing rendering architecture.
+
+Implement appropriate:
+
+- Lazy loading.
+- Model caching.
+- Texture optimization.
+- Adaptive render quality.
+- GPU resource disposal.
+- Off-screen rendering suspension.
+- Background-tab suspension.
+- Reduced-motion support.
+- Layout stability.
+- Network request cancellation.
+- Static rendering fallbacks.
+
+The care interface must become usable without waiting for the entire 3D environment to load.
+
+Do not block urgent recommendations behind decorative animation.
+
+Use existing build tools and avoid unnecessary dependencies.
+
+### 30. Frontend-only engineering boundaries
+
+Preserve:
+
+- Existing care engine.
+- Machine learning models.
+- ONNX integration.
+- Watering algorithms.
+- Backend services.
+- Authentication.
+- Database schemas.
+- Existing API contracts.
+- Garden persistence.
+
+Do not introduce competing care algorithms.
+
+Do not create fictional backend endpoints.
+
+Do not invent water quantities, soil measurements, confidence scores, or plant health percentages.
+
+Do not replace existing intelligence with Gemini-generated advice.
+
+Inspect actual types, services, status definitions, and API responses before modifying presentation.
+
+Frontend mock fixtures may exist only in explicitly identified development or testing environments.
+
+### 31. Reliability and failure states
+
+Review the end-to-end experience when:
+
+- Engine data is missing.
+- An assessment is outdated.
+- Network connectivity fails.
+- Multiple plant conditions conflict.
+- A watering quantity is unavailable.
+- A care action fails to save.
+- A plant model is missing.
+- WebGL is unsupported.
+- Notification permissions are denied.
+- A plant is deleted.
+- The selected plant no longer exists.
+- The garden is empty.
+
+The user should receive understandable guidance in each case.
+
+Never silently display an outdated recommendation as current.
+
+Never default an unknown condition to healthy.
+
+Prevent accidental duplicate watering records.
+
+### 32. Implementation architecture
+
+Inspect the existing frontend structure before introducing new modules.
+
+Suggested architectural responsibilities:
+
+- Responsive application shell.
+- Viewport-aware home layout.
+- Selected companion state.
+- Botanical scene renderer.
+- Species asset registry.
+- Condition presentation adapter.
+- Companion message templates.
+- Contextual care interface.
+- Watering guidance sheet.
+- Adaptive condition questionnaire.
+- Garden collection.
+- Plant profile.
+- Care center.
+- Notification interface.
+- Accessible shared UI primitives.
+
+Adapt these responsibilities to the existing project conventions.
+
+Separate backend communication from presentation.
+
+Avoid monolithic components.
+
+Do not unnecessarily restructure working code.
+
+Remove obsolete Home components only after verifying their references and preserving required functionality elsewhere.
+
+### 33. Behavioral usability targets
+
+Use the following as measurable product targets rather than guaranteed achievements.
+
+Within three seconds:
+
+The user understands whether their selected plant needs attention.
+
+Within five seconds:
+
+The user identifies the appropriate next action.
+
+Within one meaningful interaction:
+
+The user opens relevant care guidance.
+
+Within approximately ten seconds:
+
+The user can begin a straightforward supported care interaction.
+
+For stable plants:
+
+The user understands that no watering is necessary without navigating through multiple screens.
+
+For urgent conditions:
+
+The user identifies the urgency and understands how to review appropriate care.
+
+Evaluate these targets with realistic usability scenarios.
+
+Do not claim verified results without actual testing.
+
+### 34. Mandatory regression and visual testing
+
+Review the redesigned interface at:
+
+320px, 360px, 390px, 430px, 768px, 1024px, and 1440px.
+
+Test these user scenarios:
+
+- First-time owner.
+- One stable plant.
+- One plant requiring watering.
+- A plant with an engine-supported water quantity.
+- A plant without a water quantity.
+- Overwatering risk.
+- Urgent supported condition.
+- Insufficient information.
+- Multiple owned plants.
+- Selecting a different companion in My Garden.
+- Completing a condition check.
+- Recording watering.
+- Failed watering submission.
+- Successful watering submission.
+- Missing 3D asset.
+- Reduced motion.
+- Screen-reader operation.
+- Large text scaling.
+- Offline operation.
+- Stale assessment.
+
+Verify the following:
+
+- Home uses an approximately 60:40 companion-to-care composition under normal mobile conditions.
+- Home does not contain the Other Plants section.
+- Home does not display the full technical assessment table.
+- Home has one dominant care action when an action is required.
+- Stable plants do not receive unnecessary watering prompts.
+- Garden functionality is preserved in My Garden.
+- Care data remains accurate and accessible.
+- No backend functionality has been broken.
+- No important information is clipped.
+- The essential experience works without WebGL.
+
+Run existing builds, type checks, linting, and available tests.
+
+Fix critical and high-priority defects.
+
+Do not invent test results.
+
+### 35. Product impact evaluation
+
+Evaluate Petey Plant as a real-world care product.
+
+Prioritize:
+
+- Correct interpretation of care recommendations.
+- Appropriate watering decisions.
+- Reduced accidental overwatering.
+- Reduced missed necessary care.
+- Lower cognitive effort.
+- Faster access to instructions.
+- Reliable care-action recording.
+- User trust.
+- Successful task completion.
+- Long-term plant health outcomes when evidence becomes available.
+
+Do not treat additional screen time, daily engagement, or notification frequency as primary success metrics.
+
+A user who opens Petey Plant, understands that no action is needed, and closes the application has successfully used the product.
+
+### 36. Final implementation directive
+
+Begin by auditing the current implementation and all three supplied screenshots.
+
+Then execute:
+
+Phase A: Reorganize navigation responsibilities.
+
+Phase B: Remove redundant Home content and implement the 60:40 layout.
+
+Phase C: Improve botanical stage composition, model presentation, and environmental restraint.
+
+Phase D: Implement concise engine-driven care variants.
+
+Phase E: Move technical assessments into progressive disclosure and dedicated Care screens.
+
+Phase F: Complete My Garden collection management and active companion selection.
+
+Phase G: Refine condition checks, watering guidance, and action feedback.
+
+Phase H: Improve accessibility, responsiveness, and resource management.
+
+Phase I: Run regression tests and inspect rendered interfaces.
+
+Phase J: Produce an evidence-based frontend handoff for Codex.
+
+Do not stop at generating a plan.
+
+Perform actual supported frontend changes.
+
+The final Home screen should feel like opening a window into a small living botanical world.
+
+The plant communicates what it needs.
+
+The owner understands immediately.
+
+The appropriate action is easy.
+
+The sophisticated care engine operates behind the experience without overwhelming the user.
+
+Build that experience.

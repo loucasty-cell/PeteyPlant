@@ -1,3 +1,5 @@
+import { checkBackendAvailable } from './gardenApi';
+
 export interface LensCapability {
   status: 'available' | 'unavailable';
   model_version: string | null;
@@ -60,9 +62,17 @@ export interface HealthResult {
   evidence_type: 'owner_observations';
 }
 
-const base = import.meta.env.VITE_API_URL ?? 'http://localhost:8000';
+const base = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
 
 async function request<T>(path: string, signal: AbortSignal, init?: RequestInit): Promise<T> {
+  if (!base) {
+    const online = await checkBackendAvailable(signal);
+    if (!online) {
+      throw new Error(
+        'Petey’s backend service is currently offline. Start the FastAPI backend on port 8000 to run live triage or photo identification.',
+      );
+    }
+  }
   const response = await fetch(`${base}/api/v1${path}`, { ...init, signal });
   if (!response.ok) {
     const error = await response.json().catch(() => null);
@@ -72,7 +82,18 @@ async function request<T>(path: string, signal: AbortSignal, init?: RequestInit)
 }
 
 export const plantToolsApi = {
-  lensStatus: (signal: AbortSignal) => request<LensCapability>('/lens/status', signal),
+  async lensStatus(signal: AbortSignal): Promise<LensCapability> {
+    const online = await checkBackendAvailable(signal);
+    if (!online) {
+      return {
+        status: 'unavailable',
+        model_version: null,
+        taxonomy_version: 'unavailable',
+        message: 'Photo identification is offline while the FastAPI backend is not running. You can still test the camera or search manually by species name.',
+      };
+    }
+    return request<LensCapability>('/lens/status', signal);
+  },
   identify: (photo: Blob, signal: AbortSignal) => request<LensResult>('/lens/identify', signal, {
     method: 'POST',
     headers: { 'Content-Type': photo.type },

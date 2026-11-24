@@ -34,8 +34,9 @@
   "private": true,
   "scripts": {
     "build": "tsc --noEmit && vite build",
-    "dev": "vite",
-    "preview": "vite preview",
+    "dev": "vite --host 0.0.0.0 --port 3000",
+    "lint": "tsc --noEmit",
+    "preview": "vite preview --host 0.0.0.0 --port 3000",
     "verify:screenshots": "node verification/screenshot.mjs",
     "verify:contrast": "node verification/contrast.mjs"
   },

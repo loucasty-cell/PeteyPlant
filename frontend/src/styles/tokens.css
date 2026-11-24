@@ -1,0 +1,112 @@
+/* ==========================================================================
+   Petey Plant — Project High Sierra Design Tokens
+   Dimensional, restrained, native-inspired botanical interface system.
+   Palette: Primary Forest #234D36, Deep Forest #173C2A, Botanical #789B62,
+            Canvas #F2F3EF, Warm Surface #F8F8F4, Elevated #FFFFFF,
+            Primary Ink #202923, Secondary Ink #556159 (AA >= 5.7:1),
+            Separator #DDE2DA, Advisory Amber #B78339, Critical Red #B94E43.
+   ========================================================================== */
+
+:root {
+  /* Core brand & material surfaces */
+  --petey-forest: #234D36;
+  --petey-forest-hover: #1C402C;
+  --petey-forest-deep: #173C2A;
+  --petey-forest-soft: #E9F0EA;
+  --petey-botanical: #789B62;
+  --petey-botanical-soft: #EDF3E8;
+
+  --petey-canvas: #F2F3EF;
+  --petey-ivory: #F8F8F4;
+  --petey-white: #FFFFFF;
+  --petey-surface: var(--petey-canvas);
+  --petey-surface-card: var(--petey-white);
+  --petey-surface-subtle: #F4F5F0;
+  --petey-surface-toolbar: rgba(248, 248, 244, 0.92);
+  --petey-surface-dark: #111814;
+  --petey-surface-dark-elevated: #1A251F;
+
+  /* Ink & separators (validated for WCAG 2.2 AA contrast) */
+  --petey-ink: #202923;
+  --petey-ink-secondary: #515D55;
+  --petey-ink-muted: #5C6860;
+  --petey-border: #DDE2DA;
+  --petey-border-strong: #C3CBC0;
+  --petey-separator: #DDE2DA;
+
+  /* Semantic condition accents */
+  --petey-warning: #B78339;
+  --petey-warning-text: #7D5211;
+  --petey-warning-bg: #FBF5E8;
+  --petey-warning-border: #E5CFA4;
+
+  --petey-critical: #B94E43;
+  --petey-critical-text: #8F2F25;
+  --petey-critical-bg: #FCF0EE;
+  --petey-critical-border: #E4B5B0;
+
+  /* Native system typography (no oversized editorial serif for UI chrome) */
+  --petey-font-display: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', Archivo, system-ui, sans-serif;
+  --petey-font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Archivo, system-ui, sans-serif;
+  --petey-font-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+
+  /* Systematic 4px spacing scale */
+  --petey-space-1: 4px;
+  --petey-space-2: 8px;
+  --petey-space-3: 12px;
+  --petey-space-4: 16px;
+  --petey-space-5: 20px;
+  --petey-space-6: 24px;
+  --petey-space-8: 32px;
+  --petey-space-10: 40px;
+  --petey-space-12: 48px;
+
+  /* High Sierra corner radius hierarchy */
+  --petey-radius-xs: 6px;
+  --petey-radius-sm: 8px;
+  --petey-radius-md: 10px;
+  --petey-radius-lg: 12px;
+  --petey-radius-stage: 14px;
+  --petey-radius-xl: 16px;
+
+  /* Restrained tactile elevation shadows */
+  --petey-shadow-control: 0 1px 2px rgba(23, 60, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.72);
+  --petey-shadow-primary: 0 1px 2px rgba(23, 60, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.16);
+  --petey-shadow-sm: 0 1px 3px rgba(23, 40, 30, 0.06), 0 1px 1px rgba(23, 40, 30, 0.04);
+  --petey-shadow-md: 0 6px 18px rgba(23, 40, 30, 0.09), 0 1px 2px rgba(23, 40, 30, 0.05);
+  --petey-shadow-lg: 0 16px 38px rgba(17, 30, 22, 0.16), 0 2px 6px rgba(17, 30, 22, 0.08);
+
+  /* Interactive & focus states */
+  --petey-focus-ring: 0 0 0 3px rgba(35, 77, 54, 0.28);
+  --petey-touch-min: 44px;
+
+  /* Causal motion timings */
+  --petey-ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --petey-duration-press: 100ms;
+  --petey-duration-fast: 150ms;
+  --petey-duration-base: 210ms;
+  --petey-duration-dialog: 260ms;
+}
+
+/* Accessible focus ring consistency across all Petey interactive controls */
+.petey-shell button:focus-visible,
+.petey-shell a:focus-visible,
+.petey-shell input:focus-visible,
+.petey-shell select:focus-visible,
+.petey-shell textarea:focus-visible,
+.petey-modal-backdrop button:focus-visible,
+.petey-modal-backdrop input:focus-visible,
+.petey-modal-backdrop select:focus-visible,
+.petey-modal-backdrop textarea:focus-visible {
+  outline: 2.5px solid var(--petey-forest);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --petey-duration-press: 0ms;
+    --petey-duration-fast: 0ms;
+    --petey-duration-base: 0ms;
+    --petey-duration-dialog: 0ms;
+  }
+}
