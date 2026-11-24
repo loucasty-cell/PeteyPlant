@@ -1,0 +1,25 @@
+{
+  "id": "ficus",
+  "speciesId": "Ficus lyrata",
+  "acceptedName": "Ficus lyrata",
+  "rank": "species",
+  "version": 1,
+  "design": "Woody branching crown, veined violin-shaped leaves, round brass spectacles and bow tie",
+  "source": "assets/characters/ficus/source/ficus.blend",
+  "runtime": "frontend/public/characters/ficus-v1.glb",
+  "thumbnail": "frontend/public/characters/ficus-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Concerned",
+    "Relieved",
+    "Celebrate",
+    "Notice",
+    "Curious"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials and keyframes. The user reference informed the character direction.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 973632,
+  "triangles": 40068
+}

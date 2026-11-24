@@ -10,7 +10,7 @@ import {
   type CompanionAnimationId,
   type SpeciesAssetManifestEntry,
 } from '../../lib/three/speciesAssetRegistry';
-import { disposeObject3D, loadSpeciesGltf, type LoadedGltfAsset } from '../../lib/three/assetLoader';
+import { loadSpeciesGltf, type LoadedGltfAsset } from '../../lib/three/assetLoader';
 import { BotanicalThumbnail } from '../../lib/three/BotanicalThumbnails';
 import type { PosturePreset } from '../../lib/care/conditionRegistry';
 
@@ -43,19 +43,49 @@ class StageErrorGuard extends Component<{ children: ReactNode; fallback: ReactNo
   }
 }
 
-function SceneAtmosphereRig({ theme, enableFog }: { theme: WeatherAtmosphereTheme; enableFog: boolean }) {
+function StageContextMonitor({ onContextLost }: { onContextLost: (lost: boolean) => void }) {
+  const { gl, invalidate } = useThree();
+  useEffect(() => {
+    const canvas = gl.domElement;
+    const lost = (event: Event) => {
+      event.preventDefault();
+      onContextLost(true);
+    };
+    const restored = () => {
+      onContextLost(false);
+      invalidate();
+    };
+    onContextLost(gl.getContext().isContextLost());
+    canvas.addEventListener('webglcontextlost', lost);
+    canvas.addEventListener('webglcontextrestored', restored);
+    return () => {
+      canvas.removeEventListener('webglcontextlost', lost);
+      canvas.removeEventListener('webglcontextrestored', restored);
+    };
+  }, [gl, invalidate, onContextLost]);
+  return null;
+}
+
+function SceneAtmosphereRig({ theme, enableFog, contextLost }: {
+  theme: WeatherAtmosphereTheme;
+  enableFog: boolean;
+  contextLost: boolean;
+}) {
   const { gl, scene } = useThree();
 
   useEffect(() => {
+    if (contextLost) return;
     const pmrem = new THREE.PMREMGenerator(gl);
-    const envTarget = pmrem.fromScene(new RoomEnvironment(), 0.04);
+    const room = new RoomEnvironment();
+    const envTarget = pmrem.fromScene(room, 0.04);
+    room.dispose();
     scene.environment = envTarget.texture;
     pmrem.dispose();
     return () => {
       scene.environment = null;
       envTarget.dispose();
     };
-  }, [gl, scene]);
+  }, [gl, scene, contextLost]);
 
   useEffect(() => {
     if (!enableFog) {
@@ -72,89 +102,136 @@ function SceneAtmosphereRig({ theme, enableFog }: { theme: WeatherAtmosphereThem
   return null;
 }
 
-/**
- * Loads an authored GLB model from the species asset registry when `modelUrl` is set,
- * with automatic GPU disposal and seamless fallback to our bespoke procedural flagship rig.
- */
+function AuthoredCompanion({
+  asset, entry, clips, mood, animationState, playCount, reactionKind, reduced, castShadow, onPet,
+}: {
+  asset: LoadedGltfAsset;
+  entry: SpeciesAssetManifestEntry;
+  clips: NonNullable<SpeciesAssetManifestEntry['authoredClips']>;
+  mood: PalMood;
+  animationState: CompanionAnimationId;
+  playCount: number;
+  reactionKind: 'pet' | 'water';
+  reduced: boolean;
+  castShadow: boolean;
+  onPet?: () => void;
+}) {
+  const { gl, invalidate } = useThree();
+  const mixer = useMemo(() => new THREE.AnimationMixer(asset.scene), [asset.scene]);
+  const animations = useMemo(() => new Map(asset.animations.map(clip => [clip.name, clip])), [asset.animations]);
+  const lastPlayCount = useRef(playCount);
+  const activeReaction = useRef<{ action: THREE.AnimationAction; after: THREE.AnimationAction } | null>(null);
+  const idleName = (mood === 'curious' || mood === 'concerned' || mood === 'relieved' ? clips.moods[mood] : undefined) ?? clips.idle;
+
+  useEffect(() => {
+    asset.scene.traverse((object) => {
+      if (object instanceof THREE.Mesh) object.castShadow = castShadow;
+    });
+    gl.domElement.dataset.stageModel = entry.assetId;
+    invalidate();
+    return () => { delete gl.domElement.dataset.stageModel; };
+  }, [asset.scene, castShadow, entry.assetId, gl, invalidate]);
+
+  useEffect(() => () => {
+    mixer.stopAllAction();
+    mixer.uncacheRoot(asset.scene);
+  }, [asset.scene, mixer]);
+
+  useEffect(() => {
+    const idleClip = animations.get(idleName) ?? animations.get(clips.idle);
+    if (!idleClip) return;
+    const idleAction = mixer.clipAction(idleClip).reset();
+    if (idleClip.name === clips.idle) {
+      idleAction.setLoop(THREE.LoopRepeat, Infinity);
+      idleAction.clampWhenFinished = false;
+    } else {
+      idleAction.setLoop(THREE.LoopOnce, 1);
+      idleAction.clampWhenFinished = true;
+    }
+    const wasTriggered = lastPlayCount.current !== playCount;
+    lastPlayCount.current = playCount;
+    const reactionName = wasTriggered
+      ? (reactionKind === 'water' ? clips.careAcknowledged : clips.greeting)
+      : animationState === 'care_acknowledged' ? clips.careAcknowledged
+        : animationState === 'greeting' || animationState === 'selected' ? clips.greeting : undefined;
+    const reactionClip = !reduced && reactionName ? animations.get(reactionName) : undefined;
+    const reaction = reactionClip ? mixer.clipAction(reactionClip).reset() : undefined;
+    if (reaction) {
+      reaction.setLoop(THREE.LoopOnce, 1).play();
+      activeReaction.current = { action: reaction, after: idleAction };
+    } else {
+      idleAction.play();
+      if (reduced && idleClip.name !== clips.idle) idleAction.time = idleClip.duration * 0.65;
+    }
+    mixer.update(0);
+    invalidate();
+    return () => {
+      activeReaction.current = null;
+      mixer.stopAllAction();
+    };
+  }, [animations, animationState, clips, idleName, invalidate, mixer, playCount, reactionKind, reduced]);
+
+  useFrame((_, delta) => {
+    if (reduced) return;
+    mixer.update(Math.min(delta, 0.08));
+    const reaction = activeReaction.current;
+    if (reaction && !reaction.action.isRunning()) {
+      activeReaction.current = null;
+      reaction.action.stop();
+      reaction.after.play();
+      mixer.update(0);
+    }
+  });
+
+  return (
+    <group position={entry.pivotOffset} scale={entry.scale} rotation={entry.rotation} onClick={(event) => {
+      if (!onPet) return;
+      event.stopPropagation();
+      onPet();
+    }}>
+      <primitive object={asset.scene} />
+    </group>
+  );
+}
+
 function SpeciesCompanionNode({
-  entry,
-  mood,
-  animationState,
-  posturePreset,
-  playCount,
-  reduced,
-  windKmh,
-  castShadow,
-  onPet,
+  entry, mood, animationState, posturePreset, playCount, reactionKind, reduced, windKmh, castShadow, onPet,
 }: {
   entry: SpeciesAssetManifestEntry;
   mood: PalMood;
   animationState: CompanionAnimationId;
   posturePreset?: PosturePreset;
   playCount: number;
+  reactionKind: 'pet' | 'water';
   reduced: boolean;
   windKmh: number;
   castShadow: boolean;
   onPet?: () => void;
 }) {
   const [loadedGltf, setLoadedGltf] = useState<LoadedGltfAsset | null>(null);
-  const mixerRef = useRef<THREE.AnimationMixer | null>(null);
-
+  const { modelUrl, authoredClips } = entry;
   useEffect(() => {
+    if (!modelUrl || !authoredClips) return;
     let active = true;
-    if (!entry.modelUrl) {
-      setLoadedGltf(null);
-      return;
-    }
-    void loadSpeciesGltf(entry.modelUrl).then((asset) => {
-      if (!active) {
-        if (asset) disposeObject3D(asset.scene);
+    let lease: LoadedGltfAsset | null = null;
+    void loadSpeciesGltf(modelUrl).then((asset) => {
+      if (!active || !asset?.animations.some(clip => clip.name === authoredClips.idle)) {
+        asset?.release();
         return;
       }
+      lease = asset;
       setLoadedGltf(asset);
     });
     return () => {
       active = false;
+      lease?.release();
     };
-  }, [entry.modelUrl]);
+  }, [modelUrl, authoredClips]);
 
-  useEffect(() => {
-    if (!loadedGltf) return;
-    if (loadedGltf.animations.length > 0) {
-      const mixer = new THREE.AnimationMixer(loadedGltf.scene);
-      const clip =
-        loadedGltf.animations.find((a) => a.name.toLowerCase().includes(animationState)) ??
-        loadedGltf.animations[0];
-      if (clip) mixer.clipAction(clip).play();
-      mixerRef.current = mixer;
-    }
-    return () => {
-      mixerRef.current?.stopAllAction();
-      mixerRef.current = null;
-      disposeObject3D(loadedGltf.scene);
-    };
-  }, [loadedGltf, animationState]);
-
-  useFrame((_, delta) => {
-    if (!reduced && mixerRef.current) {
-      mixerRef.current.update(Math.min(delta, 0.08));
-    }
-  });
-
-  if (loadedGltf) {
-    return (
-      <primitive
-        object={loadedGltf.scene}
-        position={entry.pivotOffset}
-        scale={entry.scale}
-        rotation={entry.rotation}
-        onClick={(e: { stopPropagation: () => void }) => {
-          if (!onPet) return;
-          e.stopPropagation();
-          onPet();
-        }}
-      />
-    );
+  if (loadedGltf && authoredClips) {
+    return <AuthoredCompanion asset={loadedGltf} entry={entry} clips={authoredClips} mood={mood}
+      animationState={animationState} playCount={playCount} reactionKind={reactionKind}
+      reduced={reduced} castShadow={castShadow} onPet={onPet} />;
   }
 
   return (
@@ -486,6 +563,8 @@ export function InteractivePlantStage({
 }: InteractivePlantStageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [webglReady, setWebglReady] = useState(false);
+  const [contextLost, setContextLost] = useState(false);
+  const [failedPreview, setFailedPreview] = useState<string | null>(null);
   const [inViewport, setInViewport] = useState(true);
   const [tabVisible, setTabVisible] = useState(
     () => (typeof document === 'undefined' ? true : !document.hidden),
@@ -516,7 +595,7 @@ export function InteractivePlantStage({
     return () => document.removeEventListener('visibilitychange', onVisibility);
   }, []);
 
-  const isRenderingActive = inViewport && tabVisible && !reduced;
+  const isRenderingActive = inViewport && tabVisible && !reduced && !contextLost;
 
   const fallback = (
     <div
@@ -525,7 +604,10 @@ export function InteractivePlantStage({
       aria-label={statusAccessibleLabel ? `${entry.commonName} — ${statusAccessibleLabel}` : `${entry.commonName} companion illustration`}
     >
       <div className="stage-fallback-card">
-        <BotanicalThumbnail speciesId={entry.speciesId} size={156} />
+        {entry.thumbnailUrl && failedPreview !== entry.thumbnailUrl ? (
+          <img src={entry.thumbnailUrl} alt="" width={156} height={156} style={{ objectFit: 'contain' }}
+            onError={() => setFailedPreview(entry.thumbnailUrl)} />
+        ) : <BotanicalThumbnail speciesId={entry.speciesId} size={156} />}
         {statusAccessibleLabel && <span className="stage-fallback-caption">{statusAccessibleLabel}</span>}
       </div>
     </div>
@@ -537,6 +619,7 @@ export function InteractivePlantStage({
     <div ref={containerRef} className="stage-canvas-wrap">
       <StageErrorGuard fallback={fallback}>
         <Canvas
+          style={contextLost ? { visibility: 'hidden' } : undefined}
           frameloop={isRenderingActive ? 'always' : 'demand'}
           shadows={!isSoftwareGl}
           dpr={isSoftwareGl ? 1 : [1, 2]}
@@ -552,16 +635,10 @@ export function InteractivePlantStage({
             gl.outputColorSpace = THREE.SRGBColorSpace;
             gl.setClearColor(0x000000, 0);
             gl.domElement.dataset.stageRenderer = 'ready';
-            gl.domElement.addEventListener('webglcontextlost', (e) => {
-              e.preventDefault();
-              setWebglReady(false);
-            });
-            gl.domElement.addEventListener('webglcontextrestored', () => {
-              setWebglReady(true);
-            });
           }}
         >
-          <SceneAtmosphereRig theme={theme} enableFog={showAtmosphere} />
+          <StageContextMonitor onContextLost={setContextLost} />
+          <SceneAtmosphereRig theme={theme} enableFog={showAtmosphere} contextLost={contextLost} />
 
           <ambientLight color={theme.ambientColor} intensity={theme.ambientIntensity} />
           <hemisphereLight
@@ -593,11 +670,13 @@ export function InteractivePlantStage({
           <group position={[0, 0.28, 0]}>
             <BotanicalPedestal theme={theme} castShadow={!isSoftwareGl} />
             <SpeciesCompanionNode
+              key={entry.assetId}
               entry={entry}
               mood={mood}
               animationState={animationState}
               posturePreset={posturePreset}
               playCount={playCount}
+              reactionKind={reactionKind}
               reduced={reduced}
               windKmh={windKmh}
               castShadow={!isSoftwareGl}
@@ -613,6 +692,7 @@ export function InteractivePlantStage({
           <StageCameraControls preset={entry.cameraPreset} orbitCommand={orbitCommand} />
         </Canvas>
       </StageErrorGuard>
+      {contextLost && fallback}
     </div>
   );
 }

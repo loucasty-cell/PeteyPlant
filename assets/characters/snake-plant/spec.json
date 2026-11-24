@@ -1,0 +1,22 @@
+{
+  "id": "snake-plant",
+  "speciesId": "Dracaena trifasciata",
+  "acceptedName": "Dracaena trifasciata",
+  "rank": "species",
+  "version": 1,
+  "design": "Laurentii-inspired rosette with nine upright, banded green swords, golden margins, olive-rim ceramic and amber inlay eyes",
+  "morphologySources": [
+    "https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:77164235-1/general-information",
+    "https://www.nparks.gov.sg/florafaunaweb/flora/2/4/2425"
+  ],
+  "source": "assets/characters/snake-plant/source/snake-plant.blend",
+  "runtime": "frontend/public/characters/snake-plant-v1.glb",
+  "thumbnail": "frontend/public/characters/snake-plant-v1-preview.webp",
+  "clips": ["Idle", "Notice", "Curious", "Concerned", "Relieved", "Celebrate"],
+  "status": "AUTHORED",
+  "visualReview": "rendered front, three-quarter, side and rear; awaiting owner review",
+  "provenance": "Original Blender geometry, pottery, vertex pigments and authored keyframes. Botanical references informed the silhouette and color pattern.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 974612,
+  "triangles": 37304
+}

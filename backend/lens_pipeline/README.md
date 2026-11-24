@@ -34,3 +34,23 @@ The symptom probe requires a development-only manifest and cached embeddings. It
 Run the test predictions and evaluation only after freezing the model and policy. Species scoring and serving share the ONNX adapter and label mapping. Report accepted precision over all accepted outputs, including unknown examples admitted in error. Report known coverage and unknown false acceptance with their own denominators. Intervals resample connected plant/cluster groups. CPU speed limits, species-only gates and full symptom/model readiness are distinct. A file that satisfies the model loader's schema is not evidence that a dataset represents household use, rights have been reviewed or a benchmark is independent.
 
 The current runtime is disabled. The model candidate check is a smoke test on one licensed photo and one synthetic control. No representative model, promotion result or symptom probabilities are available.
+
+## Train a species head
+
+Run this experiment separately from the app. It uses PyTorch and Transformers. Optional ONNX export also needs ONNX and ONNX Runtime. The normal garden service can run without the training packages.
+
+Supply a frozen development manifest with independently grouped, reviewed original indoor photos. Both `train` and `val` must contain all eight supported species. Include reviewed unknown species or nonplant images in `val` for abstention calibration. Keep the final holdout in a separate private manifest. This command rejects test rows before opening images and applies the existing audit to the development split.
+
+```text
+python -m lens_pipeline.train_species --manifest development.jsonl --images photos --run-dir runs/openplants-head-01 --allow-download --export-onnx
+```
+
+Create the private `runs` directory first. Omit `--allow-download` to require already cached weights. The only backbone fetched by the command is the [pinned OpenPlants ViT revision](https://huggingface.co/domai-tb/OpenPlants-Identification-ViT-Base-Patch16-224/tree/30794da002827ad922366fe88840c5a2d8a4a31d), whose model card lists Apache-2.0. It uses safetensors and runs without repository-supplied executable code. The fit updates a small linear head using known training images. CPU head initialization and batch ordering are seeded. The backbone stays frozen. Inputs are oriented RGB, bilinear resized to 224 pixels and normalized with mean and standard deviation of 0.5 per channel.
+
+The run writes `head.npz`, `model-config.json` and `training-report.json`, and optionally `species.onnx`. The report records the model revision, development dataset fingerprints, optimization settings, training loss, validation policy and artifact hashes. Export checks logits on one validation image against the actual Lens runtime. Treat that check as a compatibility smoke test. Validation metrics are measured on the same split used to fit the abstention policy, so they are development results. To qualify a candidate, use the existing evaluation workflow on the frozen artifact and final independent holdout, and measure the runtime latency before preparing any release bundle.
+
+## Independent-group release check
+
+The test report includes accepted photo counts and counts of connected plant/duplicate groups with any accepted prediction. A group is clean only when every accepted prediction in that group is correct. The optional photo-weighted bootstrap interval becomes unavailable when resampling yields no spread. The loader recomputes a one-sided 95% Wilson lower bound for the clean-group rate and requires it to reach 98% in addition to the existing 98% point precision, coverage, rejection and calibration checks. Under this rule, 200 correct photos from 100 independent groups yield a 97.37% clean-group lower bound. A perfect run needs at least 133 accepted groups to clear the bound.
+
+This is a group-level release safeguard. Its assumptions include independent, representative groups. Continue to report the photo metrics separately. Existing reports without the raw accepted counts need to be regenerated with the new evaluator. [NIST confidence interval methods](https://www.itl.nist.gov/div898/handbook/prc/section2/prc241.htm)

@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { createPreviewWeather, fetchGoogleWeather } from '../weatherService';
 import {
   getConditionPresentation,
   getRegisteredConditionCount,
@@ -73,6 +74,30 @@ test('watering intelligence never manufactures mL precision when backend lacks v
   assert.equal(intel.volumeGuidance.hasQuantitativeVolume, false);
   assert.equal(intel.volumeGuidance.formattedAmount, null);
   assert.ok(intel.volumeGuidance.limitationNote?.includes('milliliter'));
+});
+
+test('outdoor care context preserves measured zero and leaves missing and preview readings out', async (context) => {
+  context.mock.method(globalThis, 'fetch', async () => Response.json({
+    weatherCondition: { type: 'CLOUDY', description: { text: 'Cloudy' } },
+    temperature: { degrees: 0 },
+    wind: { speed: { value: 0 } },
+  }));
+
+  const weather = await fetchGoogleWeather(1, 2, 'Fixture');
+  assert.ok(weather);
+  assert.equal(weather.source, 'google-weather');
+  assert.equal(weather.temperatureC, 0);
+  assert.equal(weather.windKmh, 0);
+  assert.equal(weather.relativeHumidity, null);
+  assert.equal(weather.feelsLikeC, null);
+  assert.equal(weather.updatedAt, null);
+
+  const liveContext = buildWateringIntelligence(makePlant(), { weather }).environmentalContext;
+  assert.match(liveContext, /0°C/);
+  assert.doesNotMatch(liveContext, /% RH/);
+  const previewContext = buildWateringIntelligence(makePlant(), { weather: createPreviewWeather('rain') }).environmentalContext;
+  assert.match(previewContext, /Live outdoor weather is unavailable/);
+  assert.doesNotMatch(previewContext, /°C|% RH/);
 });
 
 test('watering intelligence formats exact mL and fl oz ranges when future engine provides them', () => {

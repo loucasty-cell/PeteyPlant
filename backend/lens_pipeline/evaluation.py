@@ -7,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 
+from services.lens_statistics import clean_group_lower95
 from services.lens_taxonomy import LAUNCH_SPECIES, map_label
 
 from .manifest import UNKNOWN
@@ -130,7 +131,7 @@ def bootstrap_ci(groups, numerator, denominator):
     group_count = int(groups.max()) + 1
     hits = np.bincount(groups, weights=numerator, minlength=group_count)
     totals = np.bincount(groups, weights=denominator, minlength=group_count)
-    if np.count_nonzero(totals) < 2:
+    if np.count_nonzero(totals) < 2 or np.all(hits == totals) or not np.any(hits):
         return None
     generator = np.random.default_rng(2026)
     estimates = []
@@ -139,7 +140,10 @@ def bootstrap_ci(groups, numerator, denominator):
         total = totals[draw].sum()
         if total:
             estimates.append(hits[draw].sum() / total)
-    return np.percentile(estimates, [2.5, 97.5]).tolist() if estimates else None
+    if not estimates:
+        return None
+    lower, upper = np.percentile(estimates, [2.5, 97.5]).tolist()
+    return [lower, upper] if lower < upper else None
 
 
 def evaluate(truths, logits, groups, labels, policy):
@@ -150,6 +154,8 @@ def evaluate(truths, logits, groups, labels, policy):
     known = truths >= 0
     correct = order[:, 0] == truths
     accepted_correct = accepted & correct
+    accepted_group_count = len(set(groups[accepted]))
+    clean_accepted_groups = accepted_group_count - len(set(groups[accepted & ~correct]))
     top3 = known & (order[:, :3] == truths[:, None]).any(axis=1)
     reliability = []
     for index in range(15):
@@ -180,6 +186,9 @@ def evaluate(truths, logits, groups, labels, policy):
         "ece_bins": 15,
         "accepted_total": int(accepted.sum()),
         "accepted_correct": int(accepted_correct.sum()),
+        "accepted_groups": accepted_group_count,
+        "clean_accepted_groups": clean_accepted_groups,
+        "clean_group_lower95": clean_group_lower95(clean_accepted_groups, accepted_group_count),
         "known_brier": float(np.square(scores[known] - one_hot).sum(axis=1).mean()) if n_known else None,
         "ece": ratio(sum(
             bucket["count"] * abs(bucket["confidence"] - bucket["accuracy"])

@@ -1,3 +1,4 @@
+import { isPreviewMode } from '../../lib/gardenApi';
 /**
  * Project High Sierra — Watering Intelligence Inspector.
  *
@@ -33,9 +34,10 @@ import type {
 
 const SHORT_DATE = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' });
 
-const HISTORY_LABELS: Record<CareKind, string> = {
+const HISTORY_LABELS: Record<GardenPlant['history'][number]['kind'], string> = {
   dry: 'Reported dry potting mix',
   moist: 'Reported moist potting mix',
+  wet: 'Reported wet potting mix',
   unsure: 'Soil check inconclusive',
   watered: 'Watering logged',
 };
@@ -167,7 +169,13 @@ export function WateringIntelligencePanel({
 
         {/* CONTEXTUAL PRIMARY ACTION SYSTEM (One dominant action, proportionate native control) */}
         <div className="hs-primary-action-area">
-          {isCheckState ? (
+          {isCheckState && !isPreviewMode() ? (
+            <button type="button" className="hs-btn-primary" disabled={busy}
+              onClick={() => onOpenConditionCheck(plant.id)}>
+              <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
+              Open soil checkup
+            </button>
+          ) : isCheckState ? (
             <div className="hs-soil-check-block">
               <span className="hs-micro-prompt">Record potting mix feel:</span>
               <div className="hs-segmented-actions" role="group" aria-label="How does the potting mix feel?">

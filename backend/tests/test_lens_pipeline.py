@@ -102,3 +102,23 @@ def test_symptom_calibration_masks_unknown_and_favors_rare_recall():
     assert held_calibration["pest_damage_signs"]["quantile"] == 1
     assert conformal_set(100, policy, held_calibration["pest_damage_signs"]) == (0, 1)
     assert conformal_set(100, None, None) == (0, 1)
+
+
+def test_boundary_precision_does_not_treat_repeated_photos_as_independent():
+    labels = ["Monstera deliciosa", "Epipremnum aureum"]
+    photos = 200
+    result = evaluate(
+        np.zeros(photos, dtype=int), np.tile([6., 0.], (photos, 1)),
+        np.arange(photos) // 2, labels,
+        {"temperature": 1, "acceptance_threshold": .8, "margin": .1},
+    )
+    assert result["accepted_precision"] == 1
+    assert result["accepted_precision_ci95"] is None
+    assert result["accepted_total"] == 200
+    assert result["accepted_groups"] == result["clean_accepted_groups"] == 100
+    assert result["clean_group_lower95"] == pytest.approx(.9736572792168257)
+
+    from services.lens_statistics import clean_group_lower95
+    assert clean_group_lower95(132, 132) < .98 <= clean_group_lower95(133, 133)
+    assert clean_group_lower95(0, 100) == 0
+    assert clean_group_lower95(0, 0) is None

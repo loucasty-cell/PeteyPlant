@@ -30,6 +30,15 @@ def care(client, key, plant_id, kind, event_id=None):
     })
 
 
+def save_dry_checkup(client, key, plant_id):
+    path = ROOT + f"/plants/{plant_id}"
+    revision = client.get(path + "/checkup", headers=key).json()["based_on"]
+    return client.post(path + f"/assessments/{uuid4()}/confirm", headers=key, json={
+        "soil": "dry", "inspection_depth": "recommended", "standing_water": "no",
+        "based_on": revision, "captured_at": garden.now().isoformat(),
+    })
+
+
 def test_plant_and_care_survive_new_requests_without_duplicate_entries(clock):
     key = {"X-Petey-Garden": str(uuid4())}
     plant_id, another_id, event_id = (str(uuid4()) for _ in range(3))
@@ -46,7 +55,7 @@ def test_plant_and_care_survive_new_requests_without_duplicate_entries(clock):
         assert [(p["id"], p["status"]) for p in saved] == [(plant_id, "wait"), (another_id, "check")]
         clock[0] += timedelta(days=1)
         assert client.get(ROOT + "/plants", headers=key).json()[0]["status"] == "check"
-        dry = care(client, key, plant_id, "dry").json()
+        dry = save_dry_checkup(client, key, plant_id).json()
         assert dry["status"] == "ready"
         assert dry["watering_source"].startswith("https://")
         first = care(client, key, plant_id, "watered", event_id).json()
@@ -107,7 +116,7 @@ def test_adaptive_check_uses_two_consistent_bounded_observed_cycles(clock, cycle
                 clock[0] = started + timedelta(days=moist_day)
                 assert care(client, key, plant_id, "moist").json()["status"] == "wait"
             clock[0] = started + timedelta(days=dry_day)
-            assert care(client, key, plant_id, "dry").json()["status"] == "ready"
+            assert save_dry_checkup(client, key, plant_id).json()["status"] == "ready"
             clock[0] += timedelta(minutes=10)
             result = care(client, key, plant_id, "watered").json()
 
@@ -156,12 +165,12 @@ def test_repeated_dry_records_do_not_replace_conflicting_or_stale_observations(c
             clock[0] += timedelta(days=1)
             care(client, key, plant_id, "moist")
             clock[0] += timedelta(hours=4)
-            care(client, key, plant_id, "dry")
+            save_dry_checkup(client, key, plant_id)
             if conflict:
                 clock[0] += timedelta(hours=4)
                 care(client, key, plant_id, "moist")
                 clock[0] += timedelta(hours=4)
-                care(client, key, plant_id, "dry")
+                save_dry_checkup(client, key, plant_id)
                 clock[0] += timedelta(minutes=15)
             else:
                 clock[0] += timedelta(days=1)

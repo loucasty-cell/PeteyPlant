@@ -1,0 +1,23 @@
+{
+  "id": "spider-plant",
+  "speciesId": "Chlorophytum comosum",
+  "acceptedName": "Chlorophytum comosum",
+  "rank": "species",
+  "version": 1,
+  "design": "Vittatum-inspired mound of narrow green ribbons with cream center stripes, two runner-borne daughter rosettes, and a softly fluted blue stoneware pot.",
+  "morphologySources": [
+    "https://www.rhs.org.uk/plants/67933/chlorophytum-comosum-vittatum-v/details",
+    "https://hort.extension.wisc.edu/articles/spider-plant-chlorophytum-comosum/",
+    "https://plantfinder.mobot.org/PlantFinderDetails.aspx?isprofile=0&letter=C&taxonid=244287"
+  ],
+  "source": "assets/characters/spider-plant/source/spider-plant.blend",
+  "runtime": "frontend/public/characters/spider-plant-v1.glb",
+  "thumbnail": "frontend/public/characters/spider-plant-v1-preview.webp",
+  "clips": ["Idle", "Notice", "Curious", "Concerned", "Relieved", "Celebrate"],
+  "status": "AUTHORED",
+  "visualReview": "Inspected front three-quarter, side, rear, wireframe, Concerned, and Celebrate renders. Blender game mesh audit passed. Owner approval pending.",
+  "provenance": "Original editable Blender meshes, ceramic details, material palettes, and NLA keyframes. The cultivar informed the art. Garden identity remains at species rank.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 457272,
+  "triangles": 18256
+}

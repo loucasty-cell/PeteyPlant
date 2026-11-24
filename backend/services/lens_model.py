@@ -2,6 +2,7 @@
 from functools import lru_cache
 from hashlib import sha256
 import logging
+from math import isclose
 import os
 from pathlib import Path
 from threading import Lock
@@ -11,6 +12,7 @@ import numpy as np
 from PIL import Image
 from pydantic import BaseModel, Field, StringConstraints, model_validator
 
+from services.lens_statistics import clean_group_lower95
 from services.lens_taxonomy import LAUNCH_SPECIES, TAXONOMY_VERSION, map_label
 
 logger = logging.getLogger(__name__)
@@ -88,7 +90,11 @@ class HoldoutReport(InferenceSpec):
     known_support_by_species: dict[str, Annotated[int, Field(ge=0)]]
     accepted_precision: Annotated[float, Field(ge=0.98, le=1, allow_inf_nan=False)]
     coverage: Annotated[float, Field(ge=0.80, le=1, allow_inf_nan=False)]
-    accepted_precision_ci95: tuple[Probability, Probability]
+    accepted_precision_ci95: tuple[Probability, Probability] | None
+    accepted_total: Annotated[int, Field(gt=0)]
+    accepted_correct: Annotated[int, Field(ge=0)]
+    accepted_groups: Annotated[int, Field(gt=0)]
+    clean_accepted_groups: Annotated[int, Field(ge=0)]
     unknown_false_acceptance: Annotated[float, Field(ge=0, lt=0.05, allow_inf_nan=False)]
     ece: Annotated[float, Field(ge=0, lt=0.04, allow_inf_nan=False)]
     ece_bins: Literal[15]
@@ -97,11 +103,42 @@ class HoldoutReport(InferenceSpec):
     def validate_evidence(self):
         if self.heldout_known_groups > self.heldout_known or self.heldout_unknown_groups > self.heldout_unknown:
             raise ValueError("The number of independent groups cannot exceed the number of photos.")
-        if any(self.known_support_by_species.get(key, 0) < 10 for key in LAUNCH_SPECIES):
+        if set(self.known_support_by_species) != LAUNCH_SPECIES or sum(self.known_support_by_species.values()) != self.heldout_known:
+            raise ValueError("Species photo counts must reconcile with the known holdout.")
+        if any(count < 10 for count in self.known_support_by_species.values()):
             raise ValueError("Every launch species requires at least ten held-out photos.")
-        lower, upper = self.accepted_precision_ci95
-        if not lower <= self.accepted_precision <= upper:
-            raise ValueError("The confidence interval must contain the estimate.")
+        if self.accepted_total > self.heldout_known + self.heldout_unknown or self.accepted_correct > min(
+            self.accepted_total, self.heldout_known
+        ):
+            raise ValueError("Accepted photo counts are inconsistent with the holdout.")
+        if not isclose(self.accepted_correct / self.accepted_total, self.accepted_precision, abs_tol=1e-9):
+            raise ValueError("Accepted precision must match the accepted photo counts.")
+        if self.accepted_groups > min(self.accepted_total, self.heldout_known_groups + self.heldout_unknown_groups):
+            raise ValueError("Accepted groups cannot exceed accepted photos or holdout groups.")
+        known_accepts = round(self.coverage * self.heldout_known)
+        unknown_accepts = round(self.unknown_false_acceptance * self.heldout_unknown)
+        if (
+            known_accepts + unknown_accepts != self.accepted_total
+            or self.accepted_correct > known_accepts
+            or not isclose(known_accepts / self.heldout_known, self.coverage, abs_tol=1e-9)
+            or not isclose(unknown_accepts / self.heldout_unknown, self.unknown_false_acceptance, abs_tol=1e-9)
+        ):
+            raise ValueError("Reported coverage and rejection rates must match the accepted photo counts.")
+        wrong_photos = self.accepted_total - self.accepted_correct
+        wrong_groups = self.accepted_groups - self.clean_accepted_groups
+        if (
+            self.clean_accepted_groups > min(self.accepted_groups, self.accepted_correct)
+            or wrong_groups > wrong_photos
+            or bool(wrong_groups) != bool(wrong_photos)
+        ):
+            raise ValueError("Clean group counts are inconsistent with the accepted outcomes.")
+        lower95 = clean_group_lower95(self.clean_accepted_groups, self.accepted_groups)
+        if lower95 is None or lower95 < 0.98:
+            raise ValueError("The one-sided 95% lower bound for clean accepted groups must reach 98%.")
+        if self.accepted_precision_ci95 is not None:
+            lower, upper = self.accepted_precision_ci95
+            if not lower < upper or not lower <= self.accepted_precision <= upper:
+                raise ValueError("A reported bootstrap interval must be nondegenerate and contain the estimate.")
         return self
 
 

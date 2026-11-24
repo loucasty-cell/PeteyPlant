@@ -3,13 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "description": "Petey Plant — gamified indoor plant health and biophysical digital twin.",
-  "workspaces": [
-    "frontend"
-  ],
   "scripts": {
-    "dev": "npm run dev --workspace=petey-plant-frontend-r3f",
-    "build": "npm run build --workspace=petey-plant-frontend-r3f",
-    "preview": "npm run preview --workspace=petey-plant-frontend-r3f",
-    "lint": "npm run lint --workspace=petey-plant-frontend-r3f"
+    "dev": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
+    "preview": "npm --prefix frontend run preview",
+    "lint": "npm --prefix frontend run lint"
   }
 }

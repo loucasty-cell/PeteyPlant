@@ -112,18 +112,22 @@ export interface WeatherAtmosphereTheme {
 export interface LiveWeatherState {
   atmosphere: WeatherAtmosphereId;
   conditionLabel: string;
-  conditionType: string;
-  temperatureC: number;
-  feelsLikeC: number;
-  relativeHumidity: number;
-  windKmh: number;
-  cloudCover: number;
-  uvIndex: number;
-  isDaytime: boolean;
+  conditionType: string | null;
+  temperatureC: number | null;
+  feelsLikeC: number | null;
+  relativeHumidity: number | null;
+  windKmh: number | null;
+  cloudCover: number | null;
+  uvIndex: number | null;
+  isDaytime: boolean | null;
   locationLabel: string;
   source: 'google-weather' | 'preview';
   careContext: string;
-  updatedAt: string;
+  updatedAt: string | null;
+}
+
+export function formatWeatherReading(value: number | null, unit: string): string | null {
+  return value === null ? null : `${value}${unit}`;
 }
 
 export interface WeatherLocationPreset {
@@ -1274,30 +1278,27 @@ export const ALL_ATMOSPHERE_IDS = Object.keys(WEATHER_THEMES) as WeatherAtmosphe
 
 function buildCareContext(
   atmosphere: WeatherAtmosphereId,
-  tempC: number,
-  humidity: number,
-  isDaytime: boolean,
+  tempC: number | null,
+  humidity: number | null,
+  isDaytime: boolean | null,
 ): string {
   const theme = WEATHER_THEMES[atmosphere];
-  if (atmosphere === 'snow' || atmosphere === 'alpine-frost' || atmosphere === 'glacier-fjord' || tempC <= 4) {
-    return `Cold outdoors (${Math.round(tempC)}°C) · indoor heating dries air quickly; keep leaves off chilly glass.`;
+  if (atmosphere === 'snow' || atmosphere === 'alpine-frost' || atmosphere === 'glacier-fjord' || (tempC !== null && tempC <= 4)) {
+    return 'Check for cold drafts or chilly glass near your plant.';
   }
   if (theme.category === 'Rain & Monsoon' || atmosphere === 'storm') {
-    return `Rainy & ${humidity}% RH outdoors · lower light and moisture slow potting-mix drying.`;
+    return 'Lower light indoors can slow potting-mix drying. Check the mix directly.';
   }
-  if (!isDaytime || theme.category === 'Nocturnal Biomes') {
-    return `Nighttime (${Math.round(tempC)}°C) · stomata rest after dark; morning checks are clearest.`;
+  if (isDaytime === false || theme.category === 'Nocturnal Biomes') {
+    return 'Check the potting mix in the morning when conditions are easier to see.';
   }
-  if (humidity <= 38 || atmosphere === 'desert-oasis') {
-    return `Dry outdoor air (${humidity}% RH) · potting mix may dry quicker than usual today.`;
+  if ((humidity !== null && humidity <= 38) || atmosphere === 'desert-oasis') {
+    return 'Check for dry air in your plant’s room and feel the potting mix.';
   }
   if (atmosphere === 'overcast' || atmosphere === 'fog' || atmosphere === 'highland-moor') {
-    return `Soft overcast light · slower transpiration means soil holds moisture a little longer.`;
+    return 'Potting mix can hold moisture longer under lower light. Check the mix directly.';
   }
-  if (theme.category === 'Solar & Clear' || theme.category === 'Dawn & Golden') {
-    return `Bright sky (${Math.round(tempC)}°C · ${humidity}% RH) · check the top inch of potting mix before watering.`;
-  }
-  return `Mild conditions (${Math.round(tempC)}°C · ${humidity}% RH) · check potting mix moisture by touch.`;
+  return 'Check potting-mix moisture by touch.';
 }
 
 function buildDefaultPreviewPreset(id: WeatherAtmosphereId): Omit<LiveWeatherState, 'updatedAt'> {
@@ -1340,13 +1341,13 @@ export const PREVIEW_WEATHER_PRESETS: Record<WeatherAtmosphereId, Omit<LiveWeath
  * richest matching theme across all 32 nature & botanical biome themes.
  */
 function mapConditionToAtmosphere(
-  conditionType: string,
-  isDaytime: boolean,
-  cloudCover: number,
-  tempC = 21,
-  humidity = 52,
-  windKmh = 8,
-  lat = 37.7,
+  conditionType: string | null,
+  isDaytime: boolean | null,
+  cloudCover: number | null,
+  tempC: number | null,
+  humidity: number | null,
+  windKmh: number | null,
+  lat: number,
   currentTimeIso?: string,
   timeZoneId?: string,
 ): WeatherAtmosphereId {
@@ -1358,41 +1359,41 @@ function mapConditionToAtmosphere(
   }
   if (code.includes('SNOW') || code.includes('SLEET') || code.includes('ICE') || code.includes('BLIZZARD') || code.includes('FLURR')) {
     if (absLat >= 56) return 'glacier-fjord';
-    if (cloudCover < 55) return 'alpine-frost';
+    if (cloudCover !== null && cloudCover < 55) return 'alpine-frost';
     return 'snow';
   }
   if (code.includes('RAIN') || code.includes('SHOWER') || code.includes('DRIZZLE')) {
-    if (code.includes('HEAVY') || windKmh >= 25) return 'monsoon-downpour';
-    if (tempC >= 21 && humidity >= 80) return 'cloud-forest-rain';
+    if (code.includes('HEAVY') || (windKmh !== null && windKmh >= 25)) return 'monsoon-downpour';
+    if (tempC !== null && tempC >= 21 && humidity !== null && humidity >= 80) return 'cloud-forest-rain';
     if (code.includes('DRIZZLE')) return 'fern-gully-drizzle';
-    if (cloudCover <= 65 && isDaytime) return 'rainbow-clearing';
+    if (cloudCover !== null && cloudCover <= 65 && isDaytime) return 'rainbow-clearing';
     return 'rain';
   }
   if (code.includes('FOG') || code.includes('MIST') || code.includes('HAZE') || code.includes('SMOKE')) {
     return 'fog';
   }
-  if (!isDaytime) {
+  if (isDaytime === false) {
     if (absLat >= 55) return 'aurora-borealis';
-    if (tempC >= 22 && humidity >= 72) return 'bioluminescent-bay';
-    if (tempC >= 18 && humidity >= 58) return 'firefly-glade';
-    if (humidity <= 38) return 'velvet-midnight';
+    if (tempC !== null && tempC >= 22 && humidity !== null && humidity >= 72) return 'bioluminescent-bay';
+    if (tempC !== null && tempC >= 18 && humidity !== null && humidity >= 58) return 'firefly-glade';
+    if (humidity !== null && humidity <= 38) return 'velvet-midnight';
     return 'clear-night';
   }
 
   // Detect sunrise / golden hour around 6-7am or 17-19pm local time
-  if (currentTimeIso) {
+  if (currentTimeIso && timeZoneId) {
     try {
       const hourStr = new Intl.DateTimeFormat('en-US', {
         hour: 'numeric',
         hour12: false,
-        ...(timeZoneId ? { timeZone: timeZoneId } : {}),
+        timeZone: timeZoneId,
       }).format(new Date(currentTimeIso));
       const hour = Number(hourStr);
       if (hour >= 5 && hour <= 7) {
         return absLat >= 44 ? 'alpenglow-dusk' : 'rose-dawn';
       }
       if (hour >= 17 && hour <= 19) {
-        if (tempC >= 25 && humidity <= 42) return 'saffron-twilight';
+        if (tempC !== null && tempC >= 25 && humidity !== null && humidity <= 42) return 'saffron-twilight';
         if (absLat <= 35) return 'crimson-horizon';
         return 'golden-hour';
       }
@@ -1401,21 +1402,23 @@ function mapConditionToAtmosphere(
     }
   }
 
-  if (tempC <= 2) return 'alpine-frost';
-  if (code.includes('OVERCAST') || (code === 'CLOUDY' && cloudCover >= 80) || cloudCover >= 85) {
+  if (tempC !== null && tempC <= 2) return 'alpine-frost';
+  if (code.includes('OVERCAST') || (cloudCover !== null && (cloudCover >= 85 || (code === 'CLOUDY' && cloudCover >= 80)))) {
     return absLat >= 50 ? 'highland-moor' : 'overcast';
   }
-  if (code.includes('CLOUD') || cloudCover >= 35) {
-    if (windKmh >= 22) return 'chinook-wind';
-    if (cloudCover >= 65) return 'silver-lining';
+  if (code.includes('CLOUD') || (cloudCover !== null && cloudCover >= 35)) {
+    if (windKmh !== null && windKmh >= 22) return 'chinook-wind';
+    if (cloudCover !== null && cloudCover >= 65) return 'silver-lining';
     return 'partly-cloudy';
   }
 
   // Clear / Mostly Clear daytime biomes driven by temperature, humidity & latitude
-  if (tempC >= 26 && humidity <= 36) return 'desert-oasis';
-  if (tempC >= 24 && humidity >= 65) return 'tropical-breeze';
-  if (tempC >= 22 && humidity <= 55 && absLat <= 43) return 'mediterranean-noon';
-  if (humidity >= 58 && tempC >= 15 && tempC <= 24) return 'sunlit-canopy';
+  if (tempC !== null && humidity !== null) {
+    if (tempC >= 26 && humidity <= 36) return 'desert-oasis';
+    if (tempC >= 24 && humidity >= 65) return 'tropical-breeze';
+    if (tempC >= 22 && humidity <= 55 && absLat <= 43) return 'mediterranean-noon';
+    if (humidity >= 58 && tempC >= 15 && tempC <= 24) return 'sunlit-canopy';
+  }
   return 'clear-day';
 }
 
@@ -1439,16 +1442,18 @@ interface GoogleWeatherResponse {
 function parseGoogleWeather(
   data: GoogleWeatherResponse,
   locationLabel: string,
-  lat = 37.7,
+  lat: number,
 ): LiveWeatherState {
-  const conditionType = data.weatherCondition?.type ?? 'CLEAR';
-  const isDaytime = data.isDaytime ?? true;
-  const cloudCover = Math.round(data.cloudCover ?? 0);
-  const temperatureC = Math.round(data.temperature?.degrees ?? 21);
-  const feelsLikeC = Math.round(data.feelsLikeTemperature?.degrees ?? temperatureC);
-  const relativeHumidity = Math.round(data.relativeHumidity ?? 52);
-  const windKmh = Math.round(data.wind?.speed?.value ?? 8);
-  const uvIndex = Math.round(data.uvIndex ?? (isDaytime ? 3 : 0));
+  const roundReading = (value: number | undefined) =>
+    typeof value === 'number' && Number.isFinite(value) ? Math.round(value) : null;
+  const conditionType = data.weatherCondition?.type ?? null;
+  const isDaytime = data.isDaytime ?? null;
+  const cloudCover = roundReading(data.cloudCover);
+  const temperatureC = roundReading(data.temperature?.degrees);
+  const feelsLikeC = roundReading(data.feelsLikeTemperature?.degrees);
+  const relativeHumidity = roundReading(data.relativeHumidity);
+  const windKmh = roundReading(data.wind?.speed?.value);
+  const uvIndex = roundReading(data.uvIndex);
 
   const atmosphere = mapConditionToAtmosphere(
     conditionType,
@@ -1463,7 +1468,7 @@ function parseGoogleWeather(
   );
 
   const conditionLabel =
-    data.weatherCondition?.description?.text ?? WEATHER_THEMES[atmosphere].label;
+    data.weatherCondition?.description?.text ?? 'Condition description unavailable';
 
   return {
     atmosphere,
@@ -1479,7 +1484,7 @@ function parseGoogleWeather(
     locationLabel,
     source: 'google-weather',
     careContext: buildCareContext(atmosphere, temperatureC, relativeHumidity, isDaytime),
-    updatedAt: data.currentTime ?? new Date().toISOString(),
+    updatedAt: data.currentTime ?? null,
   };
 }
 

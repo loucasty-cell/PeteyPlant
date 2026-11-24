@@ -1,0 +1,92 @@
+:root:has(.petey-checkup[open]) { overflow: hidden; }
+.petey-checkup {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: min(33rem, calc(100% - 2rem));
+  max-width: none;
+  max-height: calc(100dvh - 2rem);
+  padding: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid #bdc7b9;
+  border-radius: 1rem;
+  color: var(--garden-ink);
+  background: var(--garden-paper);
+  box-shadow: 0 24px 70px #182f2552;
+}
+.petey-checkup::backdrop { background: #172e25a3; }
+.petey-checkup-header,
+.petey-checkup-body { padding: clamp(1rem, 4vw, 1.5rem); }
+.petey-checkup-header {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .75rem;
+  background: #e0e7db;
+  border-bottom: 1px solid #c0cec0;
+}
+.petey-checkup .garden-kicker { margin: 0 0 .15rem; }
+.petey-checkup h2, .petey-checkup h3, .petey-checkup p { margin: 0; overflow-wrap: anywhere; }
+.petey-checkup h2 { font-size: clamp(1.65rem, 4vw, 2.45rem); }
+.petey-checkup h3 {
+  font: 700 clamp(1.35rem, 3vw, 1.9rem)/1.15 var(--garden-display);
+  margin: 0;
+}
+.petey-checkup-art {
+  display: grid;
+  place-items: center;
+  width: 3.4rem;
+  height: 3.4rem;
+  border-radius: .7rem;
+  overflow: hidden;
+  background: #c7d8c0;
+  color: var(--garden-green);
+}
+.petey-checkup-art img { width: 100%; height: 100%; object-fit: cover; }
+.petey-checkup-close {
+  min-width: 44px;
+  min-height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: .5rem;
+}
+.petey-checkup-close:hover { background: #c7d8c0; }
+.petey-checkup-body { display: grid; gap: 1rem; }
+.petey-checkup-options {
+  display: grid;
+  gap: .45rem;
+  border: none;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  width: 100%;
+}
+.petey-checkup-options label {
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  padding: .65rem .75rem;
+  min-height: 44px;
+  border-radius: .45rem;
+  border: 1px solid #96a28f;
+  cursor: pointer;
+}
+.petey-checkup-options label:has(:checked) { background: var(--garden-sage); border-color: var(--garden-green); }
+.petey-checkup-options input { accent-color: var(--garden-green); flex: none; width: 1rem; height: 1rem; }
+.petey-checkup-evidence summary { cursor: pointer; font-weight: 700; min-height: 44px; padding-block: .6rem; }
+.petey-checkup-evidence small { display: block; color: var(--garden-muted); }
+.petey-checkup-saved { display: flex; align-items: center; gap: .4rem; color: var(--garden-green); }
+.petey-checkup-saved svg { width: 1.1rem; height: 1.1rem; }
+
+@media (max-width: 600px) {
+  .petey-checkup {
+    inset: auto 0 0;
+    margin: 0;
+    width: 100%;
+    max-height: 94dvh;
+    border-radius: 1rem 1rem 0 0;
+  }
+  .petey-checkup-body { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
+  .petey-checkup .garden-tool-actions { width: 100%; }
+}

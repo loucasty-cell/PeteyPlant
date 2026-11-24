@@ -49,6 +49,7 @@ import {
   createPreviewWeather,
   defaultTimeWeather,
   fetchGoogleWeather,
+  formatWeatherReading,
   NATURE_THEME_CATEGORIES,
   WEATHER_LOCATIONS,
   WEATHER_THEMES,
@@ -80,13 +81,14 @@ import {
 import { BotanicalThumbnail } from '../../lib/three/BotanicalThumbnails';
 import { PeteyLogo } from './PeteyLogo';
 import { WeatherBackdrop } from './WeatherBackdrop';
-import { InteractivePlantStage } from './InteractivePlantStage';
 import { HomeCareSurface } from './HomeCareSurface';
 import { PlantDetailProfile } from './PlantDetailProfile';
 import { CareAlertCenter } from './CareAlertCenter';
 import './companion-stage.css';
 
+const InteractivePlantStage = lazy(() => import('./InteractivePlantStage').then((module) => ({ default: module.InteractivePlantStage })));
 const PeteyLens = lazy(() => import('./PeteyLens'));
+const CheckupDialog = lazy(() => import('./CheckupDialog'));
 const PlantHealth = lazy(() => import('./PlantHealth'));
 const PlantLab = lazy(() => import('../lab/PlantLab'));
 
@@ -426,7 +428,30 @@ export default function GardenApp() {
     return 'home';
   });
 
-  const [plants, setPlants] = useState<GardenPlant[]>([]);
+  const [storedPlants, setPlants] = useState<GardenPlant[]>([]);
+  const [careClock, setCareClock] = useState(Date.now);
+  const [checkupPlantId, setCheckupPlantId] = useState<string | null>(null);
+  const plantSwitcherTrigger = useRef<HTMLButtonElement>(null);
+  const pendingCareIds = useRef(new Map<string, string>());
+  const plants = useMemo(() => storedPlants.map((plant) => {
+    const expires = Date.parse(plant.watering_advice_expires_at ?? plant.next_check_at ?? '');
+    if (plant.status !== 'ready' || (Number.isFinite(expires) && expires > careClock)) return plant;
+    return { ...plant, status: 'check' as const, message: 'The previous soil observation has expired. Check the mix again before watering.' };
+  }), [storedPlants, careClock]);
+  const checkupPlant = plants.find((plant) => plant.id === checkupPlantId);
+
+  useEffect(() => {
+    const refreshClock = () => setCareClock(Date.now());
+    document.addEventListener('visibilitychange', refreshClock);
+    const expires = storedPlants.filter((plant) => plant.status === 'ready')
+      .map((plant) => Date.parse(plant.watering_advice_expires_at ?? plant.next_check_at ?? ''))
+      .filter((time) => time > careClock);
+    const timer = expires.length ? window.setTimeout(refreshClock, Math.max(0, Math.min(...expires) - Date.now()) + 1) : undefined;
+    return () => {
+      document.removeEventListener('visibilitychange', refreshClock);
+      window.clearTimeout(timer);
+    };
+  }, [storedPlants, careClock]);
   const [catalog, setCatalog] = useState<GardenSpecies[]>([]);
   const [connection, setConnection] = useState<'loading' | 'ready' | 'offline'>('loading');
   const [connectionError, setConnectionError] = useState('');
@@ -559,8 +584,7 @@ export default function GardenApp() {
       deepLinkApplied.current = true;
       setSelectedId(requestedPlant);
       if (requestedAction === 'check') {
-        setHealthPlantId(requestedPlant);
-        setHealthModalOpen(true);
+        setCheckupPlantId(requestedPlant);
       } else if (requestedAction === 'profile') {
         setView('detail');
       }
@@ -851,6 +875,19 @@ export default function GardenApp() {
     setCartPlantIds([]);
   }
 
+  async function persistCare(plantId: string, kind: CareKind) {
+    const key = `petey-pending-care:${plantId}:${kind}`;
+    let id = pendingCareIds.current.get(key);
+    try { id ??= sessionStorage.getItem(key) ?? undefined; } catch { /* Use the in-memory retry ID. */ }
+    id ??= crypto.randomUUID();
+    pendingCareIds.current.set(key, id);
+    try { sessionStorage.setItem(key, id); } catch { /* Use the in-memory retry ID. */ }
+    const saved = await gardenApi.record(plantId, { id, kind });
+    pendingCareIds.current.delete(key);
+    try { sessionStorage.removeItem(key); } catch { /* The server has confirmed the event. */ }
+    return saved;
+  }
+
   async function confirmCartRound(plantsInCart: GardenPlant[]) {
     if (careInFlight.current || plantsInCart.length === 0) return;
     careInFlight.current = true;
@@ -863,10 +900,7 @@ export default function GardenApp() {
     try {
       for (const plant of plantsInCart) {
         try {
-          const updated = await gardenApi.record(plant.id, {
-            id: crypto.randomUUID(),
-            kind: 'watered',
-          });
+          const updated = await persistCare(plant.id, 'watered');
           updatePlant(updated);
           succeededIds.push(updated.id);
           setJustRecordedAction({ plantId: updated.id, kind: 'watered' });
@@ -901,10 +935,7 @@ export default function GardenApp() {
     setCareError('');
     setCareNotice('');
     try {
-      const updated = await gardenApi.record(plant.id, {
-        id: crypto.randomUUID(),
-        kind,
-      });
+      const updated = await persistCare(plant.id, kind);
       updatePlant(updated);
       setShowCheckChoices(false);
       setJustRecordedAction({ plantId: updated.id, kind });
@@ -920,7 +951,7 @@ export default function GardenApp() {
         setPlayCount((c) => c + 1);
         setCareNotice(`Soil observation saved for ${updated.name}.`);
         flashStageToast(
-          kind === 'dry'
+          kind === 'dry' && updated.status === 'ready'
             ? 'Dry mix noted · watering suggested'
             : kind === 'moist'
               ? 'Moist mix noted · hold watering'
@@ -1108,12 +1139,18 @@ export default function GardenApp() {
                   </button>
 
                   {activePlant && prioritizedPlants.length > 1 ? (
-                    <div className="lv-switcher-wrap">
+                    <div className="lv-switcher-wrap" onKeyDown={(event) => {
+                      if (event.key !== 'Escape' || !switcherOpen) return;
+                      event.stopPropagation();
+                      setSwitcherOpen(false);
+                      plantSwitcherTrigger.current?.focus();
+                    }}>
                       <button
                         type="button"
                         className="lv-plant-switcher-btn"
                         aria-expanded={switcherOpen}
-                        aria-haspopup="listbox"
+                        ref={plantSwitcherTrigger}
+                        aria-controls={switcherOpen ? 'petey-plant-switcher' : undefined}
                         onClick={() => {
                           setSwitcherOpen((open) => !open);
                           setWeatherMenuOpen(false);
@@ -1124,7 +1161,7 @@ export default function GardenApp() {
                       </button>
 
                       {switcherOpen && (
-                        <div className="lv-switcher-popover" role="listbox" aria-label="Switch active plant">
+                        <div className="lv-switcher-popover" id="petey-plant-switcher" role="group" aria-label="Switch active plant">
                           {prioritizedPlants.map((p) => {
                             const selected = p.id === activePlant.id;
                             const pIntel = buildWateringIntelligence(p, { unit: waterUnit });
@@ -1132,12 +1169,12 @@ export default function GardenApp() {
                               <button
                                 key={p.id}
                                 type="button"
-                                role="option"
-                                aria-selected={selected}
+                                aria-pressed={selected}
                                 className={`lv-switcher-item ${selected ? 'is-selected' : ''}`}
                                 onClick={() => {
                                   setSelectedId(p.id);
                                   setSwitcherOpen(false);
+                                  plantSwitcherTrigger.current?.focus();
                                 }}
                               >
                                 <BotanicalThumbnail speciesId={p.species_id} size={28} />
@@ -1190,8 +1227,8 @@ export default function GardenApp() {
                     aria-label="Outdoor weather atmosphere settings"
                   >
                     <WeatherIcon atmosphere={weather.atmosphere} />
-                    <span className="font-mono font-semibold">{weather.temperatureC}°C</span>
-                    <span className="hs-hide-xs">Outdoor</span>
+                    <span className="font-mono font-semibold">{formatWeatherReading(weather.temperatureC, '°C') ?? '—'}</span>
+                    <span className="hs-hide-xs">{weather.source === 'google-weather' ? 'Outdoor' : 'Preview'}</span>
                   </button>
 
                   {/* Hydration Cart Indicator when plants are queued */}
@@ -1242,21 +1279,27 @@ export default function GardenApp() {
                 >
                   <WeatherBackdrop theme={weatherTheme} parallaxOffset={stageParallax} />
 
-                  <InteractivePlantStage
-                    speciesId={activePlant?.species_id ?? 'Monstera deliciosa'}
-                    mood={activeIntel?.primaryCondition.companionMood ?? 'happy'}
-                    animationState={activeIntel?.primaryCondition.animationPreset ?? 'idle'}
-                    posturePreset={activeIntel?.primaryCondition.posturePreset}
-                    theme={weatherTheme}
-                    windKmh={weather.windKmh}
-                    playCount={playCount}
-                    reactionKind={reactionKind}
-                    reduced={reduced}
-                    disable3D={disable3D}
-                    statusAccessibleLabel={activeIntel?.primaryCondition.staticFallbackLabel}
-                    onPet={triggerCompanionGreet}
-                    showAtmosphere
-                  />
+                  <Suspense fallback={
+                    <div className="stage-fallback" aria-label="Loading the plant companion">
+                      <BotanicalThumbnail speciesId={activePlant ? activePlant.species_id : 'Monstera deliciosa'} size={160} />
+                    </div>
+                  }>
+                    <InteractivePlantStage
+                      speciesId={activePlant ? activePlant.species_id : 'Monstera deliciosa'}
+                      mood={activeIntel?.primaryCondition.companionMood ?? 'happy'}
+                      animationState={activeIntel?.primaryCondition.animationPreset ?? 'idle'}
+                      posturePreset={activeIntel?.primaryCondition.posturePreset}
+                      theme={weatherTheme}
+                      windKmh={weather.windKmh ?? 0}
+                      playCount={playCount}
+                      reactionKind={reactionKind}
+                      reduced={reduced}
+                      disable3D={disable3D}
+                      statusAccessibleLabel={activeIntel?.primaryCondition.staticFallbackLabel}
+                      onPet={triggerCompanionGreet}
+                      showAtmosphere
+                    />
+                  </Suspense>
 
                   {stageToast && (
                     <div className="stage-toast" role="status">
@@ -1323,16 +1366,16 @@ export default function GardenApp() {
 
                       <div className="weather-popover-stats">
                         <div className="weather-stat-cell">
-                          <span className="weather-stat-label">Outdoor</span>
-                          <span className="weather-stat-val">{weather.temperatureC}°C</span>
+                          <span className="weather-stat-label">{weather.source === 'google-weather' ? 'Outdoor' : 'Preview'}</span>
+                          <span className="weather-stat-val">{formatWeatherReading(weather.temperatureC, '°C') ?? '—'}</span>
                         </div>
                         <div className="weather-stat-cell">
                           <span className="weather-stat-label">Humidity</span>
-                          <span className="weather-stat-val">{weather.relativeHumidity}%</span>
+                          <span className="weather-stat-val">{formatWeatherReading(weather.relativeHumidity, '%') ?? 'Unavailable'}</span>
                         </div>
                         <div className="weather-stat-cell">
                           <span className="weather-stat-label">Wind</span>
-                          <span className="weather-stat-val">{weather.windKmh} km/h</span>
+                          <span className="weather-stat-val">{formatWeatherReading(weather.windKmh, ' km/h') ?? 'Unavailable'}</span>
                         </div>
                       </div>
 
@@ -1505,12 +1548,12 @@ export default function GardenApp() {
                             careError={careError}
                             careNotice={careNotice}
                             onRecordCare={(p, kind) => void recordCareForPlant(p, kind)}
-                            onOpenConditionCheck={(id) => openHealthModal(id)}
+                            onOpenConditionCheck={(id) => previewActive || !id ? openHealthModal(id) : setCheckupPlantId(id)}
                             onOpenProfile={(id) => openPlantProfile(id)}
                             inHydrationCart={validCartPlantIds.includes(activePlant.id)}
                             onToggleHydrationCart={(id) => toggleCartPlant(id)}
                             activeBiomeLabel={weatherTheme.label}
-                            weatherLocationLabel={`${weather.locationLabel} · ${weather.temperatureC}°C`}
+                            weatherLocationLabel={weather.source === 'google-weather' ? weather.locationLabel : 'Atmosphere preview'}
                             onCycleBiome={cycleNextNatureTheme}
                           />
                         ) : (
@@ -1565,7 +1608,7 @@ export default function GardenApp() {
               careError={careError}
               careNotice={careNotice}
               onRecordCare={(p, kind) => void recordCareForPlant(p, kind)}
-              onOpenConditionCheck={(id) => openHealthModal(id)}
+              onOpenConditionCheck={(id) => previewActive || !id ? openHealthModal(id) : setCheckupPlantId(id)}
               onOpenOn3DStage={(id) => {
                 setSelectedId(id);
                 setView('home');
@@ -1853,7 +1896,7 @@ export default function GardenApp() {
                 setView('home');
               }}
               onOpenProfile={(id) => openPlantProfile(id)}
-              onOpenConditionCheck={(id) => openHealthModal(id)}
+              onOpenConditionCheck={(id) => previewActive || !id ? openHealthModal(id) : setCheckupPlantId(id)}
               onAcknowledgeAlert={handleAcknowledgeAlert}
               onRestoreAlert={handleRestoreAlert}
               onRecordCare={(p, kind) => void recordCareForPlant(p, kind)}
@@ -1900,7 +1943,7 @@ export default function GardenApp() {
                 </div>
 
                 <p className="petey-body-muted">
-                  Browser notifications are never requested on launch and currently deliver only while Petey Plant is open in a tab. Background push delivery requires a future backend push service and service worker.
+                  Preferences are saved on this device. Petey Plant currently shows care alerts inside the app.
                 </p>
 
                 <div className="hs-pref-grid">
@@ -2223,6 +2266,12 @@ export default function GardenApp() {
       </nav>
 
       {/* CONVERSATIONAL PLANT CONDITION INTAKE MODAL / BOTTOM SHEET */}
+      {checkupPlant && !previewActive && (
+        <Suspense fallback={null}>
+          <CheckupDialog key={checkupPlant.id} plant={checkupPlant}
+            onClose={() => setCheckupPlantId(null)} onSaved={updatePlant} />
+        </Suspense>
+      )}
       {healthModalOpen && (
         <Suspense fallback={null}>
           <PlantHealth

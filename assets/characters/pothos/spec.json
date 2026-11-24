@@ -1,0 +1,25 @@
+{
+  "id": "pothos",
+  "speciesId": "Epipremnum aureum",
+  "acceptedName": "Epipremnum aureum",
+  "rank": "species",
+  "version": 1,
+  "design": "Asymmetric golden-variegated heart-shaped leaves on four trailing vines, with fluted blue-gray stoneware",
+  "source": "assets/characters/pothos/source/pothos.blend",
+  "runtime": "frontend/public/characters/pothos-v1.glb",
+  "thumbnail": "frontend/public/characters/pothos-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, vertex colors, materials and authored keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 429480,
+  "triangles": 16038
+}

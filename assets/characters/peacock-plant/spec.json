@@ -1,0 +1,22 @@
+{
+  "id": "peacock-plant",
+  "speciesId": "Goeppertia makoyana",
+  "acceptedName": "Goeppertia makoyana",
+  "rank": "species",
+  "version": 1,
+  "design": "Eight ovate leaves with paired feather markings, pale green upper surfaces, burgundy undersides, and articulated petiole joints above a rounded plum ceramic pot",
+  "morphologySources": [
+    "https://plants.ces.ncsu.edu/plants/goeppertia-makoyana/",
+    "https://www.nparks.gov.sg/florafaunaweb/flora/1/7/1754"
+  ],
+  "source": "assets/characters/peacock-plant/source/peacock-plant.blend",
+  "runtime": "frontend/public/characters/peacock-plant-v1.glb",
+  "thumbnail": "frontend/public/characters/peacock-plant-v1-preview.webp",
+  "clips": ["Idle", "Notice", "Curious", "Concerned", "Relieved", "Celebrate"],
+  "status": "AUTHORED",
+  "visualReview": "rendered front, three-quarter, side and rear; awaiting owner review",
+  "provenance": "Original Blender geometry, vertex pigments, ceramics and authored keyframes. Botanical references informed foliage and growth habit.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 1204000,
+  "triangles": 43500
+}

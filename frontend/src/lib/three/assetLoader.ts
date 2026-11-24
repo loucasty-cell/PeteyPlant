@@ -1,132 +1,112 @@
 import * as THREE from 'three';
 import { GLTFLoader, type GLTF } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { clone } from 'three/examples/jsm/utils/SkeletonUtils.js';
 
 export interface LoadedGltfAsset {
   scene: THREE.Group;
   animations: THREE.AnimationClip[];
   meshCount: number;
   triangleCount: number;
+  release: () => void;
 }
 
-export interface GltfValidationResult {
-  valid: boolean;
-  reason?: string;
-  meshCount: number;
-  triangleCount: number;
-}
+type SourceAsset = Omit<LoadedGltfAsset, 'release'>;
+type SharedAsset = { source: Promise<SourceAsset | null>; leases: number };
 
 const loader = new GLTFLoader();
-const assetCache = new Map<string, LoadedGltfAsset>();
-const inFlight = new Map<string, Promise<LoadedGltfAsset | null>>();
+const assets = new Map<string, SharedAsset>();
 
-/**
- * Validates that a loaded GLTF contains at least one renderable mesh with
- * finite bounding box coordinates before mounting it in the 3D scene.
- */
-export function validateGltfAsset(gltf: GLTF): GltfValidationResult {
-  if (!gltf?.scene) {
-    return { valid: false, reason: 'GLTF archive has no root scene.', meshCount: 0, triangleCount: 0 };
-  }
-
+function validateGltfAsset(gltf: GLTF) {
   let meshCount = 0;
   let triangleCount = 0;
-
   gltf.scene.traverse((child) => {
-    if (child instanceof THREE.Mesh && child.geometry) {
-      meshCount += 1;
-      const geo = child.geometry;
-      if (geo.index) {
-        triangleCount += Math.floor(geo.index.count / 3);
-      } else if (geo.attributes.position) {
-        triangleCount += Math.floor(geo.attributes.position.count / 3);
-      }
-    }
+    if (!(child instanceof THREE.Mesh)) return;
+    const position = child.geometry.getAttribute('position');
+    const count = child.geometry.index?.count ?? position?.count ?? 0;
+    if (count < 3 || !position) return;
+    meshCount += 1;
+    triangleCount += Math.floor(count / 3);
   });
-
-  if (meshCount === 0) {
-    return { valid: false, reason: 'GLTF scene contains zero meshes.', meshCount: 0, triangleCount: 0 };
-  }
-
   const bounds = new THREE.Box3().setFromObject(gltf.scene);
-  if (bounds.isEmpty() || !Number.isFinite(bounds.min.x) || !Number.isFinite(bounds.max.y)) {
-    return { valid: false, reason: 'GLTF scene has invalid bounding box.', meshCount, triangleCount };
-  }
-
-  return { valid: true, meshCount, triangleCount };
+  const valid = meshCount > 0 && !bounds.isEmpty() &&
+    [...bounds.min.toArray(), ...bounds.max.toArray()].every(Number.isFinite);
+  return { valid, meshCount, triangleCount };
 }
 
-/**
- * Loads and validates a GLB/GLTF asset asynchronously with caching and
- * request deduplication. Returns null cleanly if `url` is absent or fails so
- * the stage can render its verified procedural companion or static fallback.
- */
-export async function loadSpeciesGltf(url: string | null): Promise<LoadedGltfAsset | null> {
-  if (!url) return null;
-
-  const cached = assetCache.get(url);
-  if (cached) {
-    return {
-      ...cached,
-      scene: cached.scene.clone(true),
-    };
+async function loadSource(url: string): Promise<SourceAsset | null> {
+  try {
+    const gltf = await loader.loadAsync(url);
+    const { valid, meshCount, triangleCount } = validateGltfAsset(gltf);
+    if (!valid) {
+      disposeSource(gltf.scene);
+      return null;
+    }
+    return { scene: gltf.scene, animations: gltf.animations, meshCount, triangleCount };
+  } catch {
+    return null;
   }
+}
 
-  let promise = inFlight.get(url);
-  if (!promise) {
-    promise = new Promise<LoadedGltfAsset | null>((resolve) => {
-      loader.load(
-        url,
-        (gltf) => {
-          const check = validateGltfAsset(gltf);
-          if (!check.valid) {
-            resolve(null);
-            return;
-          }
-          const loaded: LoadedGltfAsset = {
-            scene: gltf.scene,
-            animations: gltf.animations ?? [],
-            meshCount: check.meshCount,
-            triangleCount: check.triangleCount,
-          };
-          assetCache.set(url, loaded);
-          resolve({
-            ...loaded,
-            scene: loaded.scene.clone(true),
-          });
-        },
-        undefined,
-        () => {
-          resolve(null);
-        },
-      );
-    }).finally(() => {
-      inFlight.delete(url);
+// A scene clone owns its transforms and skeletons. Its GPU geometry, materials,
+// and textures stay shared for the lifetime of all mounted and pending leases.
+export async function loadSpeciesGltf(url: string): Promise<LoadedGltfAsset | null> {
+  let shared = assets.get(url);
+  if (!shared) {
+    shared = { source: loadSource(url), leases: 0 };
+    assets.set(url, shared);
+  }
+  const lease = shared;
+  lease.leases += 1;
+  const source = await lease.source;
+  let released = false;
+  let scene: THREE.Group | undefined;
+  function release() {
+    if (released) return;
+    released = true;
+    scene?.traverse((child) => {
+      if (child instanceof THREE.SkinnedMesh) child.skeleton.dispose();
     });
-    inFlight.set(url, promise);
+    lease.leases -= 1;
+    if (lease.leases === 0) {
+      assets.delete(url);
+      if (source) disposeSource(source.scene);
+    }
   }
-
-  return promise;
+  if (!source) {
+    release();
+    return null;
+  }
+  try {
+    scene = clone(source.scene) as THREE.Group;
+    return { ...source, scene, release };
+  } catch {
+    release();
+    return null;
+  }
 }
 
-/**
- * Recursively disposes GPU geometries, materials, and texture maps on a Three.js
- * Object3D subtree to prevent WebGL memory leaks when switching plants or routes.
- */
-export function disposeObject3D(root: THREE.Object3D | null | undefined): void {
-  if (!root) return;
-  root.traverse((obj) => {
-    if (obj instanceof THREE.Mesh) {
-      obj.geometry?.dispose();
-      const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
-      for (const mat of materials) {
-        if (!mat) continue;
-        for (const value of Object.values(mat)) {
-          if (value instanceof THREE.Texture) {
-            value.dispose();
-          }
+function disposeSource(root: THREE.Object3D) {
+  const geometries = new Set<THREE.BufferGeometry>();
+  const materials = new Set<THREE.Material>();
+  const textures = new Set<THREE.Texture>();
+  const images = new Set<ImageBitmap>();
+  root.traverse((child) => {
+    if (child instanceof THREE.SkinnedMesh) child.skeleton.dispose();
+    if (!(child instanceof THREE.Mesh)) return;
+    geometries.add(child.geometry);
+    for (const material of Array.isArray(child.material) ? child.material : [child.material]) {
+      materials.add(material);
+      for (const value of Object.values(material)) {
+        if (!(value instanceof THREE.Texture)) continue;
+        textures.add(value);
+        if (typeof ImageBitmap !== 'undefined' && value.source.data instanceof ImageBitmap) {
+          images.add(value.source.data);
         }
-        mat.dispose();
       }
     }
   });
+  for (const geometry of geometries) geometry.dispose();
+  for (const material of materials) material.dispose();
+  for (const texture of textures) texture.dispose();
+  for (const image of images) image.close();
 }

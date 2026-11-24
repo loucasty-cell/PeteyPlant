@@ -1,0 +1,25 @@
+{
+  "id": "aloe",
+  "speciesId": "Aloe vera",
+  "acceptedName": "Aloe vera",
+  "rank": "species",
+  "version": 1,
+  "design": "Serrated fleshy rosette, olive canteen ceramic, and brass field goggles",
+  "source": "assets/characters/aloe/source/aloe.blend",
+  "runtime": "frontend/public/characters/aloe-v1.glb",
+  "thumbnail": "frontend/public/characters/aloe-v1-preview.webp",
+  "clips": [
+    "Celebrate",
+    "Idle",
+    "Concerned",
+    "Relieved",
+    "Notice",
+    "Curious"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials and keyframes. The user reference informed the character direction.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 406052,
+  "triangles": 17084
+}

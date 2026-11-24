@@ -18,8 +18,8 @@
  * - Notification preferences & quiet hours helpers (honest about in-session browser scope)
  */
 
-import type { CareKind, GardenPlant } from '../gardenApi';
-import type { LiveWeatherState } from '../weatherService';
+import type { CareEventKind, CareKind, GardenPlant } from '../gardenApi';
+import { formatWeatherReading, type LiveWeatherState } from '../weatherService';
 import {
   getConditionPresentation,
   resolveMultipleConditions,
@@ -250,8 +250,10 @@ export function clearAlertAcknowledgement(fingerprint: string): Record<string, s
 
 const SHORT_DATE = new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' });
 
-function describeCareKind(kind: CareKind): string {
+function describeCareKind(kind: CareEventKind): string {
   switch (kind) {
+    case 'wet':
+      return 'Reported wet potting mix';
     case 'dry':
       return 'Reported dry potting mix';
     case 'moist':
@@ -431,9 +433,14 @@ export function buildWateringIntelligence(
     : 'No previous soil checks or waterings logged yet.';
 
   // Environmental context (clearly labeled as local outdoor weather context, NOT indoor sensor telemetry)
-  const environmentalContext = weather
-    ? `${weather.locationLabel} outdoor context: ${weather.temperatureC}°C, ${weather.relativeHumidity}% RH (${weather.conditionLabel}). ${weather.careContext}`
-    : 'No live indoor sensor connected — evaluate potting mix directly in its room microclimate.';
+  const environmentalContext = weather?.source === 'google-weather'
+    ? [
+        `${weather.locationLabel} outdoors`,
+        formatWeatherReading(weather.temperatureC, '°C'),
+        formatWeatherReading(weather.relativeHumidity, '% RH'),
+        weather.conditionLabel,
+      ].filter(Boolean).join(' · ') + `. ${weather.careContext}`
+    : 'Live outdoor weather is unavailable. Check the potting mix directly.';
 
   // Smart watering lifecycle phase (NEVER declare physical recovery right after pressing "Log watering")
   let lifecyclePhase: CareLifecyclePhase = 'recommendation_active';

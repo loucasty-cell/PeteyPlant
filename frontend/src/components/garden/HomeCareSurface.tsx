@@ -1,3 +1,4 @@
+import { isPreviewMode } from '../../lib/gardenApi';
 /**
  * Project Living Interface V3 — 40% Home Care Surface + Watering Guidance Sheet.
  *
@@ -294,7 +295,13 @@ export function HomeCareSurface({
 
         {/* Impactful Duolingo-Inspired Contextual Action Area */}
         <div className="lv-action-zone">
-          {showSoilTiles ? (
+          {showSoilTiles && !isPreviewMode() ? (
+            <button type="button" className="duo-btn duo-btn-primary" disabled={busy}
+              onClick={() => onOpenConditionCheck(plant.id)}>
+              <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
+              <span>Open soil checkup</span>
+            </button>
+          ) : showSoilTiles ? (
             <div className="lv-soil-block">
               <div className="lv-soil-grid" role="group" aria-label="How does the potting mix feel?">
                 <button
@@ -305,7 +312,7 @@ export function HomeCareSurface({
                 >
                   <Sun className="h-4 w-4" aria-hidden="true" />
                   <strong>Dry</strong>
-                  <span>Needs water</span>
+                  <span>Record how it feels</span>
                 </button>
                 <button
                   type="button"

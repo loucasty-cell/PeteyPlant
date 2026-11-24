@@ -125,9 +125,10 @@ def bundle(tmp_path):
     }
     report = {
         **shared, "split": "test", "manifest_sha256": "a" * 64, "decoded_images_sha256": "b" * 64,
-        "heldout_known": 300, "heldout_unknown": 200, "accepted_precision": 0.99, "coverage": 0.85,
-        "heldout_known_groups": 150, "heldout_unknown_groups": 100,
-        "known_support_by_species": {key: 30 for key in LAUNCH_SPECIES}, "ece_bins": 15,
+        "heldout_known": 400, "heldout_unknown": 200, "accepted_precision": 339 / 342, "coverage": 0.85,
+        "accepted_total": 342, "accepted_correct": 339, "accepted_groups": 250, "clean_accepted_groups": 249,
+        "heldout_known_groups": 300, "heldout_unknown_groups": 100,
+        "known_support_by_species": {key: 50 for key in LAUNCH_SPECIES}, "ece_bins": 15,
         "accepted_precision_ci95": [0.97, 1.0], "unknown_false_acceptance": 0.01, "ece": 0.03,
     }
     release = {
@@ -169,6 +170,9 @@ def test_real_onnx_runtime_reads_image_content_and_abstains(client, bundle, monk
     ("split", "validation"), ("coverage", 0.79), ("ece", 0.04),
     ("unknown_false_acceptance", 0.05), ("temperature", 2), ("ece_bins", 14),
     ("heldout_known_groups", 99), ("heldout_unknown_groups", 59), ("known_support_by_species", {}),
+    ("clean_accepted_groups", 250), ("accepted_groups", 90), ("accepted_correct", 340),
+    ("known_support_by_species", {key: 51 for key in LAUNCH_SPECIES}),
+    ("accepted_total", 349), ("accepted_precision_ci95", [339 / 342, 339 / 342]),
 ])
 def test_failed_or_mismatched_evaluation_cannot_enable_an_artifact(client, bundle, monkeypatch, field, replacement):
     _, _, report = bundle
@@ -190,5 +194,16 @@ def test_tampered_artifact_cannot_enable_matcher(client, bundle, monkeypatch):
 def test_cpu_flight_gate_rejects_slow_or_unpinned_benchmarks(client, bundle, monkeypatch, field, replacement):
     _, release, _ = bundle
     release["runtime_benchmark"][field] = replacement
+    point_to_release(monkeypatch, bundle)
+    assert client.get("/api/v1/lens/status").json()["status"] == "unavailable"
+
+
+def test_perfect_photos_with_insufficient_independent_groups_cannot_release(client, bundle, monkeypatch):
+    _, _, report = bundle
+    report.update(
+        accepted_precision=1.0, accepted_precision_ci95=None, accepted_total=340,
+        accepted_correct=340, accepted_groups=100, clean_accepted_groups=100,
+        unknown_false_acceptance=0.0,
+    )
     point_to_release(monkeypatch, bundle)
     assert client.get("/api/v1/lens/status").json()["status"] == "unavailable"

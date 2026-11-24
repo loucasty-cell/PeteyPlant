@@ -1,0 +1,25 @@
+{
+  "id": "areca-palm",
+  "speciesId": "Dypsis lutescens",
+  "acceptedName": "Dypsis lutescens",
+  "rank": "species",
+  "version": 1,
+  "design": "Clustered canes, layered pinnate fronds, and a woven rattan sleeve",
+  "source": "assets/characters/areca-palm/source/areca-palm.blend",
+  "runtime": "frontend/public/characters/areca-palm-v1.glb",
+  "thumbnail": "frontend/public/characters/areca-palm-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Concerned",
+    "Relieved",
+    "Celebrate",
+    "Notice",
+    "Curious"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials and keyframes. The user reference informed the character direction.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 973548,
+  "triangles": 45956
+}

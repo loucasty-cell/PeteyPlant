@@ -25,7 +25,7 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import type { CareKind, GardenPlant } from '../../lib/gardenApi';
-import type { LiveWeatherState } from '../../lib/weatherService';
+import { formatWeatherReading, type LiveWeatherState } from '../../lib/weatherService';
 import type {
   WateringIntelligenceModel,
   WaterVolumeUnit,
@@ -41,7 +41,8 @@ const FULL_DATE = new Intl.DateTimeFormat(undefined, {
   minute: '2-digit',
 });
 
-const HISTORY_LABELS: Record<CareKind, string> = {
+const HISTORY_LABELS: Record<GardenPlant['history'][number]['kind'], string> = {
+  wet: 'Reported wet potting mix',
   dry: 'Owner reported dry potting mix',
   moist: 'Owner reported moist potting mix',
   unsure: 'Soil check inconclusive',
@@ -250,15 +251,25 @@ export function PlantDetailProfile({
                   <CloudSun className="h-3.5 w-3.5" aria-hidden="true" />
                   Outdoor weather context
                 </span>
-                <span className="provenance-chip" data-provenance="measured">
-                  {weather.source === 'google-weather' ? 'Live Google Weather' : 'Preview'}
+                <span className="provenance-chip" data-provenance={weather.source === 'google-weather' ? 'measured' : 'preview'}>
+                  {weather.source === 'google-weather' ? 'Live Google Weather' : 'Biome preview'}
                 </span>
               </div>
-              <p className="petey-body-muted mt-1">
-                {weather.locationLabel}: {weather.temperatureC}°C · {weather.relativeHumidity}% RH ·{' '}
-                {weather.windKmh} km/h wind ({weather.conditionLabel}).
-              </p>
-              <p className="text-xs text-[#5C6D62] mt-1 m-0">{weather.careContext}</p>
+              {weather.source === 'google-weather' ? (
+                <>
+                  <p className="petey-body-muted mt-1">
+                    {weather.locationLabel} · {weather.conditionLabel}
+                  </p>
+                  <p className="petey-body-muted mt-1">
+                    Temperature {formatWeatherReading(weather.temperatureC, '°C') ?? 'unavailable'} ·{' '}
+                    Humidity {formatWeatherReading(weather.relativeHumidity, '% RH') ?? 'unavailable'} ·{' '}
+                    Wind {formatWeatherReading(weather.windKmh, ' km/h') ?? 'unavailable'}
+                  </p>
+                  <p className="text-xs text-[#5C6D62] mt-1 m-0">{weather.careContext}</p>
+                </>
+              ) : (
+                <p className="petey-body-muted mt-1">{weather.conditionLabel} preview. Live outdoor measurements are unavailable.</p>
+              )}
             </div>
           </section>
 

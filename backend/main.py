@@ -48,7 +48,9 @@ from services.timeseries_vpd import (
 # would only widen the attack surface (any site could mutate demo plants).
 _CORS_ORIGINS = [
     o.strip() for o in os.environ.get(
-        "PETEY_CORS_ORIGINS", "http://localhost:5174,http://localhost:4174,http://localhost:5173,http://localhost:4173"
+        "PETEY_CORS_ORIGINS",
+        "http://localhost:3000,http://127.0.0.1:3000,http://localhost:5174,"
+        "http://localhost:4174,http://localhost:5173,http://localhost:4173",
     ).split(",") if o.strip()
 ]
 

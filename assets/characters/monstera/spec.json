@@ -1,0 +1,31 @@
+{
+  "id": "monstera",
+  "speciesId": "Monstera deliciosa",
+  "acceptedName": "Monstera deliciosa",
+  "rank": "species",
+  "version": 3,
+  "design": "Confident, asymmetric canopy, celadon-rim satin ceramic and iron-oxide facial inlays",
+  "morphologySources": [
+    "https://plants.ces.ncsu.edu/plants/monstera-deliciosa/",
+    "https://www.nparks.gov.sg/florafaunaweb/flora/1/4/1453"
+  ],
+  "source": "assets/characters/monstera/source/monstera.blend",
+  "runtime": "frontend/public/characters/monstera-v3.glb",
+  "thumbnail": "frontend/public/characters/monstera-v3-preview.webp",
+  "clips": [
+    "Idle",
+    "Blink",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate",
+    "Return to idle"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials and authored keyframes. Reference boards informed art direction. No reference pixels or third-party geometry are included.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 1154536,
+  "triangles": 39594
+}

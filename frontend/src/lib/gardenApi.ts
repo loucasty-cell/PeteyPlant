@@ -1,6 +1,8 @@
 export type Drainage = 'yes' | 'no' | 'unknown';
 export type CareKind = 'dry' | 'moist' | 'unsure' | 'watered';
 
+export type CareEventKind = CareKind | 'wet';
+
 export interface GardenSpecies {
   id: string;
   name: string;
@@ -20,9 +22,47 @@ export interface GardenPlant extends PlantDraft {
   message: string;
   check_prompt: string;
   next_check_at: string | null;
+  watering_advice_expires_at?: string | null;
   watering_guidance: string | null;
   watering_source: string | null;
-  history: { id: string; kind: CareKind; occurred_at: string }[];
+  history: { id: string; kind: CareEventKind; occurred_at: string; observation?: Omit<CheckupInput, 'based_on'> | null }[];
+}
+
+export interface CheckupInput {
+  soil: 'dry' | 'moist' | 'wet' | 'unknown';
+  inspection_depth: 'recommended' | 'surface' | 'unknown';
+  standing_water: Drainage;
+  drainage: Drainage;
+  based_on: string | null;
+  captured_at: string;
+}
+
+export type CheckupQuestion = Exclude<keyof CheckupInput, 'based_on' | 'captured_at'>;
+
+export interface CheckupContext {
+  plant_id: string;
+  name: string;
+  species_id: string | null;
+  drainage: Drainage;
+  check_prompt: string;
+  based_on: string | null;
+}
+
+export interface CheckupResult {
+  code: 'HOLD_WATER' | 'CHECK_SOIL' | 'CHECK_DRAINAGE' | 'WATER_IF_APPROPRIATE' | 'INSUFFICIENT_EVIDENCE';
+  headline: string;
+  explanation: string;
+  next_step: string;
+  source: string | null;
+  evidence: { category: string; field: string; value: string }[];
+  question: CheckupQuestion | null;
+  valid_until: string;
+}
+
+export class GardenRequestError extends Error {
+  constructor(readonly status: number, message: string) {
+    super(message);
+  }
 }
 
 export class BackendUnavailableError extends Error {
@@ -46,7 +86,7 @@ let inFlightBackendProbe: Promise<boolean> | null = null;
  * dev proxy probe without triggering browser CORS or network errors when offline.
  */
 export async function checkBackendAvailable(signal?: AbortSignal, force = false): Promise<boolean> {
-  if (base) return true;
+  if (base || import.meta.env.PROD) return true;
   if (!force && cachedBackendStatus && Date.now() - cachedBackendStatus.checkedAt < 5_000) {
     return cachedBackendStatus.available;
   }
@@ -309,11 +349,7 @@ function readPreviewPlants(): GardenPlant[] {
 }
 
 function writePreviewPlants(plants: GardenPlant[]) {
-  try {
-    sessionStorage.setItem(previewStoreKey, JSON.stringify(plants));
-  } catch {
-    // Ignore storage quota errors
-  }
+  sessionStorage.setItem(previewStoreKey, JSON.stringify(plants));
 }
 
 function applyPreviewCare(plant: GardenPlant, action: { id: string; kind: CareKind }): GardenPlant {
@@ -325,14 +361,15 @@ function applyPreviewCare(plant: GardenPlant, action: { id: string; kind: CareKi
     : [{ id: action.id, kind: action.kind, occurred_at: new Date().toISOString() }, ...plant.history];
 
   if (action.kind === 'dry') {
+    const ready = plant.drainage === 'yes' && Boolean(guide);
     return {
       ...plant,
-      status: plant.drainage === 'no' ? 'details' : 'ready',
-      message:
-        plant.drainage === 'no'
-          ? 'The mix feels dry, but this pot has no drainage holes. Water sparingly so water does not pool at the roots.'
-          : 'The potting mix feels dry. Water slowly until it drains from the bottom, then empty any saucer water.',
-      next_check_at: null,
+      status: ready ? 'ready' : 'details',
+      message: ready
+        ? 'Preview: dry mix and drainage reported.'
+        : 'Check drainage and identify the species before deciding whether to water.',
+      next_check_at: hoursFromNowIso(24),
+      watering_advice_expires_at: ready ? hoursFromNowIso(24) : null,
       history,
     };
   }
@@ -401,12 +438,17 @@ async function request<T>(path: string, payload?: object, signal?: AbortSignal):
 
   if (!response.ok) {
     const error = await response.json().catch(() => null);
-    throw new Error(typeof error?.detail === 'string' ? error.detail : 'Petey couldn’t reach your garden.');
+    throw new GardenRequestError(response.status, typeof error?.detail === 'string' ? error.detail : 'Petey couldn’t reach your garden.');
   }
   return response.json() as Promise<T>;
 }
 
 export const gardenApi = {
+  checkup: (plantId: string, signal?: AbortSignal) => request<CheckupContext>(`/plants/${plantId}/checkup`, undefined, signal),
+  assess: (plantId: string, input: CheckupInput, signal?: AbortSignal) => request<CheckupResult>(`/plants/${plantId}/assessments`, input, signal),
+  confirm: (plantId: string, assessmentId: string, input: CheckupInput, signal?: AbortSignal) =>
+    request<GardenPlant>(`/plants/${plantId}/assessments/${assessmentId}/confirm`, input, signal),
+
   async plants(signal?: AbortSignal): Promise<GardenPlant[]> {
     if (isPreviewMode()) return readPreviewPlants();
     return request<GardenPlant[]>('/plants', undefined, signal);
