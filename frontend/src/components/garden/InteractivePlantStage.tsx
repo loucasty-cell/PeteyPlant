@@ -590,7 +590,7 @@ export function InteractivePlantStage({
             intensity={theme.rimIntensity}
           />
 
-          <group position={[0, 0.14, 0]}>
+          <group position={[0, 0.28, 0]}>
             <BotanicalPedestal theme={theme} castShadow={!isSoftwareGl} />
             <SpeciesCompanionNode
               entry={entry}

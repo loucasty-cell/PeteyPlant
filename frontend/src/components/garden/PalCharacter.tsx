@@ -10,9 +10,6 @@ import {
   BackSide,
   Group,
   MathUtils,
-  Path,
-  Shape,
-  ShapeGeometry,
   TubeGeometry,
   Vector3,
 } from 'three';
@@ -62,77 +59,84 @@ const MOUTH_CURVES: Record<PalMood, [number, number, number]> = {
    Species-Specific Procedural Geometry Builders (Properly Disposed on Switch)
    ========================================================================== */
 
-/** 0. Monstera deliciosa: smooth sculpted cordate leaf with curved fenestration lobes & oval holes */
+/**
+ * 0. Monstera deliciosa: high-density continuous parametric cordate leaf
+ * with smooth rounded pinnatifid fenestration lobes & natural 3D arch/cupping.
+ * Uses a continuous 48x28 UV grid (zero skipped triangles or long planar shards).
+ */
 function buildMonsteraBlade(): BufferGeometry {
-  const shape = new Shape();
+  const geo = new BufferGeometry();
+  const pos: number[] = [];
+  const col: number[] = [];
+  const idx: number[] = [];
+  const deep = new Color('#1B462E');
+  const mid = new Color('#346E46');
+  const highlight = new Color('#528E58');
+  const vein = new Color('#8EB86A');
 
-  // Start at petiole sinus (base center), sweep right basal lobe & smooth rounded fenestration notches up to tip
-  shape.moveTo(0, 0.04);
-  // Right basal heart lobe
-  shape.bezierCurveTo(0.24, -0.10, 0.56, 0.04, 0.58, 0.28);
-  // Right lower sinus notch (smooth U-curve)
-  shape.bezierCurveTo(0.58, 0.34, 0.30, 0.35, 0.28, 0.39);
-  shape.bezierCurveTo(0.27, 0.43, 0.58, 0.44, 0.57, 0.54);
-  // Right mid-upper sinus notch
-  shape.bezierCurveTo(0.56, 0.62, 0.27, 0.63, 0.26, 0.67);
-  shape.bezierCurveTo(0.25, 0.71, 0.52, 0.74, 0.48, 0.84);
-  // Smooth taper to acuminate apex
-  shape.bezierCurveTo(0.42, 0.99, 0.19, 1.13, 0, 1.18);
+  const rows = 48;
+  const cols = 28;
 
-  // Left side (slightly asymmetrical for organic botanical silhouette)
-  shape.bezierCurveTo(-0.20, 1.12, -0.43, 0.98, -0.49, 0.83);
-  // Left upper sinus notch
-  shape.bezierCurveTo(-0.52, 0.73, -0.26, 0.70, -0.27, 0.66);
-  shape.bezierCurveTo(-0.28, 0.62, -0.57, 0.61, -0.58, 0.52);
-  // Left lower sinus notch
-  shape.bezierCurveTo(-0.59, 0.43, -0.28, 0.42, -0.29, 0.38);
-  shape.bezierCurveTo(-0.30, 0.34, -0.57, 0.32, -0.57, 0.26);
-  // Left basal heart lobe returning to sinus
-  shape.bezierCurveTo(-0.55, 0.03, -0.23, -0.10, 0, 0.04);
+  for (let r = 0; r <= rows; r++) {
+    const t = r / rows;
+    // Smooth cordate heart envelope with rounded basal auricles
+    const basalLobe = 0.22 * Math.exp(-Math.pow((t - 0.12) / 0.095, 2));
+    const heartWidth = Math.pow(Math.sin(t * Math.PI), 0.6) * (1.16 - t * 0.24) + basalLobe;
 
-  // Two smooth elliptical inner fenestrations near the midrib
-  const rightHole = new Path();
-  rightHole.absellipse(0.18, 0.52, 0.048, 0.088, 0, Math.PI * 2, false, -0.22);
-  shape.holes.push(rightHole);
+    // 3 smooth pinnatifid sinus indentations along the outer margin
+    const notch1 = 0.64 * Math.exp(-Math.pow((t - 0.33) / 0.038, 2));
+    const notch2 = 0.68 * Math.exp(-Math.pow((t - 0.54) / 0.041, 2));
+    const notch3 = 0.60 * Math.exp(-Math.pow((t - 0.74) / 0.036, 2));
+    const notchDepth = Math.min(0.76, notch1 + notch2 + notch3);
 
-  const leftHole = new Path();
-  leftHole.absellipse(-0.17, 0.48, 0.045, 0.082, 0, Math.PI * 2, false, 0.2);
-  shape.holes.push(leftHole);
+    for (let c = 0; c <= cols; c++) {
+      const s = (c / cols) * 2 - 1;
+      const absS = Math.abs(s);
 
-  const geo = new ShapeGeometry(shape, 20);
-  const posAttr = geo.attributes.position;
-  const colors: number[] = [];
-  const deep = new Color('#1D4830');
-  const mid = new Color('#366E46');
-  const vein = new Color('#84AE64');
+      // Keep central midrib lamina intact while smoothly indenting outer lobes at sinus notches
+      const outerWeight = Math.pow(absS, 1.35);
+      const lobeFactor = 1 - notchDepth * outerWeight;
+      const x = heartWidth * lobeFactor * s * 0.62;
 
-  for (let i = 0; i < posAttr.count; i++) {
-    const x = posAttr.getX(i);
-    const y = posAttr.getY(i);
-    const t = Math.max(0, Math.min(1, y / 1.18));
-    const absX = Math.abs(x);
+      // Heart basal sinus dip near petiole attachment + natural vein sweep
+      const basalDip = -0.095 * Math.exp(-Math.pow(t / 0.18, 2)) * Math.sin(absS * Math.PI);
+      const veinSweep = absS * notchDepth * 0.035;
+      const y = t * 1.15 + basalDip + veinSweep;
 
-    // Organic arched midrib + subtle concave leaf cupping
-    const arch = Math.sin(t * Math.PI * 0.96) * 0.16 - t * t * 0.11;
-    const cup = Math.max(0, 0.6 - absX) * 0.14 - Math.exp(-absX * 14) * 0.025;
-    posAttr.setZ(i, arch + cup);
+      // Smooth 3D midrib arch + concave leaf cupping + subtle lobe undulation
+      const arch = Math.sin(t * Math.PI * 0.94) * 0.18 - t * t * 0.14;
+      const cup = (1 - absS * 0.72) * heartWidth * 0.11 - Math.exp(-absS * 12) * 0.024;
+      const lobeWaveZ = Math.sin(t * Math.PI * 6) * absS * 0.018;
+      const z = arch + cup + lobeWaveZ;
+      pos.push(x, y, z);
 
-    // Smooth botanical midrib & lateral venation shading
-    const midrib = Math.exp(-absX * 16) * 0.62;
-    const lateral = Math.pow(0.5 + 0.5 * Math.sin(y * 19 - absX * 8), 8) * 0.16;
-    const shade = deep
-      .clone()
-      .lerp(mid, Math.min(1, 0.35 + (1 - absX * 1.1) * 0.48 + t * 0.12))
-      .lerp(vein, Math.min(0.75, midrib + lateral));
-    colors.push(shade.r, shade.g, shade.b);
+      // Botanical venation: raised pale-jade midrib + angled lateral primary veins
+      const midrib = Math.exp(-absS * 18) * 0.68;
+      const lateralVein =
+        Math.pow(0.5 + 0.5 * Math.cos((t - absS * 0.22) * Math.PI * 11), 10) *
+        (1 - notchDepth * 0.8) *
+        0.28;
+      const shade = deep
+        .clone()
+        .lerp(mid, 0.35 + (1 - absS * 0.8) * 0.45)
+        .lerp(highlight, t * 0.22)
+        .lerp(vein, Math.min(0.82, midrib + lateralVein));
+      col.push(shade.r, shade.g, shade.b);
+
+      if (r < rows && c < cols) {
+        const i = r * (cols + 1) + c;
+        idx.push(i, i + 1, i + cols + 1, i + 1, i + cols + 2, i + cols + 1);
+      }
+    }
   }
-
-  geo.setAttribute('color', new Float32BufferAttribute(colors, 3));
+  geo.setAttribute('position', new Float32BufferAttribute(pos, 3));
+  geo.setAttribute('color', new Float32BufferAttribute(col, 3));
+  geo.setIndex(idx);
   geo.computeVertexNormals();
   return geo;
 }
 
-/** 1. Epipremnum aureum (Golden Pothos): sculpted cordate heart leaf with irregular golden marbling */
+/** 1. Epipremnum aureum (Golden Pothos): high-density sculpted cordate heart leaf with golden marbling */
 function buildPothosBlade(): BufferGeometry {
   const geo = new BufferGeometry();
   const pos: number[] = [];
@@ -142,28 +146,25 @@ function buildPothosBlade(): BufferGeometry {
   const mid = new Color('#4B7E3E');
   const gold = new Color('#DFDA7F');
   const cream = new Color('#EFE9B4');
-  const rows = 28;
-  const cols = 10;
+  const rows = 36;
+  const cols = 20;
 
   for (let r = 0; r <= rows; r++) {
     const t = r / rows;
     for (let c = 0; c <= cols; c++) {
       const s = (c / cols) * 2 - 1;
       const absS = Math.abs(s);
-      // True cordate heart profile: rounded basal lobes dipping slightly below petiole, tapering to an acuminate point
       const basalDip = -0.11 * Math.exp(-Math.pow(t / 0.22, 2)) * Math.sin(absS * Math.PI);
       const heartWidth =
         Math.sin(Math.pow(t, 0.72) * Math.PI) * (1.28 - t * 0.62) +
         0.16 * Math.exp(-Math.pow((t - 0.16) / 0.12, 2));
       const x = heartWidth * s * 0.44;
       const y = t * 0.78 + basalDip;
-      // Organic cupped midrib crease + gentle natural arch toward tip
       const arch = Math.sin(t * Math.PI * 0.95) * 0.11 - t * t * 0.08;
       const midribCrease = -Math.pow(1 - absS, 3) * 0.032 + (1 - absS) * 0.055;
       const z = arch + midribCrease;
       pos.push(x, y, z);
 
-      // Irregular golden-cream variegation patches & feathered veins (not uniform stripes)
       const patchA = Math.sin(t * 15.2 + s * 5.8) * Math.cos(t * 8.4 - s * 4.2);
       const patchB = Math.sin(t * 23.0 - s * 7.1 + 1.4);
       const variegation = Math.pow(Math.max(0, 0.5 + 0.5 * (patchA * 0.7 + patchB * 0.3)), 3.2);
@@ -188,36 +189,41 @@ function buildPothosBlade(): BufferGeometry {
   return geo;
 }
 
-/** 2. Dracaena trifasciata (Snake Plant): stiff banded upright sword blade */
+/** 2. Dracaena trifasciata (Snake Plant): volumetric 3D succulent sword blade with golden margins */
 function buildSnakeSwordBlade(): BufferGeometry {
   const geo = new BufferGeometry();
   const pos: number[] = [];
   const col: number[] = [];
   const idx: number[] = [];
-  const darkBand = new Color('#214530');
-  const sageBand = new Color('#628C5C');
-  const goldEdge = new Color('#DFCF6F');
-  const rows = 36;
-  const cols = 8;
+  const darkBand = new Color('#1F442F');
+  const sageBand = new Color('#648E5E');
+  const goldEdge = new Color('#E4D272');
+  const rows = 42;
+  const cols = 14;
 
   for (let r = 0; r <= rows; r++) {
     const t = r / rows;
+    // Smooth sword silhouette: narrow base, broad middle, sharp acuminate tip
+    const baseTaper = 0.72 + 0.28 * Math.sin(Math.min(1, t * 1.4) * Math.PI * 0.5);
+    const tipTaper = Math.pow(Math.sin(Math.min(1, t * 1.005) * Math.PI), 0.44);
+    const width = tipTaper * baseTaper * 0.215;
+    const twist = (t - 0.3) * 0.28;
+    const sCurveZ = Math.sin(t * Math.PI * 1.15) * 0.055;
+
     for (let c = 0; c <= cols; c++) {
       const s = (c / cols) * 2 - 1;
       const absS = Math.abs(s);
-      // Taper cleanly to a stiff pointed sword tip
-      const width = Math.sin(Math.min(1, t * 1.02) * Math.PI) ** 0.42 * (0.22 - t * 0.04);
-      const twist = t * 0.42;
       const localX = width * s;
-      const localZ = (1 - absS * absS) * 0.045;
+      // Gently channeled concave front & rounded ridge
+      const localZ = (1 - absS * absS) * 0.048 - Math.exp(-absS * 8) * 0.012 + sCurveZ;
       const rx = localX * Math.cos(twist) - localZ * Math.sin(twist);
       const rz = localX * Math.sin(twist) + localZ * Math.cos(twist);
-      pos.push(rx, t * 1.55, rz);
+      pos.push(rx, t * 1.52, rz);
 
-      // Horizontal mottled chevron banding + distinct yellow margins
-      const band = 0.5 + 0.5 * Math.sin(t * 42 + absS * 2.5);
-      const margin = Math.pow(absS, 6);
-      const color = darkBand.clone().lerp(sageBand, band * 0.78).lerp(goldEdge, margin * 0.92);
+      // Horizontal mottled chevron banding + crisp Laurentii golden margins
+      const chevron = 0.5 + 0.5 * Math.sin(t * 44 - absS * 3.4);
+      const margin = MathUtils.smoothstep(absS, 0.72, 0.92);
+      const color = darkBand.clone().lerp(sageBand, chevron * 0.78).lerp(goldEdge, margin * 0.94);
       col.push(color.r, color.g, color.b);
 
       if (r < rows && c < cols) {
@@ -233,31 +239,30 @@ function buildSnakeSwordBlade(): BufferGeometry {
   return geo;
 }
 
-/** 3. Chlorophytum comosum (Spider Plant): graceful arching cream-striped ribbon */
+/** 3. Chlorophytum comosum (Spider Plant): graceful arching cream-striped ribbon with folded channel */
 function buildSpiderRibbonBlade(): BufferGeometry {
   const geo = new BufferGeometry();
   const pos: number[] = [];
   const col: number[] = [];
   const idx: number[] = [];
-  const edgeGreen = new Color('#3E7344');
+  const edgeGreen = new Color('#3B7042');
   const midGreen = new Color('#5B9455');
-  const creamStripe = new Color('#EFEBC0');
-  const rows = 30;
-  const cols = 6;
+  const creamStripe = new Color('#F2EDC4');
+  const rows = 36;
+  const cols = 12;
 
   for (let r = 0; r <= rows; r++) {
     const t = r / rows;
     for (let c = 0; c <= cols; c++) {
       const s = (c / cols) * 2 - 1;
       const absS = Math.abs(s);
-      const width = Math.sin(t * Math.PI) ** 0.5 * 0.085 * (1.15 - t * 0.35);
-      // Graceful fountain arch rising then cascading downward
-      const y = Math.sin(t * Math.PI * 0.86) * 0.85 - t * t * 0.16;
-      const z = t * 1.18;
+      const width = Math.sin(t * Math.PI) ** 0.48 * 0.092 * (1.15 - t * 0.32);
+      const y = Math.sin(t * Math.PI * 0.84) * 0.82 - t * t * 0.22 + absS * 0.018;
+      const z = t * 1.16;
       pos.push(width * s, y, z);
 
-      const stripe = absS < 0.36 ? 0.9 : 0;
-      const color = edgeGreen.clone().lerp(midGreen, 1 - absS).lerp(creamStripe, stripe);
+      const stripe = MathUtils.smoothstep(0.42 - absS, 0, 0.14);
+      const color = edgeGreen.clone().lerp(midGreen, 1 - absS).lerp(creamStripe, stripe * 0.92);
       col.push(color.r, color.g, color.b);
 
       if (r < rows && c < cols) {
@@ -273,49 +278,48 @@ function buildSpiderRibbonBlade(): BufferGeometry {
   return geo;
 }
 
-/** 4. Aloe vera: 3D volumetric thick fleshy succulent spear with marginal teeth */
+/** 4. Aloe vera: high-resolution 3D volumetric succulent spear with smooth rounded keel & marginal teeth */
 function buildAloeSpear(): BufferGeometry {
   const geo = new BufferGeometry();
   const pos: number[] = [];
   const col: number[] = [];
   const idx: number[] = [];
-  const baseGreen = new Color('#366850');
-  const fleshyGreen = new Color('#629D76');
-  const paleTooth = new Color('#C9D8A2');
+  const baseGreen = new Color('#35674F');
+  const fleshyGreen = new Color('#649E78');
+  const paleTooth = new Color('#D2E0AC');
 
-  const rows = 26;
-  // Cross-section ring: 6 vertices around a thick concave-top, convex-back triangular spear
-  const ringPts: [number, number][] = [
-    [-1.0, 0.12],  // left serrated ridge
-    [-0.35, -0.02], // inner concave top-left
-    [0.35, -0.02],  // inner concave top-right
-    [1.0, 0.12],   // right serrated ridge
-    [0.5, -0.52],  // fleshy rounded back-right
-    [-0.5, -0.52], // fleshy rounded back-left
-  ];
-  const ringLen = ringPts.length;
+  const rows = 32;
+  const ringLen = 14;
+  // Smooth 14-point cross-section: slightly concave top face, sharp lateral margins, plump rounded keel back
+  const ringPts: [number, number, boolean][] = Array.from({ length: ringLen }, (_, k) => {
+    const theta = (k / ringLen) * Math.PI * 2;
+    const x = Math.cos(theta);
+    const rawZ = Math.sin(theta);
+    const z = rawZ > 0 ? rawZ * 0.22 - (1 - x * x) * 0.08 : rawZ * 0.58;
+    const isEdge = k === 0 || k === ringLen / 2;
+    return [x, z, isEdge];
+  });
 
   for (let r = 0; r <= rows; r++) {
     const t = r / rows;
-    const taper = Math.pow(1 - t, 0.72);
-    const toothPulse = r % 3 === 1 && r > 2 && r < rows - 2 ? 1.18 : 1.0;
-    const w = 0.155 * taper;
-    const thick = 0.11 * taper;
-    const curveZ = t * t * 0.22;
+    const taper = Math.pow(1 - t, 0.68);
+    const toothPulse = r % 3 === 1 && r > 2 && r < rows - 2 ? 1.15 : 1.0;
+    const w = 0.16 * taper;
+    const thick = 0.115 * taper;
+    const curveZ = t * t * 0.2;
     const y = t * 1.24;
 
     for (let k = 0; k < ringLen; k++) {
-      const [rx, rz] = ringPts[k];
-      const isEdge = k === 0 || k === 3;
+      const [rx, rz, isEdge] = ringPts[k];
       const px = rx * w * (isEdge ? toothPulse : 1);
       const pz = rz * thick + curveZ;
       pos.push(px, y, pz);
 
-      const speckle = Math.pow(0.5 + 0.5 * Math.sin(t * 28 + k * 2.1), 5) * 0.3;
+      const speckle = Math.pow(0.5 + 0.5 * Math.sin(t * 28 + k * 1.7), 5) * 0.28;
       const color = baseGreen
         .clone()
         .lerp(fleshyGreen, 0.35 + t * 0.5)
-        .lerp(paleTooth, isEdge && toothPulse > 1 ? 0.92 : speckle);
+        .lerp(paleTooth, isEdge && toothPulse > 1 ? 0.9 : speckle);
       col.push(color.r, color.g, color.b);
     }
 
@@ -469,54 +473,66 @@ function MonsteraFoliage({ castShadow }: { castShadow: boolean }) {
   const blade = useMemo(() => buildMonsteraBlade(), []);
   const aerialRoot = useMemo(() => {
     const curve = new CatmullRomCurve3([
-      new Vector3(0.05, 0.28, -0.04),
-      new Vector3(0.18, 0.16, 0.08),
-      new Vector3(0.28, 0.01, 0.15),
+      new Vector3(0.05, 0.26, -0.02),
+      new Vector3(0.18, 0.14, 0.08),
+      new Vector3(0.27, 0.01, 0.15),
     ]);
-    return new TubeGeometry(curve, 16, 0.016, 6, false);
+    return new TubeGeometry(curve, 18, 0.016, 8, false);
+  }, []);
+
+  // Curved petioles that rise from the central node and bend naturally at the geniculum into the leaf blade
+  const petioles = useMemo(() => {
+    const specs = [
+      { angle: 0.18, reach: 0.34, height: 0.44, bladePitch: 0.78, scale: 0.94 },
+      { angle: 1.24, reach: 0.30, height: 0.34, bladePitch: 0.92, scale: 0.84 },
+      { angle: 2.32, reach: 0.36, height: 0.50, bladePitch: 0.72, scale: 1.02 },
+      { angle: 3.38, reach: 0.32, height: 0.38, bladePitch: 0.88, scale: 0.88 },
+      { angle: 4.46, reach: 0.35, height: 0.46, bladePitch: 0.76, scale: 0.96 },
+      { angle: 5.42, reach: 0.28, height: 0.30, bladePitch: 0.96, scale: 0.78 },
+    ];
+    return specs.map((sp) => {
+      const curve = new CatmullRomCurve3([
+        new Vector3(0, 0.03, 0.03),
+        new Vector3(0, sp.height * 0.55, sp.reach * 0.42),
+        new Vector3(0, sp.height, sp.reach),
+      ]);
+      const geo = new TubeGeometry(curve, 16, 0.021, 8, false);
+      const tip = curve.getPointAt(1);
+      return { ...sp, geo, tip };
+    });
   }, []);
 
   useEffect(() => () => {
     blade.dispose();
     aerialRoot.dispose();
-  }, [blade, aerialRoot]);
-
-  const leaves = [
-    { angle: 0.25, pitch: 0.72, scale: 0.96, stem: 0.56 },
-    { angle: 1.32, pitch: 0.88, scale: 0.84, stem: 0.44 },
-    { angle: 2.38, pitch: 0.65, scale: 1.05, stem: 0.62 },
-    { angle: 3.45, pitch: 0.86, scale: 0.88, stem: 0.46 },
-    { angle: 4.58, pitch: 0.70, scale: 1.0, stem: 0.58 },
-    { angle: 5.55, pitch: 0.94, scale: 0.76, stem: 0.38 },
-  ];
+    petioles.forEach((p) => p.geo.dispose());
+  }, [blade, aerialRoot, petioles]);
 
   return (
     <group>
       {/* Sturdy central climbing stem */}
-      <mesh position={[0, 0.16, 0]} castShadow={castShadow}>
-        <cylinderGeometry args={[0.055, 0.072, 0.34, 12]} />
-        <meshStandardMaterial color="#2D5A3D" roughness={0.78} />
+      <mesh position={[0, 0.15, 0]} castShadow={castShadow}>
+        <cylinderGeometry args={[0.052, 0.068, 0.32, 16]} />
+        <meshStandardMaterial color="#2D5A3D" roughness={0.76} />
       </mesh>
       <mesh geometry={aerialRoot} castShadow={castShadow}>
-        <meshStandardMaterial color="#8B7356" roughness={0.9} />
+        <meshStandardMaterial color="#8B7356" roughness={0.88} />
       </mesh>
-      {leaves.map((l, idx) => (
+      {petioles.map((l, idx) => (
         <group key={idx} rotation={[0, l.angle, 0]}>
-          <group position={[0, 0.1, 0.05]} rotation={[l.pitch, 0, 0]}>
-            <mesh position={[0, l.stem * 0.5, 0]} castShadow={castShadow}>
-              <cylinderGeometry args={[0.022, 0.032, l.stem, 8]} />
-              <meshStandardMaterial color="#346844" roughness={0.72} />
-            </mesh>
-            <mesh
-              geometry={blade}
-              position={[0, l.stem * 0.9, 0]}
-              scale={[0.56 * l.scale, l.scale, l.scale]}
-              castShadow={castShadow}
-              receiveShadow={castShadow}
-            >
-              <meshStandardMaterial vertexColors side={DoubleSide} roughness={0.68} metalness={0.01} />
-            </mesh>
-          </group>
+          <mesh geometry={l.geo} castShadow={castShadow}>
+            <meshStandardMaterial color="#346844" roughness={0.72} />
+          </mesh>
+          <mesh
+            geometry={blade}
+            position={[l.tip.x, l.tip.y - 0.02, l.tip.z - 0.01]}
+            rotation={[l.bladePitch, 0, (idx % 2 === 0 ? 1 : -1) * 0.06]}
+            scale={[l.scale, l.scale, l.scale]}
+            castShadow={castShadow}
+            receiveShadow={castShadow}
+          >
+            <meshStandardMaterial vertexColors side={DoubleSide} roughness={0.64} metalness={0.01} />
+          </mesh>
         </group>
       ))}
     </group>

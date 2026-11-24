@@ -27,6 +27,7 @@ import {
   RefreshCw,
   Search,
   ShoppingBasket,
+  Sparkles,
   Sprout,
   Sun,
   X,
@@ -44,12 +45,15 @@ import {
   type PlantDraft,
 } from '../../lib/gardenApi';
 import {
+  ALL_ATMOSPHERE_IDS,
   createPreviewWeather,
   defaultTimeWeather,
   fetchGoogleWeather,
+  NATURE_THEME_CATEGORIES,
   WEATHER_LOCATIONS,
   WEATHER_THEMES,
   type LiveWeatherState,
+  type NatureThemeCategory,
   type WeatherAtmosphereId,
 } from '../../lib/weatherService';
 import {
@@ -112,17 +116,7 @@ const VIEW_TITLES: Record<PrimaryView, string> = {
   lab: 'Petey Plant — Plant Lab (Demo)',
 };
 
-const ATMOSPHERE_LIST: WeatherAtmosphereId[] = [
-  'clear-day',
-  'golden-hour',
-  'partly-cloudy',
-  'overcast',
-  'rain',
-  'storm',
-  'fog',
-  'snow',
-  'clear-night',
-];
+const ATMOSPHERE_LIST: WeatherAtmosphereId[] = ALL_ATMOSPHERE_IDS;
 
 function readDraft(): PlantDraft | null {
   try {
@@ -192,24 +186,29 @@ function useReducedMotion() {
 }
 
 function WeatherIcon({ atmosphere }: { atmosphere: WeatherAtmosphereId }) {
-  switch (atmosphere) {
-    case 'clear-day':
-    case 'golden-hour':
-      return <Sun className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
-    case 'partly-cloudy':
-    case 'overcast':
-      return <Cloud className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
-    case 'rain':
-      return <CloudRain className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
-    case 'storm':
-      return <CloudLightning className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
-    case 'fog':
-      return <CloudFog className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
-    case 'snow':
-      return <CloudSnow className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
-    case 'clear-night':
-      return <Moon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
+  const theme = WEATHER_THEMES[atmosphere];
+  if (!theme) {
+    return <Sun className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
   }
+  if (theme.clouds === 'storm' || theme.particles === 'storm-rain') {
+    return <CloudLightning className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
+  }
+  if (theme.particles === 'snow') {
+    return <CloudSnow className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
+  }
+  if (theme.particles === 'rain' || theme.category === 'Rain & Monsoon') {
+    return <CloudRain className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
+  }
+  if (theme.particles === 'mist' || theme.category === 'Mist, Storm & Frost') {
+    return <CloudFog className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
+  }
+  if (theme.celestial === 'moon' || theme.category === 'Nocturnal Biomes') {
+    return <Moon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
+  }
+  if (theme.category === 'Clouds & Breeze' || theme.clouds === 'dense') {
+    return <Cloud className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
+  }
+  return <Sun className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />;
 }
 
 /* ==========================================================================
@@ -467,13 +466,15 @@ export default function GardenApp() {
   const [gardenSort, setGardenSort] = useState<'priority' | 'name' | 'species'>('priority');
   const [gardenLayout, setGardenLayout] = useState<'list' | 'grid'>('list');
 
-  // Live Google Weather state
+  // Live Google Weather & 32 Interactive Nature Biome state
   const [weather, setWeather] = useState<LiveWeatherState>(() => defaultTimeWeather());
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherMenuOpen, setWeatherMenuOpen] = useState(false);
   const [activeLocationId, setActiveLocationId] = useState<string>('sf');
   const [gpsError, setGpsError] = useState('');
   const [gmpQuotaExceeded, setGmpQuotaExceeded] = useState(false);
+  const [themeCategoryFilter, setThemeCategoryFilter] = useState<NatureThemeCategory | 'all'>('all');
+  const [stageParallax, setStageParallax] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
 
   // Interactive 3D Companion controls & smart care lifecycle state
   const [playCount, setPlayCount] = useState(0);
@@ -775,6 +776,13 @@ export default function GardenApp() {
     setActiveLocationId(`preview:${id}`);
     setGpsError('');
     setWeather(createPreviewWeather(id));
+  }
+
+  function cycleNextNatureTheme() {
+    const currentIndex = ATMOSPHERE_LIST.indexOf(weather.atmosphere);
+    const nextId = ATMOSPHERE_LIST[(currentIndex + 1) % ATMOSPHERE_LIST.length];
+    selectAtmospherePreview(nextId);
+    flashStageToast(`Nature biome · ${WEATHER_THEMES[nextId].label}`);
   }
 
   function startAddPlant(species?: string, manual = false) {
@@ -1214,11 +1222,25 @@ export default function GardenApp() {
                 </div>
               </header>
 
-              {/* 60:40 LIVING COMPANION HABITAT + DUOLINGO-INSPIRED CARE SURFACE */}
+              {/* 64:36 LIVING COMPANION HABITAT + DUOLINGO-INSPIRED CARE SURFACE */}
               <div className="companion-shell">
-                {/* 60%: Unobstructed Living 3D Botanical Companion Stage */}
-                <section className="companion-stage" aria-label="Interactive plant companion stage">
-                  <WeatherBackdrop theme={weatherTheme} />
+                {/* 64%: Expanded Unobstructed Living 3D Botanical Companion Stage */}
+                <section
+                  className="companion-stage"
+                  aria-label="Interactive plant companion stage"
+                  onPointerMove={(e) => {
+                    if (reduced) return;
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    if (rect.width <= 0 || rect.height <= 0) return;
+                    const nx = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+                    const ny = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+                    setStageParallax({ x: nx, y: ny });
+                  }}
+                  onPointerLeave={() => {
+                    if (!reduced) setStageParallax({ x: 0, y: 0 });
+                  }}
+                >
+                  <WeatherBackdrop theme={weatherTheme} parallaxOffset={stageParallax} />
 
                   <InteractivePlantStage
                     speciesId={activePlant?.species_id ?? 'Monstera deliciosa'}
@@ -1242,7 +1264,7 @@ export default function GardenApp() {
                     </div>
                   )}
 
-                  {/* Calm Companion Speech Cue grounded strictly in verified backend state */}
+                  {/* Calm Companion Speech Cue grounded strictly in verified backend state + Interactive Biome Chip */}
                   {activePlant && activeIntel && (
                     <div className="lv-stage-speech-wrap">
                       <button
@@ -1256,18 +1278,39 @@ export default function GardenApp() {
                           data-severity={activeIntel.urgency}
                           aria-hidden="true"
                         />
-                        <span>“{activeIntel.companionSpeech.message}”</span>
+                        <span className="lv-speech-copy">“{activeIntel.companionSpeech.message}”</span>
+                        <span className="lv-speech-biome-tag" aria-hidden="true">
+                          <WeatherIcon atmosphere={weather.atmosphere} />
+                          <span>{weatherTheme.label}</span>
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        className="lv-biome-cycle-btn"
+                        onClick={cycleNextNatureTheme}
+                        aria-label={`Switch nature theme (current: ${weatherTheme.label})`}
+                        title={`Next nature theme (${ATMOSPHERE_LIST.indexOf(weather.atmosphere) + 1}/${ATMOSPHERE_LIST.length})`}
+                      >
+                        <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
+                        <span>Biome</span>
                       </button>
                     </div>
                   )}
 
-                  {/* Live Google Weather & Atmosphere Switcher Popover */}
+                  {/* Live Google Weather & 32-Biome Interactive Switcher Popover */}
                   {weatherMenuOpen && (
                     <div className="weather-popover" role="dialog" aria-label="Outdoor weather atmosphere">
                       <div className="weather-popover-head">
-                        <span className="weather-popover-title">
-                          Outdoor · {weather.locationLabel}
-                        </span>
+                        <div className="min-w-0">
+                          <span className="weather-popover-title block truncate">
+                            {weather.locationLabel} · {weatherTheme.label}
+                          </span>
+                          <span className="weather-popover-sub">
+                            32 interactive nature themes · {ATMOSPHERE_LIST.indexOf(weather.atmosphere) + 1} of{' '}
+                            {ATMOSPHERE_LIST.length}
+                          </span>
+                        </div>
                         <button
                           type="button"
                           className="weather-popover-close"
@@ -1293,15 +1336,25 @@ export default function GardenApp() {
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        className="duo-btn duo-btn-primary duo-btn-sm w-full mb-2"
-                        disabled={weatherLoading}
-                        onClick={requestUserGpsWeather}
-                      >
-                        <MapPin className="h-4 w-4" aria-hidden="true" />
-                        <span>{weatherLoading ? 'Syncing Google Weather…' : 'Use my live location'}</span>
-                      </button>
+                      <div className="flex items-center gap-2 mb-2">
+                        <button
+                          type="button"
+                          className="duo-btn duo-btn-primary duo-btn-sm flex-1"
+                          disabled={weatherLoading}
+                          onClick={requestUserGpsWeather}
+                        >
+                          <MapPin className="h-4 w-4" aria-hidden="true" />
+                          <span>{weatherLoading ? 'Syncing…' : 'Live GPS'}</span>
+                        </button>
+                        <button
+                          type="button"
+                          className="duo-btn duo-btn-sage duo-btn-sm"
+                          onClick={cycleNextNatureTheme}
+                        >
+                          <Sparkles className="h-4 w-4" aria-hidden="true" />
+                          <span>Next biome</span>
+                        </button>
+                      </div>
 
                       {gpsError && (
                         <p className="petey-alert petey-alert-error mb-2" role="alert">
@@ -1324,27 +1377,74 @@ export default function GardenApp() {
                         ))}
                       </div>
 
-                      <p className="weather-section-label">Atmosphere preview</p>
-                      <div className="weather-loc-grid">
-                        {ATMOSPHERE_LIST.map((id) => (
+                      <div className="weather-section-bar">
+                        <p className="weather-section-label m-0">
+                          32 Nature Biomes ({themeCategoryFilter === 'all'
+                            ? ATMOSPHERE_LIST.length
+                            : ATMOSPHERE_LIST.filter((id) => WEATHER_THEMES[id].category === themeCategoryFilter).length})
+                        </p>
+                      </div>
+
+                      <div className="weather-category-chips" role="tablist" aria-label="Filter nature biome categories">
+                        <button
+                          type="button"
+                          role="tab"
+                          aria-selected={themeCategoryFilter === 'all'}
+                          className={`weather-cat-chip ${themeCategoryFilter === 'all' ? 'active' : ''}`}
+                          onClick={() => setThemeCategoryFilter('all')}
+                        >
+                          All (32)
+                        </button>
+                        {NATURE_THEME_CATEGORIES.map((cat) => (
                           <button
-                            key={id}
+                            key={cat}
                             type="button"
-                            className={`weather-choice-btn ${
-                              weather.atmosphere === id && activeLocationId.startsWith('preview:') ? 'active' : ''
-                            }`}
-                            onClick={() => selectAtmospherePreview(id)}
+                            role="tab"
+                            aria-selected={themeCategoryFilter === cat}
+                            className={`weather-cat-chip ${themeCategoryFilter === cat ? 'active' : ''}`}
+                            onClick={() => setThemeCategoryFilter(cat)}
                           >
-                            <WeatherIcon atmosphere={id} />
-                            {WEATHER_THEMES[id].label}
+                            {cat}
                           </button>
                         ))}
                       </div>
 
+                      <div className="weather-theme-gallery">
+                        {ATMOSPHERE_LIST.filter(
+                          (id) => themeCategoryFilter === 'all' || WEATHER_THEMES[id].category === themeCategoryFilter,
+                        ).map((id) => {
+                          const t = WEATHER_THEMES[id];
+                          const isSelected = weather.atmosphere === id;
+                          return (
+                            <button
+                              key={id}
+                              type="button"
+                              className={`weather-theme-card ${isSelected ? 'active' : ''}`}
+                              onClick={() => selectAtmospherePreview(id)}
+                            >
+                              <span
+                                className="weather-theme-swatch"
+                                style={{
+                                  background: `linear-gradient(135deg, ${t.skyTop} 0%, ${t.skyMid} 52%, ${t.hillNear} 100%)`,
+                                }}
+                                aria-hidden="true"
+                              />
+                              <span className="weather-theme-card-text">
+                                <span className="weather-theme-card-title">
+                                  <WeatherIcon atmosphere={id} />
+                                  <span className="truncate">{t.label}</span>
+                                </span>
+                                <span className="weather-theme-card-sub truncate">{t.biomeSubtitle}</span>
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
                       <p className="weather-source-note">
                         {weather.source === 'google-weather'
-                          ? 'Outdoor weather from Google Weather. Does not measure indoor room temperature or potting mix moisture.'
-                          : 'Decorative atmosphere preview. Pick a city or Use my live location for real outdoor Google Weather.'}
+                          ? 'Outdoor weather from Google Weather automatically selects the matching nature biome. Does not measure indoor room temperature or potting mix moisture.'
+                          : 'Interactive nature biome preview. Pick a city or Live GPS for automatic Google Weather matching.'}
                       </p>
                     </div>
                   )}
@@ -1409,6 +1509,9 @@ export default function GardenApp() {
                             onOpenProfile={(id) => openPlantProfile(id)}
                             inHydrationCart={validCartPlantIds.includes(activePlant.id)}
                             onToggleHydrationCart={(id) => toggleCartPlant(id)}
+                            activeBiomeLabel={weatherTheme.label}
+                            weatherLocationLabel={`${weather.locationLabel} · ${weather.temperatureC}°C`}
+                            onCycleBiome={cycleNextNatureTheme}
                           />
                         ) : (
                           /* First-Time Empty Garden Onboarding (3 plain concepts) */

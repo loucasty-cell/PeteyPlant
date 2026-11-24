@@ -59,6 +59,9 @@ export interface HomeCareSurfaceProps {
   onOpenProfile: (plantId: string) => void;
   inHydrationCart: boolean;
   onToggleHydrationCart: (plantId: string) => void;
+  activeBiomeLabel?: string;
+  weatherLocationLabel?: string;
+  onCycleBiome?: () => void;
 }
 
 interface VariantCopy {
@@ -152,6 +155,9 @@ export function HomeCareSurface({
   onOpenProfile,
   inHydrationCart,
   onToggleHydrationCart,
+  activeBiomeLabel,
+  weatherLocationLabel,
+  onCycleBiome,
 }: HomeCareSurfaceProps) {
   const [guideOpen, setGuideOpen] = useState(false);
 
@@ -202,13 +208,26 @@ export function HomeCareSurface({
 
   return (
     <div className="lv-care-surface">
-      {/* Desktop-only calm botanical identity line (keeps mobile 40% ultra-compact above the fold) */}
+      {/* Desktop-only calm botanical identity line (keeps mobile 36% ultra-compact above the fold) */}
       <div className="lv-desktop-species-meta">
-        <span className="lv-desktop-species-name">
-          {plant.common_name ?? plant.species_id ?? 'Houseplant'}
-        </span>
-        {plant.species_id && plant.species_id !== plant.common_name && (
-          <span className="lv-desktop-species-latin">{plant.species_id}</span>
+        <div className="min-w-0 flex items-baseline gap-2">
+          <span className="lv-desktop-species-name truncate">
+            {plant.common_name ?? plant.species_id ?? 'Houseplant'}
+          </span>
+          {plant.species_id && plant.species_id !== plant.common_name && (
+            <span className="lv-desktop-species-latin truncate">{plant.species_id}</span>
+          )}
+        </div>
+        {activeBiomeLabel && onCycleBiome && (
+          <button
+            type="button"
+            className="lv-biome-meta-pill"
+            onClick={onCycleBiome}
+            title={weatherLocationLabel ? `Outdoor: ${weatherLocationLabel}` : 'Switch nature biome'}
+          >
+            <Sparkles className="h-3 w-3" aria-hidden="true" />
+            <span>{activeBiomeLabel}</span>
+          </button>
         )}
       </div>
 
@@ -223,20 +242,29 @@ export function HomeCareSurface({
       >
         <div className="lv-care-card-head">
           <div className="lv-care-title-group">
-            <span className="lv-status-pill" data-tone={variant.tone}>
-              {variant.tone === 'urgent' ? (
-                <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
-              ) : variant.tone === 'wait' ? (
-                <AlertTriangle className="h-3.5 w-3.5" aria-hidden="true" />
-              ) : variant.tone === 'ready' ? (
-                <Droplets className="h-3.5 w-3.5" aria-hidden="true" />
-              ) : variant.tone === 'rest' ? (
-                <Sparkles className="h-3.5 w-3.5" aria-hidden="true" />
-              ) : (
-                <ClipboardCheck className="h-3.5 w-3.5" aria-hidden="true" />
-              )}
-              <span>{variant.heading}</span>
-            </span>
+            <motion.span
+              key={variant.tone}
+              className="lv-status-pill"
+              data-tone={variant.tone}
+              initial={reducedMotion ? false : { scale: 0.9, opacity: 0, y: 4 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 24 }}
+            >
+              <span className="lv-status-pill-icon" aria-hidden="true">
+                {variant.tone === 'urgent' ? (
+                  <ShieldAlert className="h-3.5 w-3.5" />
+                ) : variant.tone === 'wait' ? (
+                  <AlertTriangle className="h-3.5 w-3.5" />
+                ) : variant.tone === 'ready' ? (
+                  <Droplets className="h-3.5 w-3.5" />
+                ) : variant.tone === 'rest' ? (
+                  <Sparkles className="h-3.5 w-3.5" />
+                ) : (
+                  <ClipboardCheck className="h-3.5 w-3.5" />
+                )}
+              </span>
+              <span className="lv-status-pill-label">{variant.heading}</span>
+            </motion.span>
 
             {intel.volumeGuidance.hasQuantitativeVolume && intel.volumeGuidance.formattedAmount && (
               <span className="lv-volume-badge">{intel.volumeGuidance.formattedAmount}</span>
@@ -397,41 +425,45 @@ export function HomeCareSurface({
           )}
         </div>
 
-        {/* Inline subtle footer row for non-blocking quick actions */}
+        {/* Tactile quick-action footer pills inside the care card */}
         <div className="lv-care-footer">
           {plant.status === 'check' && !isWateringBlocked && (
             <button
               type="button"
-              className="lv-subtle-link"
+              className="lv-footer-chip"
               disabled={busy}
               onClick={() => onRecordCare(plant, 'watered')}
             >
-              I already watered
+              <Droplets className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Already watered</span>
             </button>
           )}
           {plant.status === 'ready' && !isWateringBlocked && (
             <button
               type="button"
-              className="lv-subtle-link"
+              className="lv-footer-chip"
               disabled={busy}
               onClick={() => onShowCheckChoices(true)}
             >
-              Recheck soil first
+              <Droplet className="h-3.5 w-3.5" aria-hidden="true" />
+              <span>Recheck soil</span>
             </button>
           )}
           <button
             type="button"
-            className="lv-subtle-link"
+            className="lv-footer-chip"
             onClick={() => onOpenConditionCheck(plant.id)}
           >
-            Symptom check
+            <ClipboardCheck className="h-3.5 w-3.5" aria-hidden="true" />
+            <span>Symptom check</span>
           </button>
           <button
             type="button"
-            className="lv-subtle-link"
+            className="lv-footer-chip"
             onClick={() => onOpenProfile(plant.id)}
           >
-            History & species guide
+            <span>Care history</span>
+            <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
         </div>
 
@@ -448,7 +480,7 @@ export function HomeCareSurface({
         )}
       </motion.div>
 
-      {/* Desktop-only calm persisted care snapshot (hidden on mobile to preserve crisp 60:40 above-the-fold fit) */}
+      {/* Desktop-only calm persisted care snapshot with interactive drainage/checkup cell */}
       <div className="lv-desktop-history-card duo-card" aria-label="Recorded care summary">
         <div className="lv-desktop-stat">
           <span className="lv-desktop-stat-label">Last watered</span>
@@ -458,9 +490,24 @@ export function HomeCareSurface({
           <span className="lv-desktop-stat-label">Last soil check</span>
           <strong className="lv-desktop-stat-val">{lastCheckedLabel}</strong>
         </div>
-        <div className="lv-desktop-stat">
+        <div
+          className="lv-desktop-stat lv-desktop-stat-interactive"
+          role="button"
+          tabIndex={0}
+          onClick={() => onOpenConditionCheck(plant.id)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              onOpenConditionCheck(plant.id);
+            }
+          }}
+          aria-label={`Pot drainage: ${drainageLabel}. Click to review plant condition and drainage.`}
+        >
           <span className="lv-desktop-stat-label">Pot drainage</span>
-          <strong className="lv-desktop-stat-val">{drainageLabel}</strong>
+          <strong className="lv-desktop-stat-val lv-desktop-stat-link">
+            <span>{drainageLabel}</span>
+            <ChevronRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+          </strong>
         </div>
       </div>
 
