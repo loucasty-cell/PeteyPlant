@@ -57,7 +57,7 @@ def photo_fingerprints(path):
         return exact, difference
 
 
-def audit(rows, image_root, species):
+def audit(rows, image_root, species, *, splits=SPLITS):
     """Return reproducible counts and errors. Pairs use decoded orientation and dHash."""
     image_root = Path(image_root).resolve()
     species = set(species)
@@ -80,7 +80,7 @@ def audit(rows, image_root, species):
             errors.append(f"{label}: duplicate record ID")
         ids.add(label)
         split = row["split"]
-        if split not in SPLITS:
+        if split not in splits:
             errors.append(f"{label}: invalid split {split}")
             continue
         if row["rights_review"] != "approved":
@@ -132,7 +132,7 @@ def audit(rows, image_root, species):
         signatures.append((label, split, difference))
         digest_rows.append({"id": label, "decoded_sha256": exact})
 
-    for split in SPLITS:
+    for split in splits:
         if not counts[split]:
             errors.append(f"missing {split} records")
     return {
