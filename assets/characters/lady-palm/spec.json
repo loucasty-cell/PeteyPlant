@@ -1,0 +1,29 @@
+{
+  "id": "lady-palm",
+  "speciesId": "Rhapis excelsa",
+  "acceptedName": "Rhapis excelsa",
+  "commonName": "Lady Palm",
+  "rank": "species",
+  "version": 1,
+  "design": "Multiple cane bases topped by hand-shaped split fans.",
+  "source": "assets/characters/lady-palm/source/lady-palm.blend",
+  "runtime": "frontend/public/characters/lady-palm-v1.glb",
+  "thumbnail": "frontend/public/characters/lady-palm-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 461340,
+  "triangles": 17728,
+  "fallback": 5,
+  "stageScale": 0.8185,
+  "runtimePrimitives": 12
+}

@@ -1,0 +1,32 @@
+{
+  "id": "whale-fin",
+  "speciesId": "Dracaena masoniana",
+  "acceptedName": "Dracaena masoniana",
+  "commonName": "Whale Fin Snake Plant",
+  "rank": "species",
+  "version": 1,
+  "design": "Three broad asymmetric paddle leaves with mottled surfaces and darker rims",
+  "source": "assets/characters/whale-fin/source/whale-fin.blend",
+  "runtime": "frontend/public/characters/whale-fin-v1.glb",
+  "thumbnail": "frontend/public/characters/whale-fin-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 239608,
+  "triangles": 8744,
+  "fallback": 2,
+  "stageScale": 0.8604,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/77183391-1"
+  ],
+  "runtimePrimitives": 20
+}

@@ -1,0 +1,32 @@
+{
+  "id": "golden-barrel",
+  "speciesId": "Echinocactus grusonii",
+  "acceptedName": "Kroenleinia grusonii",
+  "commonName": "Golden Barrel Cactus",
+  "rank": "species",
+  "version": 1,
+  "design": "Globular green barrel with fourteen pronounced ribs and golden radial spines",
+  "source": "assets/characters/golden-barrel/source/golden-barrel.blend",
+  "runtime": "frontend/public/characters/golden-barrel-v1.glb",
+  "thumbnail": "frontend/public/characters/golden-barrel-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 518536,
+  "triangles": 18032,
+  "fallback": 4,
+  "stageScale": 0.9916,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/77164085-1"
+  ],
+  "runtimePrimitives": 14
+}

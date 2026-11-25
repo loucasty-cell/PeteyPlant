@@ -26,6 +26,6 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials and authored keyframes. Reference boards informed art direction. No reference pixels or third-party geometry are included.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 1154536,
-  "triangles": 39594
+  "glbBytes": 1299560,
+  "triangles": 46162
 }

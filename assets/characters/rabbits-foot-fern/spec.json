@@ -1,0 +1,33 @@
+{
+  "id": "rabbits-foot-fern",
+  "speciesId": "Davallia fejeensis",
+  "acceptedName": "Davallia solida var. fejeensis",
+  "commonName": "Rabbit's Foot Fern",
+  "rank": "variety",
+  "version": 1,
+  "design": "Lacy divided fronds above exposed earthy creeping rhizomes.",
+  "source": "assets/characters/rabbits-foot-fern/source/rabbits-foot-fern.blend",
+  "runtime": "frontend/public/characters/rabbits-foot-fern-v1.glb",
+  "thumbnail": "frontend/public/characters/rabbits-foot-fern-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 978368,
+  "triangles": 38000,
+  "fallback": 3,
+  "stageScale": 1.0956,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:17564870-1",
+    "https://davalliacea.linnaeana.nl/linnaeus_ng/app/views/species/nsr_taxon.php?epi=150&id=112773"
+  ],
+  "runtimePrimitives": 12
+}

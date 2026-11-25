@@ -1,0 +1,32 @@
+{
+  "id": "arrowhead-plant",
+  "speciesId": "Syngonium podophyllum",
+  "acceptedName": "Syngonium podophyllum",
+  "commonName": "Arrowhead Plant",
+  "rank": "species",
+  "version": 1,
+  "design": "Juvenile pointed arrowheads with backward basal lobes and soft center variegation.",
+  "source": "assets/characters/arrowhead-plant/source/arrowhead-plant.blend",
+  "runtime": "frontend/public/characters/arrowhead-plant-v1.glb",
+  "thumbnail": "frontend/public/characters/arrowhead-plant-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 371468,
+  "triangles": 15604,
+  "fallback": 1,
+  "stageScale": 1.1394,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A89152-1"
+  ],
+  "runtimePrimitives": 27
+}

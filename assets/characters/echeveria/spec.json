@@ -1,0 +1,32 @@
+{
+  "id": "echeveria",
+  "speciesId": "Echeveria elegans",
+  "acceptedName": "Echeveria elegans",
+  "commonName": "Mexican Snowball",
+  "rank": "species",
+  "version": 1,
+  "design": "Low powder-blue rosette formed by thick spoon-like leaves",
+  "source": "assets/characters/echeveria/source/echeveria.blend",
+  "runtime": "frontend/public/characters/echeveria-v1.glb",
+  "thumbnail": "frontend/public/characters/echeveria-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 337852,
+  "triangles": 14228,
+  "fallback": 4,
+  "stageScale": 1.5203,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/86934-2"
+  ],
+  "runtimePrimitives": 83
+}

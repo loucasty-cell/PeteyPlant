@@ -1,0 +1,29 @@
+{
+  "id": "dieffenbachia",
+  "speciesId": "Dieffenbachia seguine",
+  "acceptedName": "Dieffenbachia seguine",
+  "commonName": "Dieffenbachia",
+  "rank": "species",
+  "version": 1,
+  "design": "A thick upright cane with broad leaves and an irregular cream center.",
+  "source": "assets/characters/dieffenbachia/source/dieffenbachia.blend",
+  "runtime": "frontend/public/characters/dieffenbachia-v1.glb",
+  "thumbnail": "frontend/public/characters/dieffenbachia-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 305056,
+  "triangles": 12398,
+  "fallback": 7,
+  "stageScale": 0.8867,
+  "runtimePrimitives": 22
+}

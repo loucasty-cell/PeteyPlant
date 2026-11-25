@@ -1,0 +1,32 @@
+{
+  "id": "flaming-katy",
+  "speciesId": "Kalanchoe blossfeldiana",
+  "acceptedName": "Kalanchoe blossfeldiana",
+  "commonName": "Flaming Katy",
+  "rank": "species",
+  "version": 1,
+  "design": "Succulent basal foliage with dense clusters of small four-lobed coral flowers",
+  "source": "assets/characters/flaming-katy/source/flaming-katy.blend",
+  "runtime": "frontend/public/characters/flaming-katy-v1.glb",
+  "thumbnail": "frontend/public/characters/flaming-katy-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 527484,
+  "triangles": 21428,
+  "fallback": 4,
+  "stageScale": 0.9972,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/274279-1"
+  ],
+  "runtimePrimitives": 116
+}

@@ -1,0 +1,29 @@
+{
+  "id": "white-bird-of-paradise",
+  "speciesId": "Strelitzia nicolai",
+  "acceptedName": "Strelitzia nicolai",
+  "commonName": "White Bird of Paradise",
+  "rank": "species",
+  "version": 1,
+  "design": "Two-ranked long-petioled fans with broad banana-like blades and age splits.",
+  "source": "assets/characters/white-bird-of-paradise/source/white-bird-of-paradise.blend",
+  "runtime": "frontend/public/characters/white-bird-of-paradise-v1.glb",
+  "thumbnail": "frontend/public/characters/white-bird-of-paradise-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 510184,
+  "triangles": 19820,
+  "fallback": 7,
+  "stageScale": 0.8487,
+  "runtimePrimitives": 12
+}

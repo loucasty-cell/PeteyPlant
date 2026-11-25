@@ -163,8 +163,11 @@ def blade(name, pivot, length, width, color, veins, cuts, holes, bias):
          .010, veins, pivot, (1, .86, .66, .45, .21, .09))
     for side, times in ((-1, (.17, .31, .45, .60, .73)), (1, (.20, .34, .49, .64, .77))):
         for t in times:
-            path = [(t, 0), (t + .065, side * .31), (t + .10, side * .64), (t + .115, side * .89)]
-            # Veins terminate before crossing a fenestration.
+            path = [
+                (t + .115 * (u ** 0.85), side * .90 * u)
+                for u in (0.0, 0.16, 0.32, 0.48, 0.64, 0.78, 0.90)
+            ]
+            # Veins follow the lamina surface smoothly and terminate before any fenestration.
             keep = []
             for tt, ss in path:
                 xyz = Vector(point(tt, ss))
@@ -175,9 +178,9 @@ def blade(name, pivot, length, width, color, veins, cuts, holes, bias):
                 )
                 if near_hole:
                     break
-                keep.append(xyz + Vector((0, 0, .010)))
+                keep.append(xyz + Vector((0, 0, .011)))
             if len(keep) > 1:
-                stem("Lateral vein", keep, .0036, veins, pivot, [1 - .26 * i for i in range(len(keep))])
+                stem("Lateral vein", keep, .0034, veins, pivot, [1 - .11 * i for i in range(len(keep))])
 
 
 def parent_axis(pivot, at, toward, facing):
@@ -222,7 +225,7 @@ def make():
     celadon = material("Oxidized jade rim", "426b58", .27, .32)
     soil = material("Dark potting soil", "433127", .97)
     stalk = material("Petioles, olive green", "53804b", .40)
-    vein = material("Muted yellow-green midrib", "83a462", .46)
+    vein = material("Botanical sage midrib", "5d884f", .44)
     leaf_materials = [material(f"Lamina {i}", color, .40, .16)
                       for i, color in enumerate(("275e45", "367351", "498358", "21543c"))]
     ink = material("Espresso clay inlay", "322821", .38)

@@ -1,0 +1,33 @@
+{
+  "id": "stromanthe",
+  "speciesId": "Stromanthe sanguinea",
+  "acceptedName": "Stromanthe thalia",
+  "commonName": "Stromanthe",
+  "rank": "species",
+  "version": 1,
+  "design": "Straight-species dark emerald blades with burgundy backs on reddish stems.",
+  "source": "assets/characters/stromanthe/source/stromanthe.blend",
+  "runtime": "frontend/public/characters/stromanthe-v1.glb",
+  "thumbnail": "frontend/public/characters/stromanthe-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 700012,
+  "triangles": 27724,
+  "fallback": 6,
+  "stageScale": 0.8185,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/1211666-2",
+    "https://plants.ces.ncsu.edu/plants/stromanthe-thalia/"
+  ],
+  "runtimePrimitives": 12
+}

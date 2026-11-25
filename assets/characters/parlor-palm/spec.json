@@ -1,0 +1,32 @@
+{
+  "id": "parlor-palm",
+  "speciesId": "Chamaedorea elegans",
+  "acceptedName": "Chamaedorea elegans",
+  "commonName": "Parlor Palm",
+  "rank": "species",
+  "version": 1,
+  "design": "A pot-grown cluster of slender palms with delicate pinnate fans.",
+  "source": "assets/characters/parlor-palm/source/parlor-palm.blend",
+  "runtime": "frontend/public/characters/parlor-palm-v1.glb",
+  "thumbnail": "frontend/public/characters/parlor-palm-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 478596,
+  "triangles": 18132,
+  "fallback": 5,
+  "stageScale": 0.9438,
+  "identitySources": [
+    "https://plants.ces.ncsu.edu/plants/chamaedorea-elegans/"
+  ],
+  "runtimePrimitives": 12
+}

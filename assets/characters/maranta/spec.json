@@ -1,0 +1,32 @@
+{
+  "id": "maranta",
+  "speciesId": "Maranta leuconeura",
+  "acceptedName": "Maranta leuconeura",
+  "commonName": "Prayer Plant",
+  "rank": "species",
+  "version": 1,
+  "design": "Low spreading foliage with red herringbone veins in a red-veined form.",
+  "source": "assets/characters/maranta/source/maranta.blend",
+  "runtime": "frontend/public/characters/maranta-v1.glb",
+  "thumbnail": "frontend/public/characters/maranta-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 768304,
+  "triangles": 30660,
+  "fallback": 6,
+  "stageScale": 0.9787,
+  "identitySources": [
+    "https://plants.ces.ncsu.edu/plants/maranta-leuconeura/"
+  ],
+  "runtimePrimitives": 12
+}

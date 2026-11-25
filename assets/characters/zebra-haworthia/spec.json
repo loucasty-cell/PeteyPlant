@@ -1,0 +1,32 @@
+{
+  "id": "zebra-haworthia",
+  "speciesId": "Haworthiopsis fasciata",
+  "acceptedName": "Haworthiopsis fasciata",
+  "commonName": "Zebra Haworthia",
+  "rank": "species",
+  "version": 1,
+  "design": "Tapering rosette leaves with pale bands limited to the outer faces",
+  "source": "assets/characters/zebra-haworthia/source/zebra-haworthia.blend",
+  "runtime": "frontend/public/characters/zebra-haworthia-v1.glb",
+  "thumbnail": "frontend/public/characters/zebra-haworthia-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 394940,
+  "triangles": 16072,
+  "fallback": 4,
+  "stageScale": 1.1492,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/77138009-1"
+  ],
+  "runtimePrimitives": 86
+}

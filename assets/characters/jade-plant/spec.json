@@ -1,0 +1,32 @@
+{
+  "id": "jade-plant",
+  "speciesId": "Crassula ovata",
+  "acceptedName": "Crassula ovata",
+  "commonName": "Jade Plant",
+  "rank": "species",
+  "version": 1,
+  "design": "Asymmetric branched woody habit with opposite fleshy oval leaves",
+  "source": "assets/characters/jade-plant/source/jade-plant.blend",
+  "runtime": "frontend/public/characters/jade-plant-v1.glb",
+  "thumbnail": "frontend/public/characters/jade-plant-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 315716,
+  "triangles": 12420,
+  "fallback": 4,
+  "stageScale": 0.8946,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/273350-1"
+  ],
+  "runtimePrimitives": 43
+}

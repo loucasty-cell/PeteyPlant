@@ -1,0 +1,29 @@
+{
+  "id": "swiss-cheese-vine",
+  "speciesId": "Monstera adansonii",
+  "acceptedName": "Monstera adansonii",
+  "commonName": "Swiss Cheese Vine",
+  "rank": "species",
+  "version": 1,
+  "design": "Narrow climbing leaves with enclosed paired fenestrations and aerial roots.",
+  "source": "assets/characters/swiss-cheese-vine/source/swiss-cheese-vine.blend",
+  "runtime": "frontend/public/characters/swiss-cheese-vine-v1.glb",
+  "thumbnail": "frontend/public/characters/swiss-cheese-vine-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 597436,
+  "triangles": 23810,
+  "fallback": 0,
+  "stageScale": 0.9222,
+  "runtimePrimitives": 14
+}

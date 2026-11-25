@@ -1,0 +1,32 @@
+{
+  "id": "orbifolia",
+  "speciesId": "Goeppertia orbifolia",
+  "acceptedName": "Goeppertia orbifolia",
+  "commonName": "Orbifolia Prayer Plant",
+  "rank": "species",
+  "version": 1,
+  "design": "Near-round silver-banded discs on ascending petioles.",
+  "source": "assets/characters/orbifolia/source/orbifolia.blend",
+  "runtime": "frontend/public/characters/orbifolia-v1.glb",
+  "thumbnail": "frontend/public/characters/orbifolia-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 695404,
+  "triangles": 27724,
+  "fallback": 6,
+  "stageScale": 0.8284,
+  "identitySources": [
+    "https://plants.ces.ncsu.edu/plants/goeppertia-orbifolia/"
+  ],
+  "runtimePrimitives": 12
+}

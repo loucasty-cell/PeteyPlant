@@ -1,0 +1,32 @@
+{
+  "id": "birds-nest-fern",
+  "speciesId": "Asplenium nidus",
+  "acceptedName": "Asplenium nidus",
+  "commonName": "Bird's Nest Fern",
+  "rank": "species",
+  "version": 1,
+  "design": "Funnel rosette of single ruffled straps and dark midribs.",
+  "source": "assets/characters/birds-nest-fern/source/birds-nest-fern.blend",
+  "runtime": "frontend/public/characters/birds-nest-fern-v1.glb",
+  "thumbnail": "frontend/public/characters/birds-nest-fern-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 506276,
+  "triangles": 19756,
+  "fallback": 3,
+  "stageScale": 0.9127,
+  "identitySources": [
+    "https://plants.ces.ncsu.edu/plants/asplenium-nidus/"
+  ],
+  "runtimePrimitives": 12
+}

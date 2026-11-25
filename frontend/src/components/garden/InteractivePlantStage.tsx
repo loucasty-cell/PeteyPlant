@@ -253,13 +253,58 @@ function SpeciesCompanionNode({
  * Understated botanical saucer mat + soft contact shadow so the living plant
  * remains the unmistakable hero without bulky pedestal geometry or pebble clutter.
  */
+function createRadialShadowTexture(innerAlpha: number): THREE.CanvasTexture | null {
+  if (typeof document === 'undefined') return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = 128;
+  canvas.height = 128;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return null;
+  const grad = ctx.createRadialGradient(64, 64, 10, 64, 64, 64);
+  grad.addColorStop(0, `rgba(14, 24, 18, ${innerAlpha})`);
+  grad.addColorStop(0.55, `rgba(14, 24, 18, ${(innerAlpha * 0.45).toFixed(3)})`);
+  grad.addColorStop(1, 'rgba(14, 24, 18, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 128, 128);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
 function BotanicalPedestal({ theme, castShadow }: { theme: WeatherAtmosphereTheme; castShadow: boolean }) {
+  const floorShadowTex = useMemo(() => createRadialShadowTexture(0.38), []);
+  const potShadowTex = useMemo(() => createRadialShadowTexture(0.32), []);
+
+  useEffect(() => {
+    return () => {
+      floorShadowTex?.dispose();
+      potShadowTex?.dispose();
+    };
+  }, [floorShadowTex, potShadowTex]);
+
   return (
     <group position={[0, 0, 0]}>
-      {/* Soft radial contact shadow directly beneath the ceramic pot */}
-      <mesh position={[0, -0.84, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
-        <circleGeometry args={[0.66, 48]} />
-        <meshBasicMaterial color="#182018" transparent opacity={0.24} depthWrite={false} />
+      {/* Soft radial floor shadow beneath the saucer */}
+      <mesh position={[0, -0.922, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={0}>
+        <circleGeometry args={[1.18, 48]} />
+        <meshBasicMaterial
+          map={floorShadowTex ?? undefined}
+          color={floorShadowTex ? '#ffffff' : '#182018'}
+          transparent
+          opacity={floorShadowTex ? 1 : 0.18}
+          depthWrite={false}
+        />
+      </mesh>
+      {/* Soft radial contact shadow directly beneath the ceramic pot on the saucer */}
+      <mesh position={[0, -0.846, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
+        <circleGeometry args={[0.68, 48]} />
+        <meshBasicMaterial
+          map={potShadowTex ?? undefined}
+          color={potShadowTex ? '#ffffff' : '#182018'}
+          transparent
+          opacity={potShadowTex ? 1 : 0.24}
+          depthWrite={false}
+        />
       </mesh>
       {/* Subtle thin stoneware saucer coaster */}
       <mesh position={[0, -0.885, 0]} receiveShadow={castShadow}>
@@ -662,7 +707,7 @@ export function InteractivePlantStage({
             shadow-normalBias={0.02}
           />
           <directionalLight
-            position={[3.6, 2.2, -3.5]}
+            position={[-theme.keyPosition[0] * 0.75, Math.max(2.2, theme.keyPosition[1] * 0.6), -3.5]}
             color={theme.rimColor}
             intensity={theme.rimIntensity}
           />

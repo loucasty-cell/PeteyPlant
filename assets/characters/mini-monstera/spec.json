@@ -1,0 +1,32 @@
+{
+  "id": "mini-monstera",
+  "speciesId": "Rhaphidophora tetrasperma",
+  "acceptedName": "Rhaphidophora tetrasperma",
+  "commonName": "Mini Monstera",
+  "rank": "species",
+  "version": 1,
+  "design": "Alternating climbing leaves split cleanly from the margins.",
+  "source": "assets/characters/mini-monstera/source/mini-monstera.blend",
+  "runtime": "frontend/public/characters/mini-monstera-v1.glb",
+  "thumbnail": "frontend/public/characters/mini-monstera-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 432260,
+  "triangles": 18660,
+  "fallback": 0,
+  "stageScale": 0.931,
+  "identitySources": [
+    "https://plants.ces.ncsu.edu/plants/rhaphidophora-tetrasperma/common-name/dwarf-monstera/"
+  ],
+  "runtimePrimitives": 26
+}

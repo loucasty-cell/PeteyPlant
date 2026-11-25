@@ -1,0 +1,29 @@
+{
+  "id": "chinese-evergreen",
+  "speciesId": "Aglaonema commutatum",
+  "acceptedName": "Aglaonema commutatum",
+  "commonName": "Chinese Evergreen",
+  "rank": "species",
+  "version": 1,
+  "design": "A silver-splashed lanceolate clump with deep green margins.",
+  "source": "assets/characters/chinese-evergreen/source/chinese-evergreen.blend",
+  "runtime": "frontend/public/characters/chinese-evergreen-v1.glb",
+  "thumbnail": "frontend/public/characters/chinese-evergreen-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 389100,
+  "triangles": 16658,
+  "fallback": 7,
+  "stageScale": 1.128,
+  "runtimePrimitives": 29
+}

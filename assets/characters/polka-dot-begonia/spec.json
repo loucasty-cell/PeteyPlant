@@ -1,0 +1,32 @@
+{
+  "id": "polka-dot-begonia",
+  "speciesId": "Begonia maculata",
+  "acceptedName": "Begonia maculata",
+  "commonName": "Polka Dot Begonia",
+  "rank": "species",
+  "version": 1,
+  "design": "Upright cane habit with silver-spotted angel wings and claret undersides",
+  "source": "assets/characters/polka-dot-begonia/source/polka-dot-begonia.blend",
+  "runtime": "frontend/public/characters/polka-dot-begonia-v1.glb",
+  "thumbnail": "frontend/public/characters/polka-dot-begonia-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 634900,
+  "triangles": 23456,
+  "fallback": 6,
+  "stageScale": 0.8801,
+  "runtimePrimitives": 14,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/105130-1"
+  ]
+}

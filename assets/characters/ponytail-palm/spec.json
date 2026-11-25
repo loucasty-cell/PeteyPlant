@@ -1,0 +1,32 @@
+{
+  "id": "ponytail-palm",
+  "speciesId": "Beaucarnea recurvata",
+  "acceptedName": "Beaucarnea recurvata",
+  "commonName": "Ponytail Palm",
+  "rank": "species",
+  "version": 1,
+  "design": "Bulbous water-storing base, short cane and a fountain of drooping ribbons",
+  "source": "assets/characters/ponytail-palm/source/ponytail-palm.blend",
+  "runtime": "frontend/public/characters/ponytail-palm-v1.glb",
+  "thumbnail": "frontend/public/characters/ponytail-palm-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 271692,
+  "triangles": 11048,
+  "fallback": 3,
+  "stageScale": 0.8989,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/531735-1"
+  ],
+  "runtimePrimitives": 35
+}

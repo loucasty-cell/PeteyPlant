@@ -1,0 +1,29 @@
+{
+  "id": "dwarf-umbrella-tree",
+  "speciesId": "Heptapleurum arboricola",
+  "acceptedName": "Heptapleurum arboricola",
+  "commonName": "Dwarf Umbrella Tree",
+  "rank": "species",
+  "version": 1,
+  "design": "Layered umbrellas of seven rounded, glossy leaflets.",
+  "source": "assets/characters/dwarf-umbrella-tree/source/dwarf-umbrella-tree.blend",
+  "runtime": "frontend/public/characters/dwarf-umbrella-tree-v1.glb",
+  "thumbnail": "frontend/public/characters/dwarf-umbrella-tree-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 435800,
+  "triangles": 16532,
+  "fallback": 7,
+  "stageScale": 0.8598,
+  "runtimePrimitives": 12
+}

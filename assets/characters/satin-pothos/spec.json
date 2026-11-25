@@ -1,0 +1,32 @@
+{
+  "id": "satin-pothos",
+  "speciesId": "Scindapsus pictus",
+  "acceptedName": "Scindapsus pictus",
+  "commonName": "Satin Pothos",
+  "rank": "species",
+  "version": 1,
+  "design": "Asymmetric silver dappled hearts on arching tails.",
+  "source": "assets/characters/satin-pothos/source/satin-pothos.blend",
+  "runtime": "frontend/public/characters/satin-pothos-v1.glb",
+  "thumbnail": "frontend/public/characters/satin-pothos-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 558016,
+  "triangles": 25066,
+  "fallback": 1,
+  "stageScale": 1.0197,
+  "identitySources": [
+    "https://plants.ces.ncsu.edu/plants/scindapsus-pictus/"
+  ],
+  "runtimePrimitives": 60
+}

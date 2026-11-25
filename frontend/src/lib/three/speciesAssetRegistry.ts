@@ -1,10 +1,12 @@
+import expansion from './speciesExpansion.json' with { type: 'json' };
+
 /**
  * Scalable Species 3D Asset Registry (Frontend Engineering V2 — Section 08).
  *
  * Designed to support:
  * - The 8 flagship companions today (distinct procedural botanical geometry +
  *   ready GLB drop-in slots)
- * - 64 planned launch species mapped cleanly across 50 master botanical models
+ * - 64 planned launch species, with 58 planned authored companions
  *
  * Honest status tracking:
  * - `authored`: Dedicated Blender-authored GLB present and verified.
@@ -104,7 +106,7 @@ export const FLAGSHIP_SPECIES_MANIFEST: SpeciesAssetManifestEntry[] = [
     assetVersion: '3',
     supportedAnimations: ALL_CORE_ANIMATIONS,
     authoredClips: DEFAULT_AUTHORED_CLIPS,
-    cameraPreset: { ...DEFAULT_CAMERA, position: [0, 1.03, 6.12], target: [0, 0.56, 0] },
+    cameraPreset: { ...DEFAULT_CAMERA, position: [0.35, 1.08, 6.45], target: [0, 0.56, 0] },
     scale: [0.87, 0.87, 0.87],
     rotation: [0, 0, 0],
     pivotOffset: [0, -0.91, 0],
@@ -126,7 +128,7 @@ export const FLAGSHIP_SPECIES_MANIFEST: SpeciesAssetManifestEntry[] = [
     assetVersion: '1',
     supportedAnimations: ALL_CORE_ANIMATIONS,
     authoredClips: DEFAULT_AUTHORED_CLIPS,
-    cameraPreset: { ...DEFAULT_CAMERA, position: [0, 0.94, 6.60], target: [0, 0.34, 0] },
+    cameraPreset: { ...DEFAULT_CAMERA, position: [-0.38, 0.96, 6.65], target: [0, 0.34, 0] },
     scale: [0.99, 0.99, 0.99],
     rotation: [0, 0, 0],
     pivotOffset: [0, -0.919, 0],
@@ -148,7 +150,7 @@ export const FLAGSHIP_SPECIES_MANIFEST: SpeciesAssetManifestEntry[] = [
     assetVersion: '1',
     supportedAnimations: ALL_CORE_ANIMATIONS,
     authoredClips: DEFAULT_AUTHORED_CLIPS,
-    cameraPreset: { ...DEFAULT_CAMERA, position: [0, 1.06, 5.80], target: [0, 0.46, 0] },
+    cameraPreset: { ...DEFAULT_CAMERA, position: [0.28, 1.08, 5.92], target: [0, 0.46, 0] },
     scale: [0.87, 0.87, 0.87],
     rotation: [0, 0, 0],
     pivotOffset: [0, -0.85, 0],
@@ -192,7 +194,7 @@ export const FLAGSHIP_SPECIES_MANIFEST: SpeciesAssetManifestEntry[] = [
     assetVersion: '1',
     supportedAnimations: ALL_CORE_ANIMATIONS,
     authoredClips: DEFAULT_AUTHORED_CLIPS,
-    cameraPreset: { ...DEFAULT_CAMERA, position: [0, 0.93, 5.45], target: [0, 0.40, 0] },
+    cameraPreset: { ...DEFAULT_CAMERA, position: [-0.28, 0.96, 5.55], target: [0, 0.40, 0] },
     scale: [0.87, 0.87, 0.87],
     rotation: [0, 0, 0],
     pivotOffset: [0, -0.91, 0],
@@ -214,7 +216,7 @@ export const FLAGSHIP_SPECIES_MANIFEST: SpeciesAssetManifestEntry[] = [
     assetVersion: '1',
     supportedAnimations: ALL_CORE_ANIMATIONS,
     authoredClips: DEFAULT_AUTHORED_CLIPS,
-    cameraPreset: { ...DEFAULT_CAMERA, position: [0, 1.10, 6.25], target: [0, 0.48, 0] },
+    cameraPreset: { ...DEFAULT_CAMERA, position: [0.42, 1.12, 6.40], target: [0, 0.48, 0] },
     scale: [0.87, 0.87, 0.87],
     rotation: [0, 0, 0],
     pivotOffset: [0, -0.889, 0],
@@ -236,7 +238,7 @@ export const FLAGSHIP_SPECIES_MANIFEST: SpeciesAssetManifestEntry[] = [
     assetVersion: '1',
     supportedAnimations: ALL_CORE_ANIMATIONS,
     authoredClips: DEFAULT_AUTHORED_CLIPS,
-    cameraPreset: { ...DEFAULT_CAMERA, position: [0, 1.10, 6.00], target: [0, 0.45, 0] },
+    cameraPreset: { ...DEFAULT_CAMERA, position: [-0.36, 1.12, 6.12], target: [0, 0.45, 0] },
     scale: [0.85, 0.85, 0.85],
     rotation: [0, 0, 0],
     pivotOffset: [0, -0.85, 0],
@@ -270,9 +272,45 @@ export const FLAGSHIP_SPECIES_MANIFEST: SpeciesAssetManifestEntry[] = [
   },
 ];
 
+interface ExpansionAsset {
+  speciesId: string;
+  acceptedName: string;
+  commonName: string;
+  assetId: string;
+  design: string;
+  stageScale: number;
+  fallback: number;
+}
+
+export const SPECIES_ASSET_MANIFEST: SpeciesAssetManifestEntry[] = [
+  ...FLAGSHIP_SPECIES_MANIFEST,
+  ...(expansion as ExpansionAsset[]).map((asset): SpeciesAssetManifestEntry => ({
+    speciesId: asset.speciesId,
+    scientificName: asset.acceptedName,
+    commonName: asset.commonName,
+    assetId: asset.assetId,
+    modelUrl: `${publicRoot}characters/${asset.assetId}-v1.glb`,
+    thumbnailUrl: `${publicRoot}characters/${asset.assetId}-v1-preview.webp`,
+    fallbackUrl: null,
+    masterModelId: asset.assetId,
+    assetVersion: '1',
+    supportedAnimations: ALL_CORE_ANIMATIONS,
+    authoredClips: DEFAULT_AUTHORED_CLIPS,
+    cameraPreset: { ...DEFAULT_CAMERA, position: [0, 1.12, 6.5], target: [0, .38, 0] },
+    scale: [asset.stageScale, asset.stageScale, asset.stageScale],
+    rotation: [0, 0, 0],
+    pivotOffset: [0, -.87, 0],
+    qualityTier: 'standard',
+    assetStatus: 'authored',
+    proceduralVariantIndex: asset.fallback,
+    traitLabel: 'Blender companion',
+    botanicalSilhouetteNote: asset.design,
+  })),
+];
+
 /**
  * Planned expansion map linking additional botanical genera / launch species
- * (up to 64 launch species across 50 master models) to the closest structural
+ * (up to 64 launch species) to the closest structural
  * master model so every catalog entry resolves deterministically and honestly.
  */
 const GENUS_MASTER_FALLBACKS: Record<string, { masterModelId: string; proceduralVariantIndex: number }> = {
@@ -304,7 +342,7 @@ const GENUS_MASTER_FALLBACKS: Record<string, { masterModelId: string; procedural
 };
 
 const MANIFEST_BY_ID = new Map<string, SpeciesAssetManifestEntry>(
-  FLAGSHIP_SPECIES_MANIFEST.map((entry) => [entry.speciesId.toLowerCase(), entry]),
+  SPECIES_ASSET_MANIFEST.map((entry) => [entry.speciesId.toLowerCase(), entry]),
 );
 
 export interface ResolvedSpeciesAsset {
@@ -365,13 +403,13 @@ export function getRegistryCoverageSummary() {
     procedural_fallback: 0,
     missing: 0,
   };
-  for (const entry of FLAGSHIP_SPECIES_MANIFEST) {
+  for (const entry of SPECIES_ASSET_MANIFEST) {
     counts[entry.assetStatus] += 1;
   }
   return {
     flagshipCount: FLAGSHIP_SPECIES_MANIFEST.length,
     plannedLaunchSpeciesTarget: 64,
-    plannedMasterModelsTarget: 50,
+    plannedMasterModelsTarget: 58,
     counts,
   };
 }

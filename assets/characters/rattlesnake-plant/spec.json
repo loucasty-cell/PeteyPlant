@@ -1,0 +1,33 @@
+{
+  "id": "rattlesnake-plant",
+  "speciesId": "Goeppertia lancifolia",
+  "acceptedName": "Goeppertia insignis",
+  "commonName": "Rattlesnake Plant",
+  "rank": "species",
+  "version": 1,
+  "design": "Narrow rippled blades with alternating oval spots and purple backs.",
+  "source": "assets/characters/rattlesnake-plant/source/rattlesnake-plant.blend",
+  "runtime": "frontend/public/characters/rattlesnake-plant-v1.glb",
+  "thumbnail": "frontend/public/characters/rattlesnake-plant-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 770608,
+  "triangles": 30660,
+  "fallback": 6,
+  "stageScale": 0.8519,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:77174285-1",
+    "https://plants.ces.ncsu.edu/plants/goeppertia-insignis/"
+  ],
+  "runtimePrimitives": 12
+}

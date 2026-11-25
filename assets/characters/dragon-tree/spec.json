@@ -1,0 +1,32 @@
+{
+  "id": "dragon-tree",
+  "speciesId": "Dracaena marginata",
+  "acceptedName": "Dracaena reflexa var. angustifolia",
+  "commonName": "Madagascar Dragon Tree",
+  "rank": "variety",
+  "version": 1,
+  "design": "Three staggered canes with tufts of slender red-edged leaves",
+  "source": "assets/characters/dragon-tree/source/dragon-tree.blend",
+  "runtime": "frontend/public/characters/dragon-tree-v1.glb",
+  "thumbnail": "frontend/public/characters/dragon-tree-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 422384,
+  "triangles": 13760,
+  "fallback": 2,
+  "stageScale": 0.8701,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/77189099-1"
+  ],
+  "runtimePrimitives": 104
+}

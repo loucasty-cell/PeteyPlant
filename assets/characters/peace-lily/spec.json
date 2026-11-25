@@ -1,0 +1,29 @@
+{
+  "id": "peace-lily",
+  "speciesId": "Spathiphyllum wallisii",
+  "acceptedName": "Spathiphyllum wallisii",
+  "commonName": "Peace Lily",
+  "rank": "species",
+  "version": 1,
+  "design": "Fountain of ribbed narrow leaves with upright cream-white spathes.",
+  "source": "assets/characters/peace-lily/source/peace-lily.blend",
+  "runtime": "frontend/public/characters/peace-lily-v1.glb",
+  "thumbnail": "frontend/public/characters/peace-lily-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 638844,
+  "triangles": 27338,
+  "fallback": 7,
+  "stageScale": 0.8267,
+  "runtimePrimitives": 56
+}

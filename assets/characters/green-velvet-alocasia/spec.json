@@ -1,0 +1,32 @@
+{
+  "id": "green-velvet-alocasia",
+  "speciesId": "Alocasia micholitziana",
+  "acceptedName": "Alocasia micholitziana",
+  "commonName": "Green Velvet Alocasia",
+  "rank": "species",
+  "version": 1,
+  "design": "Upright sagittate velvet leaves contrast with pale ribs and wavering margins.",
+  "source": "assets/characters/green-velvet-alocasia/source/green-velvet-alocasia.blend",
+  "runtime": "frontend/public/characters/green-velvet-alocasia-v1.glb",
+  "thumbnail": "frontend/public/characters/green-velvet-alocasia-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 324736,
+  "triangles": 13496,
+  "fallback": 7,
+  "stageScale": 0.9289,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A84208-1/general-information"
+  ],
+  "runtimePrimitives": 23
+}

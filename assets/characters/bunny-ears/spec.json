@@ -1,0 +1,32 @@
+{
+  "id": "bunny-ears",
+  "speciesId": "Opuntia microdasys",
+  "acceptedName": "Opuntia microdasys",
+  "commonName": "Bunny Ears Cactus",
+  "rank": "species",
+  "version": 1,
+  "design": "Flattened oval pads with paired offsets and golden raised areoles",
+  "source": "assets/characters/bunny-ears/source/bunny-ears.blend",
+  "runtime": "frontend/public/characters/bunny-ears-v1.glb",
+  "thumbnail": "frontend/public/characters/bunny-ears-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 632920,
+  "triangles": 25780,
+  "fallback": 4,
+  "stageScale": 0.8222,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/136806-1"
+  ],
+  "runtimePrimitives": 63
+}

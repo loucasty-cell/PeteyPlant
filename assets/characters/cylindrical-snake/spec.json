@@ -1,0 +1,32 @@
+{
+  "id": "cylindrical-snake",
+  "speciesId": "Dracaena angolensis",
+  "acceptedName": "Dracaena angolensis",
+  "commonName": "Cylindrical Snake Plant",
+  "rank": "species",
+  "version": 1,
+  "design": "Seven round spears with staggered tips and interrupted gray-green bands",
+  "source": "assets/characters/cylindrical-snake/source/cylindrical-snake.blend",
+  "runtime": "frontend/public/characters/cylindrical-snake-v1.glb",
+  "thumbnail": "frontend/public/characters/cylindrical-snake-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 262192,
+  "triangles": 9944,
+  "fallback": 2,
+  "stageScale": 0.8329,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/77182375-1"
+  ],
+  "runtimePrimitives": 25
+}

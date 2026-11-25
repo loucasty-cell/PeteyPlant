@@ -1,0 +1,29 @@
+{
+  "id": "flamingo-flower",
+  "speciesId": "Anthurium andraeanum",
+  "acceptedName": "Anthurium andraeanum",
+  "commonName": "Flamingo Flower",
+  "rank": "species",
+  "version": 1,
+  "design": "Glossy heart foliage with rose-red heart-shaped spathes and projecting golden spadices.",
+  "source": "assets/characters/flamingo-flower/source/flamingo-flower.blend",
+  "runtime": "frontend/public/characters/flamingo-flower-v1.glb",
+  "thumbnail": "frontend/public/characters/flamingo-flower-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 576712,
+  "triangles": 24176,
+  "fallback": 1,
+  "stageScale": 0.8274,
+  "runtimePrimitives": 50
+}

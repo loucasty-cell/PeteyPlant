@@ -1,0 +1,29 @@
+{
+  "id": "chinese-money-plant",
+  "speciesId": "Pilea peperomioides",
+  "acceptedName": "Pilea peperomioides",
+  "commonName": "Chinese Money Plant",
+  "rank": "species",
+  "version": 1,
+  "design": "Petiole-centered coin leaves fan out on long fine stems.",
+  "source": "assets/characters/chinese-money-plant/source/chinese-money-plant.blend",
+  "runtime": "frontend/public/characters/chinese-money-plant-v1.glb",
+  "thumbnail": "frontend/public/characters/chinese-money-plant-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 298768,
+  "triangles": 11870,
+  "fallback": 7,
+  "stageScale": 1.004,
+  "runtimePrimitives": 29
+}

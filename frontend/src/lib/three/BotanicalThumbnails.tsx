@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { resolveSpeciesAsset } from './speciesAssetRegistry';
 
 export interface BotanicalThumbnailProps {
@@ -5,6 +6,7 @@ export interface BotanicalThumbnailProps {
   size?: number;
   className?: string;
   label?: string;
+  preferRender?: boolean;
 }
 
 /**
@@ -18,8 +20,24 @@ export function BotanicalThumbnail({
   size = 64,
   className = '',
   label,
+  preferRender = false,
 }: BotanicalThumbnailProps) {
   const { entry } = resolveSpeciesAsset(speciesId);
+  const [failedUrl, setFailedUrl] = useState<string | null>(null);
+  if (preferRender && entry.thumbnailUrl && failedUrl !== entry.thumbnailUrl) {
+    return (
+      <img
+        src={entry.thumbnailUrl}
+        alt={label ?? ''}
+        width={size}
+        height={size}
+        className={className}
+        loading="lazy"
+        decoding="async"
+        onError={() => setFailedUrl(entry.thumbnailUrl)}
+      />
+    );
+  }
   const v = entry.proceduralVariantIndex;
 
   return (

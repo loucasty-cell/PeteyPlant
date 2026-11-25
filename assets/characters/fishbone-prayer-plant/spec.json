@@ -1,0 +1,32 @@
+{
+  "id": "fishbone-prayer-plant",
+  "speciesId": "Ctenanthe burle-marxii",
+  "acceptedName": "Ctenanthe burle-marxii",
+  "commonName": "Fishbone Prayer Plant",
+  "rank": "species",
+  "version": 1,
+  "design": "Pale oblong leaves with dark fishbone bands and purple backs.",
+  "source": "assets/characters/fishbone-prayer-plant/source/fishbone-prayer-plant.blend",
+  "runtime": "frontend/public/characters/fishbone-prayer-plant-v1.glb",
+  "thumbnail": "frontend/public/characters/fishbone-prayer-plant-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 768312,
+  "triangles": 30660,
+  "fallback": 6,
+  "stageScale": 0.8487,
+  "identitySources": [
+    "https://www.rhs.org.uk/plants/5026/ctenanthe-burle-marxii/details"
+  ],
+  "runtimePrimitives": 12
+}

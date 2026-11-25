@@ -1,0 +1,32 @@
+{
+  "id": "moth-orchid",
+  "speciesId": "Phalaenopsis amabilis",
+  "acceptedName": "Phalaenopsis amabilis",
+  "commonName": "Moth Orchid",
+  "rank": "species",
+  "version": 1,
+  "design": "Leathery basal fan, arching flower sprays, white petals and rose-marked lips",
+  "source": "assets/characters/moth-orchid/source/moth-orchid.blend",
+  "runtime": "frontend/public/characters/moth-orchid-v1.glb",
+  "thumbnail": "frontend/public/characters/moth-orchid-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 392852,
+  "triangles": 16420,
+  "fallback": 6,
+  "stageScale": 0.8419,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/650501-1"
+  ],
+  "runtimePrimitives": 66
+}

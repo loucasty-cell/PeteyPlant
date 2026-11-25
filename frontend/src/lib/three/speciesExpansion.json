@@ -1,0 +1,452 @@
+[
+  {
+    "assetId": "african-violet",
+    "speciesId": "Streptocarpus ionanthus",
+    "acceptedName": "Streptocarpus ionanthus",
+    "commonName": "African Violet",
+    "design": "Shallow rosette of rounded velvet leaves framing violet five-lobed flowers",
+    "stageScale": 1.1297,
+    "fallback": 6
+  },
+  {
+    "assetId": "arrowhead-plant",
+    "speciesId": "Syngonium podophyllum",
+    "acceptedName": "Syngonium podophyllum",
+    "commonName": "Arrowhead Plant",
+    "design": "Juvenile pointed arrowheads with backward basal lobes and soft center variegation.",
+    "stageScale": 1.1394,
+    "fallback": 1
+  },
+  {
+    "assetId": "baby-rubber-plant",
+    "speciesId": "Peperomia obtusifolia",
+    "acceptedName": "Peperomia obtusifolia",
+    "commonName": "Baby Rubber Plant",
+    "design": "A compact mound of thick spoon-shaped leaves with rounded tips.",
+    "stageScale": 1.1702,
+    "fallback": 4
+  },
+  {
+    "assetId": "birds-nest-fern",
+    "speciesId": "Asplenium nidus",
+    "acceptedName": "Asplenium nidus",
+    "commonName": "Bird's Nest Fern",
+    "design": "Funnel rosette of single ruffled straps and dark midribs.",
+    "stageScale": 0.9127,
+    "fallback": 3
+  },
+  {
+    "assetId": "boston-fern",
+    "speciesId": "Nephrolepis exaltata",
+    "acceptedName": "Nephrolepis exaltata",
+    "commonName": "Boston Fern",
+    "design": "A layered fountain of long arching fronds with dense paired pinnae.",
+    "stageScale": 1.0074,
+    "fallback": 3
+  },
+  {
+    "assetId": "bunny-ears",
+    "speciesId": "Opuntia microdasys",
+    "acceptedName": "Opuntia microdasys",
+    "commonName": "Bunny Ears Cactus",
+    "design": "Flattened oval pads with paired offsets and golden raised areoles",
+    "stageScale": 0.8222,
+    "fallback": 4
+  },
+  {
+    "assetId": "chinese-evergreen",
+    "speciesId": "Aglaonema commutatum",
+    "acceptedName": "Aglaonema commutatum",
+    "commonName": "Chinese Evergreen",
+    "design": "A silver-splashed lanceolate clump with deep green margins.",
+    "stageScale": 1.128,
+    "fallback": 7
+  },
+  {
+    "assetId": "chinese-money-plant",
+    "speciesId": "Pilea peperomioides",
+    "acceptedName": "Pilea peperomioides",
+    "commonName": "Chinese Money Plant",
+    "design": "Petiole-centered coin leaves fan out on long fine stems.",
+    "stageScale": 1.004,
+    "fallback": 7
+  },
+  {
+    "assetId": "cylindrical-snake",
+    "speciesId": "Dracaena angolensis",
+    "acceptedName": "Dracaena angolensis",
+    "commonName": "Cylindrical Snake Plant",
+    "design": "Seven round spears with staggered tips and interrupted gray-green bands",
+    "stageScale": 0.8329,
+    "fallback": 2
+  },
+  {
+    "assetId": "dieffenbachia",
+    "speciesId": "Dieffenbachia seguine",
+    "acceptedName": "Dieffenbachia seguine",
+    "commonName": "Dieffenbachia",
+    "design": "A thick upright cane with broad leaves and an irregular cream center.",
+    "stageScale": 0.8867,
+    "fallback": 7
+  },
+  {
+    "assetId": "dragon-tree",
+    "speciesId": "Dracaena marginata",
+    "acceptedName": "Dracaena reflexa var. angustifolia",
+    "commonName": "Madagascar Dragon Tree",
+    "design": "Three staggered canes with tufts of slender red-edged leaves",
+    "stageScale": 0.8701,
+    "fallback": 2
+  },
+  {
+    "assetId": "dwarf-umbrella-tree",
+    "speciesId": "Heptapleurum arboricola",
+    "acceptedName": "Heptapleurum arboricola",
+    "commonName": "Dwarf Umbrella Tree",
+    "design": "Layered umbrellas of seven rounded, glossy leaflets.",
+    "stageScale": 0.8598,
+    "fallback": 7
+  },
+  {
+    "assetId": "echeveria",
+    "speciesId": "Echeveria elegans",
+    "acceptedName": "Echeveria elegans",
+    "commonName": "Mexican Snowball",
+    "design": "Low powder-blue rosette formed by thick spoon-like leaves",
+    "stageScale": 1.5203,
+    "fallback": 4
+  },
+  {
+    "assetId": "fishbone-prayer-plant",
+    "speciesId": "Ctenanthe burle-marxii",
+    "acceptedName": "Ctenanthe burle-marxii",
+    "commonName": "Fishbone Prayer Plant",
+    "design": "Pale oblong leaves with dark fishbone bands and purple backs.",
+    "stageScale": 0.8487,
+    "fallback": 6
+  },
+  {
+    "assetId": "flaming-katy",
+    "speciesId": "Kalanchoe blossfeldiana",
+    "acceptedName": "Kalanchoe blossfeldiana",
+    "commonName": "Flaming Katy",
+    "design": "Succulent basal foliage with dense clusters of small four-lobed coral flowers",
+    "stageScale": 0.9972,
+    "fallback": 4
+  },
+  {
+    "assetId": "flamingo-flower",
+    "speciesId": "Anthurium andraeanum",
+    "acceptedName": "Anthurium andraeanum",
+    "commonName": "Flamingo Flower",
+    "design": "Glossy heart foliage with rose-red heart-shaped spathes and projecting golden spadices.",
+    "stageScale": 0.8274,
+    "fallback": 1
+  },
+  {
+    "assetId": "golden-barrel",
+    "speciesId": "Echinocactus grusonii",
+    "acceptedName": "Kroenleinia grusonii",
+    "commonName": "Golden Barrel Cactus",
+    "design": "Globular green barrel with fourteen pronounced ribs and golden radial spines",
+    "stageScale": 0.9916,
+    "fallback": 4
+  },
+  {
+    "assetId": "green-velvet-alocasia",
+    "speciesId": "Alocasia micholitziana",
+    "acceptedName": "Alocasia micholitziana",
+    "commonName": "Green Velvet Alocasia",
+    "design": "Upright sagittate velvet leaves contrast with pale ribs and wavering margins.",
+    "stageScale": 0.9289,
+    "fallback": 7
+  },
+  {
+    "assetId": "heartleaf-philodendron",
+    "speciesId": "Philodendron hederaceum",
+    "acceptedName": "Philodendron hederaceum",
+    "commonName": "Heartleaf Philodendron",
+    "design": "Alternating glossy hearts on layered loose climbing and trailing vines.",
+    "stageScale": 0.9157,
+    "fallback": 1
+  },
+  {
+    "assetId": "jade-plant",
+    "speciesId": "Crassula ovata",
+    "acceptedName": "Crassula ovata",
+    "commonName": "Jade Plant",
+    "design": "Asymmetric branched woody habit with opposite fleshy oval leaves",
+    "stageScale": 0.8946,
+    "fallback": 4
+  },
+  {
+    "assetId": "kentia-palm",
+    "speciesId": "Howea forsteriana",
+    "acceptedName": "Howea forsteriana",
+    "commonName": "Kentia Palm",
+    "design": "A single trunk and broad, spaced, descending pinnae on arched fronds.",
+    "stageScale": 0.9154,
+    "fallback": 5
+  },
+  {
+    "assetId": "lady-palm",
+    "speciesId": "Rhapis excelsa",
+    "acceptedName": "Rhapis excelsa",
+    "commonName": "Lady Palm",
+    "design": "Multiple cane bases topped by hand-shaped split fans.",
+    "stageScale": 0.8185,
+    "fallback": 5
+  },
+  {
+    "assetId": "maidenhair-fern",
+    "speciesId": "Adiantum raddianum",
+    "acceptedName": "Adiantum raddianum",
+    "commonName": "Maidenhair Fern",
+    "design": "Small fanlets distributed on near-black wiry branchlets.",
+    "stageScale": 1.05,
+    "fallback": 3
+  },
+  {
+    "assetId": "maranta",
+    "speciesId": "Maranta leuconeura",
+    "acceptedName": "Maranta leuconeura",
+    "commonName": "Prayer Plant",
+    "design": "Low spreading foliage with red herringbone veins in a red-veined form.",
+    "stageScale": 0.9787,
+    "fallback": 6
+  },
+  {
+    "assetId": "mini-monstera",
+    "speciesId": "Rhaphidophora tetrasperma",
+    "acceptedName": "Rhaphidophora tetrasperma",
+    "commonName": "Mini Monstera",
+    "design": "Alternating climbing leaves split cleanly from the margins.",
+    "stageScale": 0.931,
+    "fallback": 0
+  },
+  {
+    "assetId": "money-tree",
+    "speciesId": "Pachira aquatica",
+    "acceptedName": "Pachira aquatica",
+    "commonName": "Money Tree",
+    "design": "Braided horticultural stems and palmate clusters with long fingers.",
+    "stageScale": 0.9079,
+    "fallback": 7
+  },
+  {
+    "assetId": "moth-orchid",
+    "speciesId": "Phalaenopsis amabilis",
+    "acceptedName": "Phalaenopsis amabilis",
+    "commonName": "Moth Orchid",
+    "design": "Leathery basal fan, arching flower sprays, white petals and rose-marked lips",
+    "stageScale": 0.8419,
+    "fallback": 6
+  },
+  {
+    "assetId": "orbifolia",
+    "speciesId": "Goeppertia orbifolia",
+    "acceptedName": "Goeppertia orbifolia",
+    "commonName": "Orbifolia Prayer Plant",
+    "design": "Near-round silver-banded discs on ascending petioles.",
+    "stageScale": 0.8284,
+    "fallback": 6
+  },
+  {
+    "assetId": "parlor-palm",
+    "speciesId": "Chamaedorea elegans",
+    "acceptedName": "Chamaedorea elegans",
+    "commonName": "Parlor Palm",
+    "design": "A pot-grown cluster of slender palms with delicate pinnate fans.",
+    "stageScale": 0.9438,
+    "fallback": 5
+  },
+  {
+    "assetId": "peace-lily",
+    "speciesId": "Spathiphyllum wallisii",
+    "acceptedName": "Spathiphyllum wallisii",
+    "commonName": "Peace Lily",
+    "design": "Fountain of ribbed narrow leaves with upright cream-white spathes.",
+    "stageScale": 0.8267,
+    "fallback": 7
+  },
+  {
+    "assetId": "polka-dot-begonia",
+    "speciesId": "Begonia maculata",
+    "acceptedName": "Begonia maculata",
+    "commonName": "Polka Dot Begonia",
+    "design": "Upright cane habit with silver-spotted angel wings and claret undersides",
+    "stageScale": 0.8801,
+    "fallback": 6
+  },
+  {
+    "assetId": "ponytail-palm",
+    "speciesId": "Beaucarnea recurvata",
+    "acceptedName": "Beaucarnea recurvata",
+    "commonName": "Ponytail Palm",
+    "design": "Bulbous water-storing base, short cane and a fountain of drooping ribbons",
+    "stageScale": 0.8989,
+    "fallback": 3
+  },
+  {
+    "assetId": "rabbits-foot-fern",
+    "speciesId": "Davallia fejeensis",
+    "acceptedName": "Davallia solida var. fejeensis",
+    "commonName": "Rabbit's Foot Fern",
+    "design": "Lacy divided fronds above exposed earthy creeping rhizomes.",
+    "stageScale": 1.0956,
+    "fallback": 3
+  },
+  {
+    "assetId": "rattlesnake-plant",
+    "speciesId": "Goeppertia lancifolia",
+    "acceptedName": "Goeppertia insignis",
+    "commonName": "Rattlesnake Plant",
+    "design": "Narrow rippled blades with alternating oval spots and purple backs.",
+    "stageScale": 0.8519,
+    "fallback": 6
+  },
+  {
+    "assetId": "rubber-plant",
+    "speciesId": "Ficus elastica",
+    "acceptedName": "Ficus elastica",
+    "commonName": "Rubber Plant",
+    "design": "One stout upright leader with waxy oval foliage and a scarlet new-leaf sheath.",
+    "stageScale": 0.8156,
+    "fallback": 7
+  },
+  {
+    "assetId": "satin-pothos",
+    "speciesId": "Scindapsus pictus",
+    "acceptedName": "Scindapsus pictus",
+    "commonName": "Satin Pothos",
+    "design": "Asymmetric silver dappled hearts on arching tails.",
+    "stageScale": 1.0197,
+    "fallback": 1
+  },
+  {
+    "assetId": "silver-inch-plant",
+    "speciesId": "Tradescantia zebrina",
+    "acceptedName": "Tradescantia zebrina",
+    "commonName": "Silver Inch Plant",
+    "design": "A low violet trailing clump of lance-shaped leaves with two silver-white bands.",
+    "stageScale": 0.9958,
+    "fallback": 1
+  },
+  {
+    "assetId": "silver-monstera",
+    "speciesId": "Monstera siltepecana",
+    "acceptedName": "Monstera siltepecana",
+    "commonName": "Silver Monstera",
+    "design": "Juvenile lanceolate leaves with a silver field and dark reticulated ribs.",
+    "stageScale": 0.9229,
+    "fallback": 0
+  },
+  {
+    "assetId": "split-leaf-philodendron",
+    "speciesId": "Thaumatophyllum bipinnatifidum",
+    "acceptedName": "Philodendron bipinnatifidum",
+    "commonName": "Split-Leaf Philodendron",
+    "design": "A self-heading rosette with deeply pinnatifid, broad leaves.",
+    "stageScale": 0.9883,
+    "fallback": 0
+  },
+  {
+    "assetId": "string-of-hearts",
+    "speciesId": "Ceropegia woodii",
+    "acceptedName": "Ceropegia woodii",
+    "commonName": "String of Hearts",
+    "design": "Thin purple vines of opposite silver-marbled hearts with violet undersides.",
+    "stageScale": 0.9815,
+    "fallback": 1
+  },
+  {
+    "assetId": "string-of-pearls",
+    "speciesId": "Curio rowleyanus",
+    "acceptedName": "Curio rowleyanus",
+    "commonName": "String of Pearls",
+    "design": "Slender pendent stems studded with round succulent pearl leaves.",
+    "stageScale": 1.1557,
+    "fallback": 1
+  },
+  {
+    "assetId": "stromanthe",
+    "speciesId": "Stromanthe sanguinea",
+    "acceptedName": "Stromanthe thalia",
+    "commonName": "Stromanthe",
+    "design": "Straight-species dark emerald blades with burgundy backs on reddish stems.",
+    "stageScale": 0.8185,
+    "fallback": 6
+  },
+  {
+    "assetId": "swiss-cheese-vine",
+    "speciesId": "Monstera adansonii",
+    "acceptedName": "Monstera adansonii",
+    "commonName": "Swiss Cheese Vine",
+    "design": "Narrow climbing leaves with enclosed paired fenestrations and aerial roots.",
+    "stageScale": 0.9222,
+    "fallback": 0
+  },
+  {
+    "assetId": "thanksgiving-cactus",
+    "speciesId": "Schlumbergera truncata",
+    "acceptedName": "Schlumbergera truncata",
+    "commonName": "Thanksgiving Cactus",
+    "design": "Arching jointed cladodes with pink swept-back blooms at the tips",
+    "stageScale": 1.0931,
+    "fallback": 4
+  },
+  {
+    "assetId": "wax-plant",
+    "speciesId": "Hoya carnosa",
+    "acceptedName": "Hoya carnosa",
+    "commonName": "Wax Plant",
+    "design": "Opposite fleshy waxy leaves and a cluster of five-pointed pink flowers.",
+    "stageScale": 1.1057,
+    "fallback": 1
+  },
+  {
+    "assetId": "weeping-fig",
+    "speciesId": "Ficus benjamina",
+    "acceptedName": "Ficus benjamina",
+    "commonName": "Weeping Fig",
+    "design": "Fine arched woody branches and small pointed, drooping leaves.",
+    "stageScale": 0.915,
+    "fallback": 7
+  },
+  {
+    "assetId": "whale-fin",
+    "speciesId": "Dracaena masoniana",
+    "acceptedName": "Dracaena masoniana",
+    "commonName": "Whale Fin Snake Plant",
+    "design": "Three broad asymmetric paddle leaves with mottled surfaces and darker rims",
+    "stageScale": 0.8604,
+    "fallback": 2
+  },
+  {
+    "assetId": "white-bird-of-paradise",
+    "speciesId": "Strelitzia nicolai",
+    "acceptedName": "Strelitzia nicolai",
+    "commonName": "White Bird of Paradise",
+    "design": "Two-ranked long-petioled fans with broad banana-like blades and age splits.",
+    "stageScale": 0.8487,
+    "fallback": 7
+  },
+  {
+    "assetId": "zebra-haworthia",
+    "speciesId": "Haworthiopsis fasciata",
+    "acceptedName": "Haworthiopsis fasciata",
+    "commonName": "Zebra Haworthia",
+    "design": "Tapering rosette leaves with pale bands limited to the outer faces",
+    "stageScale": 1.1492,
+    "fallback": 4
+  },
+  {
+    "assetId": "zz-plant",
+    "speciesId": "Zamioculcas zamiifolia",
+    "acceptedName": "Zamioculcas zamiifolia",
+    "commonName": "ZZ Plant",
+    "design": "Arching compound stalks with paired glossy leaflets and a terminal leaflet",
+    "stageScale": 0.8916,
+    "fallback": 1
+  }
+]

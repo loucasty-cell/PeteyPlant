@@ -1,0 +1,29 @@
+{
+  "id": "wax-plant",
+  "speciesId": "Hoya carnosa",
+  "acceptedName": "Hoya carnosa",
+  "commonName": "Wax Plant",
+  "rank": "species",
+  "version": 1,
+  "design": "Opposite fleshy waxy leaves and a cluster of five-pointed pink flowers.",
+  "source": "assets/characters/wax-plant/source/wax-plant.blend",
+  "runtime": "frontend/public/characters/wax-plant-v1.glb",
+  "thumbnail": "frontend/public/characters/wax-plant-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 972632,
+  "triangles": 43066,
+  "fallback": 1,
+  "stageScale": 1.1057,
+  "runtimePrimitives": 118
+}

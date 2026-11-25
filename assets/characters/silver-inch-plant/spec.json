@@ -1,0 +1,32 @@
+{
+  "id": "silver-inch-plant",
+  "speciesId": "Tradescantia zebrina",
+  "acceptedName": "Tradescantia zebrina",
+  "commonName": "Silver Inch Plant",
+  "rank": "species",
+  "version": 1,
+  "design": "A low violet trailing clump of lance-shaped leaves with two silver-white bands.",
+  "source": "assets/characters/silver-inch-plant/source/silver-inch-plant.blend",
+  "runtime": "frontend/public/characters/silver-inch-plant-v1.glb",
+  "thumbnail": "frontend/public/characters/silver-inch-plant-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 645736,
+  "triangles": 29026,
+  "fallback": 1,
+  "stageScale": 0.9958,
+  "identitySources": [
+    "https://plants.ces.ncsu.edu/plants/tradescantia-zebrina/"
+  ],
+  "runtimePrimitives": 77
+}

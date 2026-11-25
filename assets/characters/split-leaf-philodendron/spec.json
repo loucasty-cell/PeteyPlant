@@ -1,0 +1,32 @@
+{
+  "id": "split-leaf-philodendron",
+  "speciesId": "Thaumatophyllum bipinnatifidum",
+  "acceptedName": "Philodendron bipinnatifidum",
+  "commonName": "Split-Leaf Philodendron",
+  "rank": "species",
+  "version": 1,
+  "design": "A self-heading rosette with deeply pinnatifid, broad leaves.",
+  "source": "assets/characters/split-leaf-philodendron/source/split-leaf-philodendron.blend",
+  "runtime": "frontend/public/characters/split-leaf-philodendron-v1.glb",
+  "thumbnail": "frontend/public/characters/split-leaf-philodendron-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 459028,
+  "triangles": 20486,
+  "fallback": 0,
+  "stageScale": 0.9883,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A77306988-1/general-information"
+  ],
+  "runtimePrimitives": 25
+}

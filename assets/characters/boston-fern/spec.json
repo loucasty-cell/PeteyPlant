@@ -1,0 +1,29 @@
+{
+  "id": "boston-fern",
+  "speciesId": "Nephrolepis exaltata",
+  "acceptedName": "Nephrolepis exaltata",
+  "commonName": "Boston Fern",
+  "rank": "species",
+  "version": 1,
+  "design": "A layered fountain of long arching fronds with dense paired pinnae.",
+  "source": "assets/characters/boston-fern/source/boston-fern.blend",
+  "runtime": "frontend/public/characters/boston-fern-v1.glb",
+  "thumbnail": "frontend/public/characters/boston-fern-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 752856,
+  "triangles": 29032,
+  "fallback": 3,
+  "stageScale": 1.0074,
+  "runtimePrimitives": 12
+}

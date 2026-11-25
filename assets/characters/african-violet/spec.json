@@ -1,0 +1,32 @@
+{
+  "id": "african-violet",
+  "speciesId": "Streptocarpus ionanthus",
+  "acceptedName": "Streptocarpus ionanthus",
+  "commonName": "African Violet",
+  "rank": "species",
+  "version": 1,
+  "design": "Shallow rosette of rounded velvet leaves framing violet five-lobed flowers",
+  "source": "assets/characters/african-violet/source/african-violet.blend",
+  "runtime": "frontend/public/characters/african-violet-v1.glb",
+  "thumbnail": "frontend/public/characters/african-violet-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 491896,
+  "triangles": 19340,
+  "fallback": 6,
+  "stageScale": 1.1297,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/77117375-1"
+  ],
+  "runtimePrimitives": 110
+}

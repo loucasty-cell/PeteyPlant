@@ -1,0 +1,29 @@
+{
+  "id": "money-tree",
+  "speciesId": "Pachira aquatica",
+  "acceptedName": "Pachira aquatica",
+  "commonName": "Money Tree",
+  "rank": "species",
+  "version": 1,
+  "design": "Braided horticultural stems and palmate clusters with long fingers.",
+  "source": "assets/characters/money-tree/source/money-tree.blend",
+  "runtime": "frontend/public/characters/money-tree-v1.glb",
+  "thumbnail": "frontend/public/characters/money-tree-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 388036,
+  "triangles": 14726,
+  "fallback": 7,
+  "stageScale": 0.9079,
+  "runtimePrimitives": 12
+}

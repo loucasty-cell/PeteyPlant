@@ -1,0 +1,29 @@
+{
+  "id": "heartleaf-philodendron",
+  "speciesId": "Philodendron hederaceum",
+  "acceptedName": "Philodendron hederaceum",
+  "commonName": "Heartleaf Philodendron",
+  "rank": "species",
+  "version": 1,
+  "design": "Alternating glossy hearts on layered loose climbing and trailing vines.",
+  "source": "assets/characters/heartleaf-philodendron/source/heartleaf-philodendron.blend",
+  "runtime": "frontend/public/characters/heartleaf-philodendron-v1.glb",
+  "thumbnail": "frontend/public/characters/heartleaf-philodendron-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 588048,
+  "triangles": 26492,
+  "fallback": 1,
+  "stageScale": 0.9157,
+  "runtimePrimitives": 62
+}

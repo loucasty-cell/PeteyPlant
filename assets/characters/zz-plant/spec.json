@@ -1,0 +1,32 @@
+{
+  "id": "zz-plant",
+  "speciesId": "Zamioculcas zamiifolia",
+  "acceptedName": "Zamioculcas zamiifolia",
+  "commonName": "ZZ Plant",
+  "rank": "species",
+  "version": 1,
+  "design": "Arching compound stalks with paired glossy leaflets and a terminal leaflet",
+  "source": "assets/characters/zz-plant/source/zz-plant.blend",
+  "runtime": "frontend/public/characters/zz-plant-v1.glb",
+  "thumbnail": "frontend/public/characters/zz-plant-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 383764,
+  "triangles": 17192,
+  "fallback": 1,
+  "stageScale": 0.8916,
+  "identitySources": [
+    "https://powo.science.kew.org/taxon/89402-1/general-information"
+  ],
+  "runtimePrimitives": 71
+}

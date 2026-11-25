@@ -1,0 +1,29 @@
+{
+  "id": "kentia-palm",
+  "speciesId": "Howea forsteriana",
+  "acceptedName": "Howea forsteriana",
+  "commonName": "Kentia Palm",
+  "rank": "species",
+  "version": 1,
+  "design": "A single trunk and broad, spaced, descending pinnae on arched fronds.",
+  "source": "assets/characters/kentia-palm/source/kentia-palm.blend",
+  "runtime": "frontend/public/characters/kentia-palm-v1.glb",
+  "thumbnail": "frontend/public/characters/kentia-palm-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 479924,
+  "triangles": 18088,
+  "fallback": 5,
+  "stageScale": 0.9154,
+  "runtimePrimitives": 12
+}

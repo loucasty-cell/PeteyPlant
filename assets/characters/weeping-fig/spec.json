@@ -1,0 +1,32 @@
+{
+  "id": "weeping-fig",
+  "speciesId": "Ficus benjamina",
+  "acceptedName": "Ficus benjamina",
+  "commonName": "Weeping Fig",
+  "rank": "species",
+  "version": 1,
+  "design": "Fine arched woody branches and small pointed, drooping leaves.",
+  "source": "assets/characters/weeping-fig/source/weeping-fig.blend",
+  "runtime": "frontend/public/characters/weeping-fig-v1.glb",
+  "thumbnail": "frontend/public/characters/weeping-fig-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 401508,
+  "triangles": 15240,
+  "fallback": 7,
+  "stageScale": 0.915,
+  "identitySources": [
+    "https://plants.ces.ncsu.edu/plants/ficus-benjamina/"
+  ],
+  "runtimePrimitives": 12
+}

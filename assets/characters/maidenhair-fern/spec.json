@@ -1,0 +1,29 @@
+{
+  "id": "maidenhair-fern",
+  "speciesId": "Adiantum raddianum",
+  "acceptedName": "Adiantum raddianum",
+  "commonName": "Maidenhair Fern",
+  "rank": "species",
+  "version": 1,
+  "design": "Small fanlets distributed on near-black wiry branchlets.",
+  "source": "assets/characters/maidenhair-fern/source/maidenhair-fern.blend",
+  "runtime": "frontend/public/characters/maidenhair-fern-v1.glb",
+  "thumbnail": "frontend/public/characters/maidenhair-fern-v1-preview.webp",
+  "clips": [
+    "Idle",
+    "Notice",
+    "Curious",
+    "Concerned",
+    "Relieved",
+    "Celebrate"
+  ],
+  "status": "INTEGRATED",
+  "visualReview": "awaiting-owner-review",
+  "provenance": "Original Blender geometry, materials, and keyframes.",
+  "blender": "5.2.2 LTS",
+  "glbBytes": 1016980,
+  "triangles": 40084,
+  "fallback": 3,
+  "stageScale": 1.05,
+  "runtimePrimitives": 12
+}
