@@ -990,6 +990,7 @@ class UpgradedKaggleObservation:
     predicted_new_leaves_30d: float
     plantnet_logit_offset: float
     row_signature_sha256: str
+    provenance: str = "synthetic"
 
 
 class MuseProprietaryDatasetBuilder:
@@ -1174,7 +1175,8 @@ class MuseProprietaryDatasetBuilder:
                     optimal_interval_days INTEGER, optimal_dose_ml REAL,
                     primary_pathology_code TEXT, physiological_mechanism TEXT,
                     health_index_0_100 REAL, predicted_new_leaves_30d REAL,
-                    plantnet_logit_offset REAL, row_signature_sha256 TEXT
+                    plantnet_logit_offset REAL, row_signature_sha256 TEXT,
+                    provenance TEXT
                 )
             """)
             insert_sql = """
@@ -1187,7 +1189,7 @@ class MuseProprietaryDatasetBuilder:
                     optimal_interval_days, optimal_dose_ml,
                     primary_pathology_code, physiological_mechanism,
                     health_index_0_100, predicted_new_leaves_30d,
-                    plantnet_logit_offset, row_signature_sha256)
+                    plantnet_logit_offset, row_signature_sha256, provenance)
                 VALUES (
                     :original_plant_name, :taxon_code, :care_cluster_id,
                     :air_temp_c, :rh_percent, :vpd_air_kpa, :vpd_leaf_kpa,
@@ -1197,7 +1199,7 @@ class MuseProprietaryDatasetBuilder:
                     :optimal_interval_days, :optimal_dose_ml,
                     :primary_pathology_code, :physiological_mechanism,
                     :health_index_0_100, :predicted_new_leaves_30d,
-                    :plantnet_logit_offset, :row_signature_sha256)
+                    :plantnet_logit_offset, :row_signature_sha256, :provenance)
             """
             for rec in records:
                 conn.execute(insert_sql, dataclasses.asdict(rec))

@@ -238,7 +238,9 @@ def test_capture_age_is_enforced_without_losing_exact_late_retries(setup):
         assert client.post(path + "/assessments", headers=key, json=stale).status_code == 409
         assert save(client, path, key, stale).status_code == 409
         future = {**stale, "captured_at": (clock[0] + timedelta(minutes=3)).isoformat()}
-        assert client.post(path + "/assessments", headers=key, json=future).status_code == 409
+        clamped = client.post(path + "/assessments", headers=key, json=future)
+        assert clamped.status_code == 200
+        assert datetime.fromisoformat(clamped.json()["valid_until"]) == clock[0] + timedelta(hours=1)
         clock[0] = NOW + timedelta(days=1)
         after_expiry = client.get(ROOT, headers=key).json()[0]
         assert (after_expiry["status"], after_expiry["watering_advice_expires_at"]) == ("check", None)

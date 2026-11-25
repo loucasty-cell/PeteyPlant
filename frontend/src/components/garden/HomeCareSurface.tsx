@@ -112,6 +112,14 @@ function buildPlainLanguageVariant(
   }
 
   if (plant.status === 'details') {
+    if (plant.species_id === null) {
+      return {
+        heading: 'Identify this plant',
+        summary: 'Add its species and pot drainage in its profile to get verified care advice.',
+        timingLine: 'Species not yet identified',
+        tone: 'details',
+      };
+    }
     return {
       heading: "Let's check your plant",
       summary:
@@ -389,15 +397,27 @@ export function HomeCareSurface({
             </div>
           ) : plant.status === 'details' ? (
             <div className="lv-primary-row">
-              <button
-                type="button"
-                className="duo-btn duo-btn-primary flex-1"
-                disabled={busy}
-                onClick={() => onOpenConditionCheck(plant.id)}
-              >
-                <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
-                <span>Answer checkup questions</span>
-              </button>
+              {plant.species_id === null ? (
+                <button
+                  type="button"
+                  className="duo-btn duo-btn-primary flex-1"
+                  disabled={busy}
+                  onClick={() => onOpenProfile(plant.id)}
+                >
+                  <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
+                  <span>Identify plant in profile</span>
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="duo-btn duo-btn-primary flex-1"
+                  disabled={busy}
+                  onClick={() => onOpenConditionCheck(plant.id)}
+                >
+                  <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
+                  <span>Answer checkup questions</span>
+                </button>
+              )}
               <button
                 type="button"
                 className="duo-btn duo-btn-secondary"

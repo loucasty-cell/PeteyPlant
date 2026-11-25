@@ -7,6 +7,7 @@ export interface GardenSpecies {
   id: string;
   name: string;
   cultivar: string;
+  advice_status?: 'verified' | 'none';
 }
 
 export interface PlantDraft {
@@ -14,6 +15,12 @@ export interface PlantDraft {
   name: string;
   species_id: string | null;
   drainage: Drainage;
+}
+
+export interface PlantUpdate {
+  name?: string;
+  species_id?: string | null;
+  drainage?: Drainage;
 }
 
 export interface GardenPlant extends PlantDraft {
@@ -73,7 +80,7 @@ export class BackendUnavailableError extends Error {
   }
 }
 
-const base = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
+const base = (import.meta.env?.VITE_API_URL ?? '').replace(/\/$/, '');
 const keyName = 'petey-garden-key-v1';
 const previewFlagKey = 'petey-dev-preview-mode-v1';
 const previewStoreKey = 'petey-dev-preview-plants-v1';
@@ -86,15 +93,16 @@ let inFlightBackendProbe: Promise<boolean> | null = null;
  * dev proxy probe without triggering browser CORS or network errors when offline.
  */
 export async function checkBackendAvailable(signal?: AbortSignal, force = false): Promise<boolean> {
-  if (base || import.meta.env.PROD) return true;
+  if (base || import.meta.env?.PROD) return true;
   if (!force && cachedBackendStatus && Date.now() - cachedBackendStatus.checkedAt < 5_000) {
     return cachedBackendStatus.available;
   }
   if (!inFlightBackendProbe) {
     inFlightBackendProbe = (async () => {
+      const timeout = withTimeoutSignal(2500);
       try {
         const res = await fetch('/api/backend-status', {
-          signal: AbortSignal.timeout(2500),
+          signal: timeout.signal,
         });
         if (!res.ok) {
           cachedBackendStatus = { available: false, checkedAt: Date.now() };
@@ -108,6 +116,7 @@ export async function checkBackendAvailable(signal?: AbortSignal, force = false)
         cachedBackendStatus = { available: false, checkedAt: Date.now() };
         return false;
       } finally {
+        timeout.cleanup();
         inFlightBackendProbe = null;
       }
     })();
@@ -126,10 +135,11 @@ interface PreviewSpeciesGuide {
   id: string;
   name: string;
   cultivar: string;
+  advice_status: 'verified' | 'none';
   checkPrompt: string;
   cadenceDays: number;
-  guidance: string;
-  source: string;
+  guidance: string | null;
+  source: string | null;
 }
 
 /**
@@ -142,6 +152,7 @@ const DEV_PREVIEW_SPECIES: PreviewSpeciesGuide[] = [
     id: 'Monstera deliciosa',
     name: 'Monstera',
     cultivar: '',
+    advice_status: 'verified',
     checkPrompt: 'Check whether the top quarter to one-third of the potting mix feels dry.',
     cadenceDays: 7,
     guidance:
@@ -152,6 +163,7 @@ const DEV_PREVIEW_SPECIES: PreviewSpeciesGuide[] = [
     id: 'Epipremnum aureum',
     name: 'Golden Pothos',
     cultivar: '',
+    advice_status: 'verified',
     checkPrompt: 'Feel the top 2 inches of potting mix — pothos prefers drying partly between drinks.',
     cadenceDays: 7,
     guidance:
@@ -162,6 +174,7 @@ const DEV_PREVIEW_SPECIES: PreviewSpeciesGuide[] = [
     id: 'Dracaena trifasciata',
     name: 'Snake Plant',
     cultivar: '',
+    advice_status: 'verified',
     checkPrompt: 'Check deep into the pot — snake plants need the mix to dry nearly all the way through.',
     cadenceDays: 14,
     guidance:
@@ -172,6 +185,7 @@ const DEV_PREVIEW_SPECIES: PreviewSpeciesGuide[] = [
     id: 'Chlorophytum comosum',
     name: 'Spider Plant',
     cultivar: '',
+    advice_status: 'verified',
     checkPrompt: 'Touch the top inch of potting mix to see if it feels lightly dry.',
     cadenceDays: 6,
     guidance:
@@ -182,6 +196,7 @@ const DEV_PREVIEW_SPECIES: PreviewSpeciesGuide[] = [
     id: 'Aloe vera',
     name: 'Aloe Vera',
     cultivar: '',
+    advice_status: 'verified',
     checkPrompt: 'Make sure the gritty mix feels completely dry before watering.',
     cadenceDays: 14,
     guidance:
@@ -192,26 +207,27 @@ const DEV_PREVIEW_SPECIES: PreviewSpeciesGuide[] = [
     id: 'Dypsis lutescens',
     name: 'Areca Palm',
     cultivar: '',
-    checkPrompt: 'Check if the top inch of mix has just dried while deeper soil stays lightly damp.',
+    advice_status: 'none',
+    checkPrompt: 'Feel the top inch of potting mix.',
     cadenceDays: 6,
-    guidance:
-      'Water when the top inch of potting mix dries out. Areca palms prefer lightly moist, well-aerated mix and dislike sitting in soggy soil.',
-    source: 'https://www.rhs.org.uk/plants/187250/chrysalidocarpus-lutescens/details',
+    guidance: null,
+    source: null,
   },
   {
     id: 'Goeppertia makoyana',
     name: 'Peacock Plant',
     cultivar: '',
-    checkPrompt: 'Check the top inch — prayer plants like evenly damp (never waterlogged) mix.',
+    advice_status: 'none',
+    checkPrompt: 'Feel the top inch of potting mix.',
     cadenceDays: 5,
-    guidance:
-      'Keep potting mix lightly and evenly moist, watering when the surface begins to dry. Use filtered or rainwater if leaf tips brown easily.',
-    source: 'https://www.missouribotanicalgarden.org/PlantFinder/PlantFinderDetails.aspx?taxonid=282638',
+    guidance: null,
+    source: null,
   },
   {
     id: 'Ficus lyrata',
     name: 'Fiddle-Leaf Fig',
     cultivar: '',
+    advice_status: 'verified',
     checkPrompt: 'Check the top 2 inches of potting mix — water only when dry to the second knuckle.',
     cadenceDays: 8,
     guidance:
@@ -277,10 +293,10 @@ function buildPreviewStarterPlants(): GardenPlant[] {
       species_id: snake.id,
       common_name: snake.name,
       drainage: 'yes',
-      status: 'ready',
-      message: 'You noted dry mix on your last check. Water thoroughly and let the pot drain.',
+      status: 'details',
+      message: 'Dry potting mix noted in local preview. Watering advice requires the backend service.',
       check_prompt: snake.checkPrompt,
-      next_check_at: null,
+      next_check_at: hoursFromNowIso(0),
       watering_guidance: snake.guidance,
       watering_source: snake.source,
       history: [{ id: 'preview-evt-2', kind: 'dry', occurred_at: hoursFromNowIso(-5) }],
@@ -352,7 +368,45 @@ function writePreviewPlants(plants: GardenPlant[]) {
   sessionStorage.setItem(previewStoreKey, JSON.stringify(plants));
 }
 
-function applyPreviewCare(plant: GardenPlant, action: { id: string; kind: CareKind }): GardenPlant {
+export function createUuid(): string {
+  if (typeof globalThis.crypto?.randomUUID === 'function') {
+    return globalThis.crypto.randomUUID();
+  }
+  const bytes = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(bytes);
+  bytes[6] = (bytes[6] & 0x0f) | 0x40;
+  bytes[8] = (bytes[8] & 0x3f) | 0x80;
+  const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+export function withTimeoutSignal(
+  ms: number,
+  signal?: AbortSignal,
+): { signal: AbortSignal; cleanup: () => void } {
+  if (signal && typeof AbortSignal.any === 'function' && typeof AbortSignal.timeout === 'function') {
+    return { signal: AbortSignal.any([signal, AbortSignal.timeout(ms)]), cleanup: () => {} };
+  }
+  if (!signal && typeof AbortSignal.timeout === 'function') {
+    return { signal: AbortSignal.timeout(ms), cleanup: () => {} };
+  }
+  const controller = new AbortController();
+  const onAbort = () => controller.abort(signal?.reason);
+  if (signal) {
+    if (signal.aborted) controller.abort(signal.reason);
+    else signal.addEventListener('abort', onAbort, { once: true });
+  }
+  const timer = setTimeout(() => controller.abort(new DOMException('Timed out', 'TimeoutError')), ms);
+  return {
+    signal: controller.signal,
+    cleanup: () => {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', onAbort);
+    },
+  };
+}
+
+export function applyPreviewCare(plant: GardenPlant, action: { id: string; kind: CareKind }): GardenPlant {
   const guide = guideFor(plant.species_id);
   const cadence = guide?.cadenceDays ?? 7;
   const alreadyRecorded = plant.history.some((entry) => entry.id === action.id);
@@ -361,15 +415,12 @@ function applyPreviewCare(plant: GardenPlant, action: { id: string; kind: CareKi
     : [{ id: action.id, kind: action.kind, occurred_at: new Date().toISOString() }, ...plant.history];
 
   if (action.kind === 'dry') {
-    const ready = plant.drainage === 'yes' && Boolean(guide);
     return {
       ...plant,
-      status: ready ? 'ready' : 'details',
-      message: ready
-        ? 'Preview: dry mix and drainage reported.'
-        : 'Check drainage and identify the species before deciding whether to water.',
+      status: 'details',
+      message: 'Preview mode logs observations only; watering advice needs the backend.',
       next_check_at: hoursFromNowIso(24),
-      watering_advice_expires_at: ready ? hoursFromNowIso(24) : null,
+      watering_advice_expires_at: null,
       history,
     };
   }
@@ -400,15 +451,20 @@ function applyPreviewCare(plant: GardenPlant, action: { id: string; kind: CareKi
   };
 }
 
-function gardenKey() {
+export function gardenKey() {
   const existing = localStorage.getItem(keyName);
   if (existing) return existing;
-  const created = crypto.randomUUID();
+  const created = createUuid();
   localStorage.setItem(keyName, created);
   return created;
 }
 
-async function request<T>(path: string, payload?: object, signal?: AbortSignal): Promise<T> {
+async function request<T>(
+  path: string,
+  payload?: object,
+  signal?: AbortSignal,
+  method: 'GET' | 'POST' | 'PATCH' = payload ? 'POST' : 'GET',
+): Promise<T> {
   if (!base) {
     const online = await checkBackendAvailable(signal);
     if (!online) {
@@ -419,21 +475,22 @@ async function request<T>(path: string, payload?: object, signal?: AbortSignal):
   }
   const headers = new Headers({ 'X-Petey-Garden': gardenKey() });
   if (payload) headers.set('Content-Type', 'application/json');
-  const timeoutSignal = AbortSignal.timeout(4000);
-  const combined = signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal;
+  const timeout = withTimeoutSignal(4000, signal);
 
   let response: Response;
   try {
     response = await fetch(`${base}/api/v1/garden${path}`, {
       headers,
-      signal: combined,
-      ...(payload ? { method: 'POST', body: JSON.stringify(payload) } : {}),
+      signal: timeout.signal,
+      ...(payload ? { method, body: JSON.stringify(payload) } : {}),
     });
   } catch (err) {
     if (signal?.aborted) throw err;
     throw new BackendUnavailableError(
       'Petey couldn’t connect to the garden service on the backend. Start the backend server or enable local development preview.',
     );
+  } finally {
+    timeout.cleanup();
   }
 
   if (!response.ok) {
@@ -456,17 +513,48 @@ export const gardenApi = {
 
   async species(signal?: AbortSignal): Promise<GardenSpecies[]> {
     if (isPreviewMode()) {
-      return DEV_PREVIEW_SPECIES.map(({ id, name, cultivar }) => ({ id, name, cultivar }));
+      return DEV_PREVIEW_SPECIES.map(({ id, name, cultivar, advice_status }) => ({
+        id,
+        name,
+        cultivar,
+        advice_status,
+      }));
     }
     return request<GardenSpecies[]>('/species', undefined, signal);
+  },
+
+  async update(plantId: string, patch: PlantUpdate, signal?: AbortSignal): Promise<GardenPlant> {
+    if (isPreviewMode()) {
+      const current = readPreviewPlants();
+      const target = current.find((item) => item.id === plantId);
+      if (!target) {
+        throw new Error('Could not find that plant in the local preview garden.');
+      }
+      const nextSpeciesId = 'species_id' in patch ? patch.species_id ?? null : target.species_id;
+      const guide = guideFor(nextSpeciesId);
+      const verified = guide?.advice_status === 'verified';
+      const updated: GardenPlant = {
+        ...target,
+        name: patch.name ?? target.name,
+        species_id: nextSpeciesId,
+        common_name: nextSpeciesId ? (guide?.name ?? target.common_name) : null,
+        drainage: patch.drainage ?? target.drainage,
+        watering_guidance: verified ? guide.guidance : null,
+        watering_source: verified ? guide.source : null,
+      };
+      writePreviewPlants(current.map((item) => (item.id === plantId ? updated : item)));
+      return updated;
+    }
+    return request<GardenPlant>(`/plants/${plantId}`, patch, signal, 'PATCH');
   },
 
   async create(draft: PlantDraft): Promise<GardenPlant> {
     if (isPreviewMode()) {
       const guide = guideFor(draft.species_id);
+      const verified = guide?.advice_status === 'verified';
       const created: GardenPlant = {
         ...draft,
-        common_name: guide?.name ?? null,
+        common_name: draft.species_id ? (guide?.name ?? null) : null,
         status: draft.drainage === 'no' ? 'details' : 'check',
         message:
           draft.drainage === 'no'
@@ -474,9 +562,8 @@ export const gardenApi = {
             : guide?.checkPrompt ?? 'Feel the top inch of potting mix before watering.',
         check_prompt: guide?.checkPrompt ?? 'Feel the top inch of potting mix before watering.',
         next_check_at: hoursFromNowIso(0),
-        watering_guidance:
-          guide?.guidance ?? 'Check soil moisture with your finger before watering and allow excess water to drain.',
-        watering_source: guide?.source ?? null,
+        watering_guidance: verified ? guide.guidance : null,
+        watering_source: verified ? guide.source : null,
         history: [],
       };
       const next = [created, ...readPreviewPlants().filter((p) => p.id !== created.id)];

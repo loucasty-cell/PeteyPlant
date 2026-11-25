@@ -7,7 +7,7 @@ import sqlite3
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Header, HTTPException
-from pydantic import BaseModel, StringConstraints, UUID4
+from pydantic import BaseModel, ConfigDict, StringConstraints, UUID4
 
 from data.seed_10k_species import SPECIES
 from services.care_policy import (
@@ -17,6 +17,14 @@ from services.care_policy import (
 router = APIRouter(prefix="/api/v1/garden", tags=["garden"])
 GardenKey = Annotated[UUID4, Header(alias="X-Petey-Garden")]
 SpeciesCatalog = {species.scientific_name: species for species in SPECIES}
+# Identity-only entries support Garden without inventing simulation parameters or care data.
+GARDEN_IDENTITIES = {
+    "Alocasia micholitziana": "Green Velvet Alocasia",  # Kew: 84208-1
+    "Begonia maculata": "Polka Dot Begonia",  # Kew: 105130-1
+    "Ceropegia woodii": "String of Hearts",  # Kew: 95848-1
+    "Schlumbergera truncata": "Thanksgiving Cactus",  # Kew: 229597-2
+    "Syngonium podophyllum": "Arrowhead Plant",  # Kew: 89152-1
+}
 CARE_KIND = Literal["dry", "moist", "unsure", "watered"]
 SCHEMA_VERSION = 1
 CHECKUP_CLOCK_SKEW = timedelta(minutes=2)
@@ -31,6 +39,14 @@ class NewPlant(BaseModel):
     name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=60)]
     species_id: str | None = None
     drainage: DRAINAGE = "unknown"
+
+
+class PlantUpdate(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=60)] | None = None
+    species_id: str | None = None
+    drainage: DRAINAGE | None = None
 
 
 class CareAction(BaseModel):
@@ -166,6 +182,16 @@ def verified_care_source(species):
     return None
 
 
+def check_prompt_for(species, species_id, source):
+    if not source:
+        return None
+    return (
+        GUIDED_SPECIES.get(species_id)
+        or (species.verified_soil_moisture if species else None)
+        or (species.verified_watering if species else None)
+    )
+
+
 def serialized_event(row):
     data = {key: row[key] for key in ("id", "kind", "occurred_at")}
     if row["checkup"] is not None:
@@ -177,14 +203,14 @@ def serialized_event(row):
 def plant_view(plant, history, timestamp):
     species = SpeciesCatalog.get(plant["species_id"])
     source = verified_care_source(species)
-    check = GUIDED_SPECIES.get(plant["species_id"]) if source else None
+    check = check_prompt_for(species, plant["species_id"], source)
     last = history[0] if history else None
     kind = last["kind"] if last else None
     due = datetime.fromisoformat(plant["created_at"])
     check_delay = 3
     observation = AssessmentInput.model_validate_json(last["checkup"]) if last and last["checkup"] else None
     standing = bool(observation and observation.standing_water == "yes")
-    if kind == "watered" and source and check and plant["drainage"] == "yes":
+    if kind == "watered" and source and plant["drainage"] == "yes":
         check_delay = watered_check_delay(history)
     last_at = datetime.fromisoformat(last["occurred_at"]) if last else None
     observed_at = min(last_at, observation.captured_at) if observation else last_at
@@ -193,7 +219,7 @@ def plant_view(plant, history, timestamp):
     fresh = last_at is not None and last_at <= timestamp < due
 
     watering_suggested = bool(
-        kind == "dry" and fresh and check and observation
+        kind == "dry" and fresh and source and observation
         and validate_watering(observation, plant["drainage"], source) is None
     )
     if watering_suggested:
@@ -215,11 +241,14 @@ def plant_view(plant, history, timestamp):
             message = "Watering is in your care history. Give your plant time before the next check."
     elif kind == "dry" and fresh:
         status = "details"
-        message = (
-            "Check how the pot drains before deciding whether to water."
-            if plant["drainage"] != "yes"
-            else "Use Checkup to verify the soil at the recommended depth, drainage and standing water before watering."
-        )
+        if plant["species_id"] is None:
+            message = "Identify this plant in its profile to get species-specific advice."
+        elif source is None:
+            message = "This species doesn’t have a verified watering policy yet. Check its care guide or pot drainage before watering."
+        elif plant["drainage"] != "yes":
+            message = "Check how the pot drains before deciding whether to water."
+        else:
+            message = "Use Checkup to verify the soil at the recommended depth, drainage and standing water before watering."
     elif kind == "unsure":
         status = "check"
         message = "Take another look when you can. If you’re still unsure, hold off on watering."
@@ -229,7 +258,7 @@ def plant_view(plant, history, timestamp):
 
     return {
         "id": plant["id"], "name": plant["name"], "species_id": plant["species_id"],
-        "common_name": species.common_name if species else None,
+        "common_name": species.common_name if species else GARDEN_IDENTITIES.get(plant["species_id"]),
         "drainage": plant["drainage"], "status": status, "message": message,
         "check_prompt": check or "Feel the potting mix and note whether it feels dry or moist.",
         "next_check_at": None if watering_suggested else due.isoformat(),
@@ -242,11 +271,21 @@ def plant_view(plant, history, timestamp):
 
 @router.get("/species")
 def garden_species():
-    return sorted(
-        ({"id": species.scientific_name, "name": species.common_name, "cultivar": species.cultivar}
-         for species in SPECIES),
-        key=lambda item: (item["name"].casefold(), item["id"]),
+    entries = [
+        {
+            "id": species.scientific_name,
+            "name": species.common_name,
+            "cultivar": species.cultivar,
+            "advice_status": "verified" if verified_care_source(species) else "none",
+        }
+        for species in SPECIES
+    ]
+    entries.extend(
+        {"id": key, "name": name, "cultivar": "", "advice_status": "none"}
+        for key, name in GARDEN_IDENTITIES.items()
+        if key not in SpeciesCatalog
     )
+    return sorted(entries, key=lambda item: (item["advice_status"] != "verified", item["name"].casefold(), item["id"]))
 
 
 @router.get("/plants")
@@ -262,7 +301,7 @@ def list_plants(garden: GardenKey):
 
 @router.post("/plants")
 def create_plant(payload: NewPlant, garden: GardenKey):
-    if payload.species_id is not None and payload.species_id not in SpeciesCatalog:
+    if payload.species_id is not None and payload.species_id not in SpeciesCatalog and payload.species_id not in GARDEN_IDENTITIES:
         raise HTTPException(422, "Choose a species from the catalog or select ‘I’m not sure’.")
     key, plant_id = str(garden), str(payload.id)
     with database() as db:
@@ -277,6 +316,31 @@ def create_plant(payload: NewPlant, garden: GardenKey):
         ):
             raise HTTPException(409, "This plant was already saved with different details.")
         return plant_view(plant, history_for(db, key, plant_id), now())
+
+
+@router.patch("/plants/{plant_id}")
+def update_plant(plant_id: UUID4, payload: PlantUpdate, garden: GardenKey):
+    fields = payload.model_fields_set
+    if "name" in fields and payload.name is None:
+        raise HTTPException(422, "Plant name cannot be empty.")
+    if "drainage" in fields and payload.drainage is None:
+        raise HTTPException(422, "Drainage must be yes, no, or unknown.")
+    if "species_id" in fields and payload.species_id is not None:
+        if payload.species_id not in SpeciesCatalog and payload.species_id not in GARDEN_IDENTITIES:
+            raise HTTPException(422, "Choose a species from the catalog or select ‘I’m not sure’.")
+    key, plant_key = str(garden), str(plant_id)
+    with database() as db:
+        db.execute("BEGIN IMMEDIATE")
+        plant = owned_plant(db, key, plant_key)
+        name = payload.name if "name" in fields else plant["name"]
+        species_id = payload.species_id if "species_id" in fields else plant["species_id"]
+        drainage = payload.drainage if "drainage" in fields else plant["drainage"]
+        db.execute(
+            "UPDATE garden_plants SET name = ?, species_id = ?, drainage = ? WHERE garden = ? AND id = ?",
+            (name, species_id, drainage, key, plant_key),
+        )
+        updated = owned_plant(db, key, plant_key)
+        return plant_view(updated, history_for(db, key, plant_key), now())
 
 
 @router.post("/plants/{plant_id}/care")
@@ -300,8 +364,7 @@ def record_care(plant_id: UUID4, payload: CareAction, garden: GardenKey):
 
 
 def assess_for(plant, plant_id, payload):
-    species_id = plant["species_id"]
-    source = verified_care_source(SpeciesCatalog.get(species_id)) if species_id in GUIDED_SPECIES else None
+    source = verified_care_source(SpeciesCatalog.get(plant["species_id"]))
     return assess_watering(payload, plant_id, plant["drainage"], source, payload.captured_at)
 
 
@@ -310,8 +373,10 @@ def verify_snapshot(history, payload, timestamp):
     requested = str(payload.based_on) if payload.based_on is not None else None
     if current != requested:
         raise HTTPException(409, "This plant’s care history changed. Reopen Checkup to use its latest information.")
+    if payload.captured_at > timestamp:
+        payload = payload.model_copy(update={"captured_at": timestamp})
     elapsed = timestamp - payload.captured_at
-    if elapsed > CHECKUP_MAX_AGE or elapsed < -CHECKUP_CLOCK_SKEW:
+    if elapsed > CHECKUP_MAX_AGE:
         raise HTTPException(409, "This observation’s time is out of date. Recheck your plant and start a fresh Checkup.")
     if history:
         last = history[0]
@@ -320,6 +385,21 @@ def verify_snapshot(history, payload, timestamp):
             latest = min(latest, AssessmentInput.model_validate_json(last["checkup"]).captured_at)
         if payload.captured_at < latest:
             raise HTTPException(409, "This observation came before the latest care update. Recheck your plant.")
+    return payload
+
+
+def _same_checkup_retry(prior, payload: AssessmentInput) -> bool:
+    if not prior["checkup"]:
+        return False
+    saved = AssessmentInput.model_validate_json(prior["checkup"])
+    if saved == payload:
+        return True
+    # Clamped future device clocks store server time; allow exact-field retries from the skewed clock.
+    return (
+        saved.model_dump(exclude={"captured_at"}) == payload.model_dump(exclude={"captured_at"})
+        and str(saved.captured_at.isoformat()) == str(prior["occurred_at"])
+        and payload.captured_at >= saved.captured_at
+    )
 
 
 @router.get("/plants/{plant_id}/checkup", response_model=CheckupContext)
@@ -330,8 +410,10 @@ def checkup_context(plant_id: UUID4, garden: GardenKey):
         plant = owned_plant(db, key, str(plant_id))
         history = history_for(db, key, str(plant_id))
         source = verified_care_source(SpeciesCatalog.get(plant["species_id"]))
-        check = GUIDED_SPECIES.get(plant["species_id"]) if source else None
-        prompt = check or "Feel the mix below the surface and note what you can tell."
+        prompt = (
+            check_prompt_for(SpeciesCatalog.get(plant["species_id"]), plant["species_id"], source)
+            or "Feel the mix below the surface and note what you can tell."
+        )
         return CheckupContext(
             plant_id=plant_id, name=plant["name"], species_id=plant["species_id"],
             drainage=plant["drainage"], check_prompt=prompt, based_on=history[0]["id"] if history else None,
@@ -344,14 +426,13 @@ def preview_assessment(plant_id: UUID4, payload: AssessmentInput, garden: Garden
     with database() as db:
         db.execute("BEGIN")
         plant = owned_plant(db, key, str(plant_id))
-        verify_snapshot(history_for(db, key, str(plant_id)), payload, now())
+        payload = verify_snapshot(history_for(db, key, str(plant_id)), payload, now())
         return assess_for(plant, plant_id, payload)
 
 
 @router.post("/plants/{plant_id}/assessments/{assessment_id}/confirm")
 def confirm_assessment(plant_id: UUID4, assessment_id: UUID4, payload: AssessmentInput, garden: GardenKey):
     key, plant_key, event_id = str(garden), str(plant_id), str(assessment_id)
-    encoded = payload.model_dump_json()
     with database() as db:
         db.execute("BEGIN IMMEDIATE")
         plant = owned_plant(db, key, plant_key)
@@ -359,10 +440,11 @@ def confirm_assessment(plant_id: UUID4, assessment_id: UUID4, payload: Assessmen
         prior = next((event for event in history if event["id"] == event_id), None)
         timestamp = now()
         if prior is not None:
-            if prior["checkup"] != encoded:
+            if not _same_checkup_retry(prior, payload):
                 raise HTTPException(409, "This observation was already saved with different answers.")
             return plant_view(plant, history, timestamp)
-        verify_snapshot(history, payload, timestamp)
+        payload = verify_snapshot(history, payload, timestamp)
+        encoded = payload.model_dump_json()
         result = assess_for(plant, plant_id, payload)
         if not any(item.category == "OWNER_OBSERVED" and item.field != "inspection_depth" for item in result.evidence):
             raise HTTPException(422, "Add an observation before saving Checkup.")

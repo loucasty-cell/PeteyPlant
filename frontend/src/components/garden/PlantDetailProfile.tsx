@@ -11,6 +11,7 @@
  * Works seamlessly with or without 3D WebGL rendering.
  */
 
+import { useState, type FormEvent } from 'react';
 import {
   ArrowDownRight,
   ArrowLeft,
@@ -22,9 +23,10 @@ import {
   History,
   Info,
   Layers,
+  Pencil,
   ShieldAlert,
 } from 'lucide-react';
-import type { CareKind, GardenPlant } from '../../lib/gardenApi';
+import type { CareKind, Drainage, GardenPlant, GardenSpecies, PlantUpdate } from '../../lib/gardenApi';
 import { formatWeatherReading, type LiveWeatherState } from '../../lib/weatherService';
 import type {
   WateringIntelligenceModel,
@@ -66,6 +68,8 @@ export interface PlantDetailProfileProps {
   onOpenConditionCheck: (plantId: string) => void;
   onOpenOn3DStage: (plantId: string) => void;
   onBack: () => void;
+  catalog?: GardenSpecies[];
+  onUpdatePlant?: (plantId: string, patch: PlantUpdate) => Promise<void>;
 }
 
 export function PlantDetailProfile({
@@ -85,8 +89,40 @@ export function PlantDetailProfile({
   onOpenConditionCheck,
   onOpenOn3DStage,
   onBack,
+  catalog = [],
+  onUpdatePlant,
 }: PlantDetailProfileProps) {
   const { entry, exactMatch } = resolveSpeciesAsset(plant.species_id);
+  const [editingDetails, setEditingDetails] = useState(false);
+  const [editSpeciesId, setEditSpeciesId] = useState<string>(plant.species_id ?? '');
+  const [editDrainage, setEditDrainage] = useState<Drainage>(plant.drainage);
+  const [editBusy, setEditBusy] = useState(false);
+  const [editError, setEditError] = useState('');
+
+  function openEditor() {
+    setEditSpeciesId(plant.species_id ?? '');
+    setEditDrainage(plant.drainage);
+    setEditError('');
+    setEditingDetails(true);
+  }
+
+  async function saveDetails(event: FormEvent) {
+    event.preventDefault();
+    if (!onUpdatePlant || editBusy) return;
+    setEditBusy(true);
+    setEditError('');
+    try {
+      await onUpdatePlant(plant.id, {
+        species_id: editSpeciesId ? editSpeciesId : null,
+        drainage: editDrainage,
+      });
+      setEditingDetails(false);
+    } catch (failure) {
+      setEditError(failure instanceof Error ? failure.message : 'Could not update plant details.');
+    } finally {
+      setEditBusy(false);
+    }
+  }
 
   return (
     <section className="petey-page-container" aria-labelledby="plant-detail-heading">
@@ -216,6 +252,77 @@ export function PlantDetailProfile({
                 Owner reported
               </span>
             </div>
+
+            {onUpdatePlant && !editingDetails && (
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                {plant.species_id === null && (
+                  <p className="petey-body-muted m-0">
+                    Identify this plant to unlock verified care guidance.
+                  </p>
+                )}
+                <button
+                  type="button"
+                  className={plant.species_id === null ? 'petey-btn-primary' : 'petey-btn-secondary'}
+                  onClick={openEditor}
+                >
+                  <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
+                  {plant.species_id === null ? 'Identify plant & drainage' : 'Edit species & drainage'}
+                </button>
+              </div>
+            )}
+
+            {editingDetails && (
+              <form className="petey-stack" onSubmit={(event) => void saveDetails(event)}>
+                <label className="petey-field">
+                  Botanical species
+                  <select
+                    value={editSpeciesId}
+                    disabled={editBusy}
+                    onChange={(event) => setEditSpeciesId(event.target.value)}
+                  >
+                    <option value="">Unidentified species</option>
+                    {catalog.map((sp) => (
+                      <option key={sp.id} value={sp.id}>
+                        {sp.name} ({sp.id}){sp.advice_status === 'verified' ? ' — Verified care' : ''}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="petey-field">
+                  Pot drainage holes
+                  <select
+                    value={editDrainage}
+                    disabled={editBusy}
+                    onChange={(event) => setEditDrainage(event.target.value as Drainage)}
+                  >
+                    <option value="yes">Yes — pot has drainage holes</option>
+                    <option value="no">No — no drainage holes</option>
+                    <option value="unknown">Not sure</option>
+                  </select>
+                </label>
+
+                {editError && (
+                  <p className="petey-alert petey-alert-error m-0" role="alert">
+                    {editError}
+                  </p>
+                )}
+
+                <div className="petey-btn-row">
+                  <button type="submit" className="petey-btn-primary" disabled={editBusy}>
+                    {editBusy ? 'Saving…' : 'Save details'}
+                  </button>
+                  <button
+                    type="button"
+                    className="petey-btn-secondary"
+                    disabled={editBusy}
+                    onClick={() => setEditingDetails(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            )}
 
             <dl className="profile-spec-dl">
               <div>

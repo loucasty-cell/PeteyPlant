@@ -9,7 +9,7 @@ import {
   Leaf,
   X,
 } from 'lucide-react';
-import type { GardenPlant } from '../../lib/gardenApi';
+import { withTimeoutSignal, type GardenPlant } from '../../lib/gardenApi';
 import {
   plantToolsApi,
   symptoms,
@@ -169,11 +169,9 @@ export default function PlantHealth({ plant, onBack, asModal = false }: PlantHea
       spread: observations.spread,
     };
 
+    const timeout = withTimeoutSignal(8_000, request.signal);
     try {
-      const answer = await plantToolsApi.triage(
-        payload,
-        AbortSignal.any([request.signal, AbortSignal.timeout(8_000)]),
-      );
+      const answer = await plantToolsApi.triage(payload, timeout.signal);
       if (!request.signal.aborted) {
         setResult(answer);
       }
@@ -190,6 +188,7 @@ export default function PlantHealth({ plant, onBack, asModal = false }: PlantHea
         );
       }
     } finally {
+      timeout.cleanup();
       if (inFlight.current === request) inFlight.current = null;
       if (!request.signal.aborted) setPending(false);
     }

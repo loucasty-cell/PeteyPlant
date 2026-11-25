@@ -13,7 +13,7 @@ import {
   SwitchCamera,
   X,
 } from 'lucide-react';
-import type { GardenSpecies } from '../../lib/gardenApi';
+import { withTimeoutSignal, type GardenSpecies } from '../../lib/gardenApi';
 import {
   plantToolsApi,
   type LensCandidate,
@@ -157,8 +157,9 @@ export default function PeteyLens({
   // Query backend identification capability (honest backend source of truth)
   useEffect(() => {
     const controller = new AbortController();
+    const timeout = withTimeoutSignal(6_000, controller.signal);
     plantToolsApi
-      .lensStatus(AbortSignal.any([controller.signal, AbortSignal.timeout(6_000)]))
+      .lensStatus(timeout.signal)
       .then((status) => {
         if (!controller.signal.aborted) {
           setCapability(status);
@@ -169,8 +170,12 @@ export default function PeteyLens({
         if (!controller.signal.aborted) {
           setStatusFailed(true);
         }
-      });
-    return () => controller.abort();
+      })
+      .finally(() => timeout.cleanup());
+    return () => {
+      timeout.cleanup();
+      controller.abort();
+    };
   }, [statusRetry]);
 
   // Detect multiple video input devices for optional camera flip control
@@ -239,6 +244,7 @@ export default function PeteyLens({
   }, [stream, stopCamera]);
 
   async function openCamera(requestedFacing: 'environment' | 'user' = facingMode) {
+    if (capability?.status !== 'available') return;
     stopCamera();
     setPhoto(null);
     setError('');
@@ -314,7 +320,7 @@ export default function PeteyLens({
   async function selectLibraryPhoto(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     event.target.value = '';
-    if (!file) return;
+    if (!file || capability?.status !== 'available') return;
     const operation = ++workRef.current;
     stopCamera();
     setPreparing(true);
@@ -349,11 +355,9 @@ export default function PeteyLens({
     activeStateRef.current = 'processing';
     setLensState('processing');
 
+    const timeout = withTimeoutSignal(25_000, request.signal);
     try {
-      const answer = await plantToolsApi.identify(
-        photo,
-        AbortSignal.any([request.signal, AbortSignal.timeout(25_000)]),
-      );
+      const answer = await plantToolsApi.identify(photo, timeout.signal);
       if (request.signal.aborted) return;
       setResult(answer);
       setPhoto(null);
@@ -385,6 +389,7 @@ export default function PeteyLens({
         transitionTo('preview', true);
       }
     } finally {
+      timeout.cleanup();
       if (scanRef.current === request) scanRef.current = null;
     }
   }
@@ -422,7 +427,7 @@ export default function PeteyLens({
     capability?.status === 'unavailable'
       ? capability.message
       : statusFailed
-        ? 'Could not reach the backend identification service. You can still frame/test photos or search manually by species name.'
+        ? 'Could not reach the backend identification service. Check again once the backend is running, or search manually by species name.'
         : null;
 
   const titles: Record<LensState, string> = {
@@ -499,6 +504,7 @@ export default function PeteyLens({
         type="file"
         accept={photoFormats.join(',')}
         onChange={(event) => void selectLibraryPhoto(event)}
+        disabled={capability?.status !== 'available'}
         hidden
       />
 
@@ -529,30 +535,60 @@ export default function PeteyLens({
               </div>
             )}
 
-            <div className="petey-btn-row">
-              <button
-                type="button"
-                className="petey-btn-primary"
-                onClick={() => void openCamera('environment')}
-                disabled={preparing}
-              >
-                <Camera className="h-4 w-4" aria-hidden="true" />
-                Open camera
-              </button>
-              <button
-                type="button"
-                className="petey-btn-secondary"
-                onClick={() => pickerRef.current?.click()}
-                disabled={preparing}
-              >
-                <ImagePlus className="h-4 w-4" aria-hidden="true" />
-                Upload photo
-              </button>
-            </div>
+            {capability?.status === 'available' ? (
+              <>
+                <div className="petey-btn-row">
+                  <button
+                    type="button"
+                    className="petey-btn-primary"
+                    onClick={() => void openCamera('environment')}
+                    disabled={preparing}
+                  >
+                    <Camera className="h-4 w-4" aria-hidden="true" />
+                    Open camera
+                  </button>
+                  <button
+                    type="button"
+                    className="petey-btn-secondary"
+                    onClick={() => pickerRef.current?.click()}
+                    disabled={preparing}
+                  >
+                    <ImagePlus className="h-4 w-4" aria-hidden="true" />
+                    Upload photo
+                  </button>
+                </div>
 
-            <button type="button" className="petey-link-btn" onClick={onManual}>
-              Prefer to search by plant name? <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </button>
+                <button type="button" className="petey-link-btn" onClick={onManual}>
+                  Prefer to search by plant name? <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </>
+            ) : (
+              <>
+                <div className="petey-btn-row">
+                  <button type="button" className="petey-btn-primary" onClick={onManual}>
+                    Search by plant name <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    className="petey-btn-secondary"
+                    onClick={() => void openCamera('environment')}
+                    disabled
+                  >
+                    <Camera className="h-4 w-4" aria-hidden="true" />
+                    Open camera
+                  </button>
+                  <button
+                    type="button"
+                    className="petey-btn-secondary"
+                    onClick={() => pickerRef.current?.click()}
+                    disabled
+                  >
+                    <ImagePlus className="h-4 w-4" aria-hidden="true" />
+                    Upload photo
+                  </button>
+                </div>
+              </>
+            )}
           </div>
 
           <aside className="petey-lens-tips-card" aria-label="Framing guide">
@@ -601,7 +637,7 @@ export default function PeteyLens({
             <button
               type="button"
               className="petey-camera-secondary"
-              disabled={preparing}
+              disabled={preparing || capability?.status !== 'available'}
               onClick={() => pickerRef.current?.click()}
               aria-label="Upload photo from library"
             >
@@ -612,7 +648,7 @@ export default function PeteyLens({
             <button
               type="button"
               className="petey-shutter-btn"
-              disabled={lensState !== 'camera_ready' || preparing}
+              disabled={lensState !== 'camera_ready' || preparing || capability?.status !== 'available'}
               onClick={() => void captureFrame()}
               aria-label="Capture plant photo"
             >
@@ -623,7 +659,7 @@ export default function PeteyLens({
               <button
                 type="button"
                 className="petey-camera-secondary"
-                disabled={preparing}
+                disabled={preparing || capability?.status !== 'available'}
                 onClick={() => void openCamera(facingMode === 'environment' ? 'user' : 'environment')}
                 aria-label="Switch camera"
               >
@@ -655,6 +691,7 @@ export default function PeteyLens({
             <button
               type="button"
               className="petey-btn-primary"
+              disabled={preparing || capability?.status !== 'available'}
               onClick={() => pickerRef.current?.click()}
             >
               <ImagePlus className="h-4 w-4" aria-hidden="true" />
@@ -663,6 +700,7 @@ export default function PeteyLens({
             <button
               type="button"
               className="petey-btn-secondary"
+              disabled={preparing || capability?.status !== 'available'}
               onClick={() => void openCamera('environment')}
             >
               <Camera className="h-4 w-4" aria-hidden="true" />
@@ -712,7 +750,7 @@ export default function PeteyLens({
               <button
                 type="button"
                 className="petey-btn-secondary"
-                disabled={preparing}
+                disabled={preparing || capability?.status !== 'available'}
                 onClick={
                   photoSource === 'camera'
                     ? () => void openCamera(facingMode)
@@ -937,17 +975,9 @@ export default function PeteyLens({
           </div>
 
           <div className="petey-stack">
-            <span className="petey-small-label">Confirmed species match</span>
+            <span className="petey-small-label">Selected species</span>
             <h2 className="petey-confirm-title">{confirmedSpecies.name}</h2>
             <p className="petey-scientific">{confirmed?.scientific_name ?? confirmedSpecies.id}</p>
-
-            {resolvedPreviewAsset && (
-              <p className="petey-body-muted">{resolvedPreviewAsset.entry.botanicalSilhouetteNote}</p>
-            )}
-
-            <p className="petey-companion-disclaimer">
-              Stylized 3D companion preview — this digital character represents the confirmed species in Petey Plant, not a 3D scan or reconstruction of your real plant.
-            </p>
 
             <div className="petey-btn-row">
               <button
@@ -968,6 +998,14 @@ export default function PeteyLens({
                 Choose another match
               </button>
             </div>
+
+            {resolvedPreviewAsset && (
+              <p className="petey-body-muted">{resolvedPreviewAsset.entry.botanicalSilhouetteNote}</p>
+            )}
+
+            <p className="petey-companion-disclaimer">
+              This stylized 3D companion shows the species you selected. Plants of the same species share this design.
+            </p>
           </div>
         </section>
       )}

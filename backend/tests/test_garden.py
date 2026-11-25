@@ -78,12 +78,24 @@ def test_dry_alone_cannot_trigger_watering_without_supported_context(clock, spec
         assert care(client, key, plant_id, "unsure").json()["status"] == "check"
 
 
+def test_garden_identity_without_a_care_model(clock):
+    key = {"X-Petey-Garden": str(uuid4())}
+    with TestClient(app) as client:
+        saved = add(client, key, str(uuid4()), "Begonia maculata", "yes")
+        assert saved.status_code == 200
+        assert saved.json()["common_name"] == "Polka Dot Begonia"
+        assert saved.json()["watering_guidance"] is None
+        assert saved.json()["watering_source"] is None
+
+
 def test_private_gardens_and_cors(clock):
     owner = {"X-Petey-Garden": str(uuid4())}
     other = {"X-Petey-Garden": str(uuid4())}
     plant_id = str(uuid4())
     with TestClient(app) as client:
-        assert len(client.get(ROOT + "/species").json()) == 79
+        catalog = client.get(ROOT + "/species").json()
+        assert len(catalog) == len({species["id"] for species in catalog})
+        assert {species["id"] for species in catalog} >= {"Monstera deliciosa", "Begonia maculata"}
         assert add(client, owner, plant_id, "bogus").status_code == 422
         assert add(client, owner, plant_id).status_code == 200
         assert client.get(ROOT + "/plants").status_code == 422

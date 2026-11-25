@@ -483,7 +483,10 @@ export function buildWateringIntelligence(
   } else if (plant.status === 'check') {
     actionHeadline = 'Check potting mix first';
   } else if (plant.status === 'details') {
-    actionHeadline = 'Confirm drainage & care details first';
+    actionHeadline =
+      plant.species_id === null
+        ? 'Identify this plant to get advice'
+        : 'Confirm drainage & care details first';
   }
 
   const primaryActionLabel =

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowDownRight, ArrowRight, Check, ClipboardCheck, Sprout, X } from 'lucide-react';
-import { gardenApi, GardenRequestError, type CheckupContext, type CheckupInput, type CheckupQuestion, type CheckupResult, type GardenPlant } from '../../lib/gardenApi';
+import { createUuid, gardenApi, GardenRequestError, type CheckupContext, type CheckupInput, type CheckupQuestion, type CheckupResult, type GardenPlant } from '../../lib/gardenApi';
 import './checkup.css';
 
 const questions = {
@@ -172,7 +172,7 @@ export default function CheckupDialog({ plant, onClose, onSaved }: {
     catch { /* The checkup also works without browser storage. */ }
     try {
       const answer = await gardenApi.assess(plant.id, next, controller.signal);
-      if (!controller.signal.aborted) setScreen({ mode: 'result', answer, id: crypto.randomUUID(), saved: false });
+      if (!controller.signal.aborted) setScreen({ mode: 'result', answer, id: createUuid(), saved: false });
     } catch (failure) {
       reportFailure(controller, failure);
     } finally {
