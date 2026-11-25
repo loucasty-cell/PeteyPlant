@@ -16,7 +16,7 @@ import { chromium } from 'playwright';
 import { PNG } from 'pngjs';
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawn } from 'node:child_process';
+import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -25,6 +25,7 @@ const OUT = ROOT;
 const BASE = 'http://127.0.0.1:4173';
 const VIEWPORTS = [
   { width: 320, height: 800 },
+  { width: 390, height: 844 },
   { width: 768, height: 1024 },
   { width: 1440, height: 900 },
 ];
@@ -127,10 +128,11 @@ function analysePng(file) {
 
 // Spawn the vite binary directly (not via npx) in its own process group
 // so cleanup reliably kills the server even if the script exits early.
+const viteBin = path.join(APP_DIR, 'node_modules', '.bin', process.platform === 'win32' ? 'vite.cmd' : 'vite');
 const preview = spawn(
-  path.join(APP_DIR, 'node_modules', '.bin', 'vite'),
+  viteBin,
   ['preview', '--port', '4173', '--strictPort', '--host', '127.0.0.1'],
-  { cwd: APP_DIR, stdio: 'ignore', detached: true },
+  { cwd: APP_DIR, stdio: 'ignore', detached: process.platform !== 'win32', shell: process.platform === 'win32' },
 );
 
 let exitCode = 0;
@@ -139,6 +141,7 @@ try {
   console.log('preview server up');
 
   const browser = await chromium.launch({
+    channel: process.env.PETEY_BROWSER_CHANNEL,
     args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
   });
 
@@ -471,10 +474,14 @@ try {
   console.error('VERIFICATION ERROR:', err);
   record('verification-ran', false, String(err));
 } finally {
-  try {
-    process.kill(-preview.pid, 'SIGKILL');
-  } catch {
-    preview.kill('SIGKILL');
+  if (process.platform === 'win32' && preview.pid) {
+    try { execFileSync('taskkill', ['/PID', String(preview.pid), '/T', '/F'], { stdio: 'ignore' }); } catch {}
+  } else {
+    try {
+      process.kill(-preview.pid, 'SIGKILL');
+    } catch {
+      preview.kill('SIGKILL');
+    }
   }
 }
 

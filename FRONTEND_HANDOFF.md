@@ -1,5 +1,7 @@
 # Petey Plant — Frontend Engineering Handoff (Core Intelligence & Project High Sierra)
 
+> **Status update (2026-11-26):** Historical V2 baseline below. All 58 authored Blender `.glb` companions (note §3 item 4 is now authored) and subsequent Wave 0–4 fixes (care gating, `PATCH` species/drainage editing, unavailable Lens CTA gating, `GardenApp` / `themes.ts` split, UUID/AbortSignal fallbacks, and Checkup modal styling) are recorded in [PLANS.md](PLANS.md), [ANTIGRAVITY_HANDOFF.md](ANTIGRAVITY_HANDOFF.md), and [slop.md](slop.md). Items §3.1–§3.3 below remain open.
+
 This handoff documents the frontend-only transformation of **Petey Plant** completed on top of the existing Codex repository. No backend routes, SQLite schemas, ONNX/ML adapters, or recommendation formulas were rewritten or fabricated.
 
 ---

@@ -7,7 +7,7 @@ Petey helps busy people remember when to check the houseplants they already own.
 - Vite, React, TypeScript and local CSS for the garden UI. FastAPI and SQLite own plant and care records. Keep the experimental biophysics demo in Plant Lab and label its synthetic data.
 - Species records, individual plants, observations and projected checks are distinct. Show the source for verified care guidance. Label projections and default check dates as estimates. Never fabricate a measurement or turn missing evidence into a watering instruction.
 - Follow the warm greenhouse visual reference. Keep text available for all care states. Verify keyboard access, focus, feedback, mobile reflow and reduced motion. Reuse installed dependencies.
-- Keep original art files intact. Record the status of concept art, editable Blender source, real-time assets and tested animation separately.
+- Keep original art files intact. Record the status of concept art, editable Blender source, real-time assets and tested animation separately. Save every editable Blender companion in `assets/characters/<asset-id>/source/` and add it to the [shared model index](assets/characters/README.md).
 - Preserve existing work. Verify the relevant normal entry points and their failure paths. Never claim an unrun test, publish, push or delete important data without authorization. Keep credentials and local databases out of Git.
 
 ## Commands

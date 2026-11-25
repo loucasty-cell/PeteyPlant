@@ -1,5 +1,5 @@
 {
-  "passed": 41,
+  "passed": 48,
   "failed": 0,
   "results": [
     {
@@ -30,12 +30,47 @@
     {
       "name": "badges-inside-canvas-320",
       "pass": true,
-      "detail": "[{\"text\":\"VPD_leaf 1.17\",\"inside\":true,\"rect\":[35,565,157,594]},{\"text\":\"A_net 13.22\",\"inside\":true,\"rect\":[179,578,285,607]},{\"text\":\"VWC 42% · O₂ 28%\",\"inside\":true,\"rect\":[87,731,233,761]}]"
+      "detail": "[{\"text\":\"VPD_leaf 1.17\",\"inside\":true,\"rect\":[37,641,155,670]},{\"text\":\"A_net 13.22\",\"inside\":true,\"rect\":[181,653,284,683]},{\"text\":\"VWC 42% · O₂ 28%\",\"inside\":true,\"rect\":[90,807,230,836]}]"
     },
     {
       "name": "terrarium-not-blank-320",
       "pass": true,
-      "detail": "{\"width\":296,\"height\":420,\"distinctColors\":4032,\"meanBrightness\":181.2,\"blackFraction\":0.004,\"pass\":true}"
+      "detail": "{\"width\":296,\"height\":420,\"distinctColors\":3984,\"meanBrightness\":180.4,\"blackFraction\":0.004,\"pass\":true}"
+    },
+    {
+      "name": "shot-shell-full-390",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "no-horizontal-overflow-390",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "single-canvas-rendered-390",
+      "pass": true,
+      "detail": "1 canvas(es), 362x416"
+    },
+    {
+      "name": "shot-growth-ledger-390",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "shot-terrarium-390",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "name": "badges-inside-canvas-390",
+      "pass": true,
+      "detail": "[{\"text\":\"VPD_leaf 1.17\",\"inside\":true,\"rect\":[72,577,190,606]},{\"text\":\"A_net 13.22\",\"inside\":true,\"rect\":[216,589,319,619]},{\"text\":\"VWC 42% · O₂ 28%\",\"inside\":true,\"rect\":[125,743,265,772]}]"
+    },
+    {
+      "name": "terrarium-not-blank-390",
+      "pass": true,
+      "detail": "{\"width\":366,\"height\":420,\"distinctColors\":4029,\"meanBrightness\":189.9,\"blackFraction\":0.003,\"pass\":true}"
     },
     {
       "name": "shot-shell-full-768",
@@ -65,12 +100,12 @@
     {
       "name": "badges-inside-canvas-768",
       "pass": true,
-      "detail": "[{\"text\":\"VPD_leaf 1.17\",\"inside\":true,\"rect\":[250,444,372,473]},{\"text\":\"A_net 13.22\",\"inside\":true,\"rect\":[414,459,520,488]},{\"text\":\"VWC 42% · O₂ 28%\",\"inside\":true,\"rect\":[311,634,457,664]}]"
+      "detail": "[{\"text\":\"VPD_leaf 1.17\",\"inside\":true,\"rect\":[252,509,370,538]},{\"text\":\"A_net 13.22\",\"inside\":true,\"rect\":[415,524,518,553]},{\"text\":\"VWC 42% · O₂ 28%\",\"inside\":true,\"rect\":[314,699,454,729]}]"
     },
     {
       "name": "terrarium-not-blank-768",
       "pass": true,
-      "detail": "{\"width\":736,\"height\":480,\"distinctColors\":4357,\"meanBrightness\":206.3,\"blackFraction\":0.002,\"pass\":true}"
+      "detail": "{\"width\":736,\"height\":480,\"distinctColors\":4387,\"meanBrightness\":206.1,\"blackFraction\":0.002,\"pass\":true}"
     },
     {
       "name": "shot-shell-full-1440",
@@ -100,12 +135,12 @@
     {
       "name": "badges-inside-canvas-1440",
       "pass": true,
-      "detail": "[{\"text\":\"VPD_leaf 1.17\",\"inside\":true,\"rect\":[1067,405,1189,434]},{\"text\":\"A_net 13.22\",\"inside\":true,\"rect\":[1258,422,1364,451]},{\"text\":\"VWC 42% · O₂ 28%\",\"inside\":true,\"rect\":[1141,627,1287,656]}]"
+      "detail": "[{\"text\":\"VPD_leaf 1.17\",\"inside\":true,\"rect\":[1069,470,1187,499]},{\"text\":\"A_net 13.22\",\"inside\":true,\"rect\":[1259,487,1362,516]},{\"text\":\"VWC 42% · O₂ 28%\",\"inside\":true,\"rect\":[1144,692,1284,721]}]"
     },
     {
       "name": "terrarium-not-blank-1440",
       "pass": true,
-      "detail": "{\"width\":420,\"height\":560,\"distinctColors\":4699,\"meanBrightness\":177.5,\"blackFraction\":0.004,\"pass\":true}"
+      "detail": "{\"width\":420,\"height\":560,\"distinctColors\":4719,\"meanBrightness\":177.2,\"blackFraction\":0.004,\"pass\":true}"
     },
     {
       "name": "diagnostic-drawer-opens-320",
@@ -190,7 +225,7 @@
     {
       "name": "select-shows-full-scientific-name-320",
       "pass": true,
-      "detail": "{\"text\":\"Goeppertia makoyana\",\"textWidth\":175,\"clientWidth\":208,\"available\":184}"
+      "detail": "{\"text\":\"Goeppertia makoyana\",\"textWidth\":176.2,\"clientWidth\":208,\"available\":184}"
     },
     {
       "name": "diagnostic-slider-recalculates",

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { resolve } from 'node:path';
+import { SPECIES_ASSET_MANIFEST } from '../src/lib/three/speciesAssetRegistry.ts';
 
 const url = process.argv[2] ?? process.env.PETEY_TEST_URL ?? 'http://localhost:3000';
 const shots = process.argv[3] ?? process.env.PETEY_SCREENSHOTS;
@@ -17,7 +18,7 @@ try {
   await firstPlant.waitFor();
   if (shots) await page.screenshot({ path: resolve(shots, 'petey-garden-desktop.png'), fullPage: true });
 
-  for (const width of [320, 375, 768, 1024, 1440]) {
+  for (const width of [320, 375, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Home overflows at ${width}px`);
   }
@@ -141,7 +142,9 @@ try {
 
   await navigation.getByRole('button', { name: 'More', exact: true }).click();
   const roster = page.getByRole('region', { name: 'Botanical Companion Roster' });
-  assert.equal(await roster.getByRole('article').count(), 8);
+  assert.equal(await roster.getByRole('article').count(), SPECIES_ASSET_MANIFEST.length);
+  assert.equal(await roster.locator('canvas').count(), 0, 'The shelf must not mount one canvas per model');
+  assert.equal(await roster.locator('img[loading="lazy"]').count(), SPECIES_ASSET_MANIFEST.length);
   if (shots) await page.screenshot({ path: resolve(shots, 'petey-plant-pals-mobile.png'), fullPage: true });
   await page.getByRole('button', { name: 'Open Plant Lab', exact: true }).click();
   await page.getByRole('button', { name: 'Back to Petey Plant' }).waitFor();

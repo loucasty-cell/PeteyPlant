@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { mkdir } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { chromium } from 'playwright';
-import { FLAGSHIP_SPECIES_MANIFEST } from '../src/lib/three/speciesAssetRegistry.ts';
+import { FLAGSHIP_SPECIES_MANIFEST, SPECIES_ASSET_MANIFEST } from '../src/lib/three/speciesAssetRegistry.ts';
 
 const url = process.argv[2] ?? process.env.PETEY_TEST_URL ?? 'http://127.0.0.1:3000';
 const shots = process.argv[3];
@@ -12,7 +12,12 @@ const browser = await chromium.launch({
   executablePath: process.env.PETEY_BROWSER_EXECUTABLE,
   args: ['--enable-unsafe-swiftshader'],
 });
-const authoredSpecies = FLAGSHIP_SPECIES_MANIFEST.filter(entry => entry.assetStatus === 'authored');
+const representativeExpansion = ['swiss-cheese-vine', 'maidenhair-fern', 'polka-dot-begonia'];
+const authoredSpecies = SPECIES_ASSET_MANIFEST.filter(entry =>
+  FLAGSHIP_SPECIES_MANIFEST.includes(entry) || representativeExpansion.includes(entry.assetId));
+if (process.env.PETEY_TEST_EXPANSION === '1') {
+  assert.equal(authoredSpecies.length, FLAGSHIP_SPECIES_MANIFEST.length + representativeExpansion.length);
+}
 const errors = [];
 const plants = authoredSpecies.map(entry => ({
   id: `stage-${entry.assetId}`,
@@ -34,6 +39,14 @@ async function open(options = {}) {
   page.on('pageerror', error => errors.push(error.message));
   await page.addInitScript(() => localStorage.setItem('petey-selected-plant-v1', 'stage-monstera'));
   await page.route('**/api/v1/garden/plants', route => route.fulfill({ json: plants }));
+  await page.route('**/api/v1/garden/species', route => route.fulfill({
+    json: authoredSpecies.map(entry => ({
+      id: entry.speciesId,
+      name: entry.commonName,
+      cultivar: '',
+      advice_status: 'verified',
+    })),
+  }));
   return page;
 }
 

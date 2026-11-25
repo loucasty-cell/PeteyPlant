@@ -1,155 +1,288 @@
-# Petey Plant 🌱
+# Petey Plant
 
-**An intelligent houseplant companion with living 3D botanical digital twins.** Petey helps busy people remember when to check the houseplants they already own, record what they observe, and get practical, evidence-backed care guidance. Eight flagship **Plant Pals** bring those observations to life with custom Blender 3D geometry, emotional expressions, and real-time animations in React Three Fiber.
+**A houseplant companion with living 3D botanical twins.** Petey helps busy people remember when to check the houseplants they already own, record what they actually observe, and get one next step that shows the evidence behind it. Fifty-eight Plant Pals authored in Blender 5.2 react to the care state you record, drawn by React Three Fiber on a single canvas.
 
-[Walk through the workflows](docs/WORKFLOWS.md) · [Meet the 8 Plant Pals](docs/images/petey-live-plant-pals.png) · [Read the flight readiness report](docs/FLIGHT_READINESS_REPORT.md)
-
----
-
-![Petey Plant living greenhouse garden with interactive 3D Monstera companion](docs/images/petey-living-garden.png)
+[Walk through the workflows](docs/WORKFLOWS.md) · [Browse the Blender models](assets/characters/README.md) · [Read the Lens release gate](docs/FLIGHT_READINESS_REPORT.md) · [Track the roadmap](PLANS.md)
 
 ---
 
-## What You Can Do Today
+![Petey Plant living greenhouse garden with the interactive 3D Monstera companion](docs/images/petey-living-garden.png)
 
-| Workflow | What is built and working in your local app |
+---
+
+## What you can do today
+
+| Screen | What is built and working |
 |---|---|
-| **🌱 My Garden** | Save houseplants from a verified catalog, monitor hydration, log care events, and receive observation-calibrated checkup dates. |
-| **🪴 3D Plant Pals** | Meet eight living botanical companions authored in Blender 5.2. Each pal mirrors its real-world care state through dynamic expressions and interactive dance reactions. |
-| **💧 Soil Checkup** | Step-by-step soil inspection flow that distinguishes surface dryness from deep moisture and provides source-cited watering instructions. |
-| **🩺 Plant Health Triage** | Diagnostic symptom matcher evaluating yellowing, drooping, scorch, or pests against university extension knowledge bases. |
-| **🔍 Petey Lens** | Camera capture and photo review pipeline with botanical trait comparison across leaf, stem, and margin shapes. |
-| **🔬 Plant Lab** | Experimental biophysical digital twin simulating hourly Penman-Monteith transpiration, vapor pressure deficit (VPD), and root-rot emergency braking. |
+| **Home** | One plant, one next action. A care surface states what the recorded observation supports, the estimated next check, and the current garden weather context. |
+| **My Garden** | Save plants from a 79-record catalog, keep them in a hydration cart, and open any plant's profile with its care ledger and 3D companion. |
+| **Care & Alerts** | Prioritized care queue with acknowledgeable alerts, explicit "care schedule unavailable" and "nothing scheduled yet" states. No invented water volumes. |
+| **Plant checkup** | Four physical questions — soil feel, inspection depth, drainage, standing water — resolved by a deterministic policy that refuses to recommend water without evidence. |
+| **Plant Health** | A symptom and environment interview that returns source-cited, advisory next steps. It never writes to the saved garden record. |
+| **Petey Lens** | Camera or gallery capture with client-side metadata stripping, manual species search and a confirmation step before a plant is saved. Automatic matching is unavailable (see the release gate). |
+| **Plant Lab** | Separate experimental shell: terrarium canvas, growth ledger, diagnostic inspector and a local biophysics engine that runs when the backend is offline. All of its telemetry is synthetic. |
 
 ---
 
-## 🪴 Eight Living 3D Plant Pals
+## The care loop
 
-Petey includes eight flagship botanical companions, individually sculpted in Blender 5.2 and rendered in real-time with React Three Fiber and Three.js. Each companion has its own botanical archetype, personality trait, calibrated camera preset, and care responsiveness.
+The backend decides, the browser only reports what the owner saw. `backend/services/care_policy.py` is a small ladder of refusals: it holds water first, then asks for the missing evidence, and only then allows a watering suggestion.
 
-![Petey Plant 3D Botanical Companions showcase](docs/images/petey-live-plant-pals.png)
+```mermaid
+flowchart TD
+    A(["Open a saved plant"]) --> B["Checkup: soil feel, inspection depth, drainage, standing water"]
+    B --> C{"Standing water reported?"}
+    C -->|yes| HOLD["HOLD_WATER"]
+    C -->|no| D{"Mix still moist or wet?"}
+    D -->|yes| HOLD
+    D -->|no| E{"Dry mix reported?"}
+    E -->|no| SOIL["CHECK_SOIL"]
+    E -->|dry| F{"Verified care source for this species?"}
+    F -->|no| UNK["INSUFFICIENT_EVIDENCE"]
+    F -->|yes| G{"Dry at the recommended depth?"}
+    G -->|no| SOIL
+    G -->|yes| J{"Drainage confirmed and saucer checked?"}
+    J -->|no| DRAIN["CHECK_DRAINAGE"]
+    J -->|yes| WATER["WATER_IF_APPROPRIATE"]
+    WATER --> LOG["Record the care event"]
+    HOLD --> LOG
+    SOIL --> ASK["Ask one follow-up question"]
+    DRAIN --> ASK
+    ASK --> B
+    LOG --> DB[("SQLite: plants, observations, care events")]
+    DB --> PAL["Companion expression updates"]
+```
 
-| Companion | Species | Botanical Persona | Key 3D Features |
-|---|---|---|---|
-| **Monstera** | *Monstera deliciosa* | The confident leader | Broad fenestrated leaves, aerial root stems, celebrate & sway animations |
-| **Golden Pothos** | *Epipremnum aureum* | The friendly trailblazer | Trailing vines, heart-shaped variegated foliage, interactive dance loop |
-| **Snake Plant** | *Dracaena trifasciata* | The steady guardian | Upright architectural spears, banded chlorophyll texture, drought postures |
-| **Spider Plant** | *Chlorophytum comosum* | The caring multitasker | Arching variegated blades, runner offshoots, responsive light sensitivity |
-| **Aloe Vera** | *Aloe vera* | The resourceful helper | Succulent rosette geometry, toothed leaf margins, arid hydration state |
-| **Rubber Tree** | *Ficus elastica* | The ambitious believer | Glossy elliptical foliage, structural central trunk, burgundy apical sheaths |
-| **Peacock Plant** | *Goeppertia makoyana* | The elegant diva | Intricate feather patterned calathea foliage, nyctinastic leaf folding |
-| **Areca Palm** | *Dypsis lutescens* | The sunny socialite | Clustered bamboo-style canes, feathery arching fronds, gentle breeze sway |
+| Decision code | Meaning |
+|---|---|
+| `HOLD_WATER` | Standing water, or mix still moist/wet. Do not add water. |
+| `CHECK_SOIL` | No fresh dry reading, or dryness was only measured at the surface. |
+| `CHECK_DRAINAGE` | Drainage holes or the saucer were never confirmed. |
+| `INSUFFICIENT_EVIDENCE` | The species has no verified watering policy in Petey. |
+| `WATER_IF_APPROPRIATE` | Dry at the recommended depth, drainage confirmed, saucer checked. |
+
+A checkup is valid for one hour (`CHECKUP_MAX_AGE`), and an assessment must be confirmed before it becomes a care record. Observation-led watering guidance currently covers *Monstera deliciosa* and golden pothos; other species fall through to `INSUFFICIENT_EVIDENCE` by design.
+
+```mermaid
+flowchart LR
+    UI["React 19 UI"] -->|garden key header| API["FastAPI /api/v1"]
+    API --> POLICY["care_policy.py"]
+    API --> DB[("SQLite garden.sqlite")]
+    UI --> STAGE["React Three Fiber stage"]
+    STAGE --> GLB["8 authored GLB files"]
+    API --> HEALTH["plant_health.py sources"]
+    UI -.->|manual branch only| LENS["Lens: unavailable without a release manifest"]
+```
 
 ---
 
-## 📱 Interactive Workflows & UI Showcase
+## Screens
 
-### 1. Plant Care Profile & 3D Companion Stage
-Selecting any plant in your garden opens its dedicated **Plant Care Profile**. The interactive 3D stage allows you to inspect the plant from any angle, trigger dance animations, and view the complete chronological care ledger.
+### Plant profile and 3D stage
 
-![Petey Plant Care Profile with 3D companion stage and care timeline](docs/images/petey-plant-detail-profile.png)
+Every saved plant opens a profile with its companion on an orbit-controlled stage, its care ledger, and the next estimated check. The stage is one canvas: it detects WebGL2, guards render errors, restores a lost context, honours reduced motion, and falls back to a static 2D botanical card with the same accessible caption when 3D is unavailable.
 
-### 2. Multi-Step Soil Checkup & Care Guidance
-Never guess whether to water. Petey guides you through physical observation questions (surface feel, inspection depth, saucer standing water) and only recommends watering when the physical evidence and drainage verify it is safe.
+![Plant care profile with the 3D companion stage and care timeline](docs/images/petey-plant-detail-profile.png)
 
-![Soil Checkup and physical observation dialog](docs/images/petey-soil-checkup.png)
+### Guided checkup
 
-### 3. Plant Health & Symptom Triage
-When foliage changes, the **Plant Health** triage assistant evaluates symptoms (chlorosis, tip burn, drooping, leaf spots) alongside current lighting, humidity, and substrate moisture to provide actionable, source-cited next steps.
+The checkup asks only what a person can feel and see, then reports the decision and its source. Answering "I haven't checked" is a valid answer that produces a question, not a guess.
 
-![Plant Health conversational triage assistant](docs/images/petey-plant-health-triage.png)
+![Soil checkup dialog with physical observation questions](docs/images/petey-soil-checkup.png)
 
-### 4. Petey Lens Species Identification
-Take a live photograph or upload a picture of a houseplant. Petey Lens strips metadata client-side, allows you to inspect the crop, and matches leaf venation and stem habits against the botanical catalog.
+### Plant Health
 
-![Petey Lens species discovery and trait comparison](docs/images/petey-lens-identifier.png)
+Symptoms, environment and free-text notes become a triage result with citations to extension guidance. The dialog is advisory and leaves the garden record untouched.
 
-### 5. Plant Lab · Biophysical Digital Twin
-Originated during the Meta Global AI Developer Hackathon, **Plant Lab** features a fully interactive 3D terrarium with biophysical sensor simulations, hourly transpiration modeling, vapor pressure deficit (VPD) charts, and the automated **Root Rot Emergency Brake**.
+![Plant Health triage interview](docs/images/petey-plant-health-triage.png)
 
-![Plant Lab biophysical digital twin with terrarium and telemetry](docs/images/petey-biophysical-lab.png)
+### Petey Lens
 
-### 6. Responsive Mobile Greenhouse
-Designed with rigorous 320px–1440px viewport discipline, Petey Plant runs seamlessly on mobile devices with touch navigation, tactile feedback, and accessible contrast ratios.
+Capture, crop and review work today. The species step is a manual search and confirmation; photo identification stays explicitly unavailable until the qualification gate passes.
+
+![Petey Lens capture and species review](docs/images/petey-lens-identifier.png)
+
+### Plant Lab
+
+A separate shell with a top telemetry bar, a growth ledger, one persistent terrarium canvas and a diagnostic sheet. Growth points come from biophysical check-ins, never from watering. The engine models VPD, moisture decay and a simplified Penman-Monteith proxy, and it keeps working offline.
+
+![Plant Lab terrarium with telemetry](docs/images/petey-biophysical-lab.png)
+
+### Responsive shell
+
+The garden shell reflows from 320 px to 1440 px: a five-destination sidebar on desktop, a bottom navigation bar on mobile, and 32 weather atmosphere themes with six landscape archetypes behind the garden.
 
 <p align="center">
-  <img src="docs/images/petey-living-garden-mobile.png" alt="Petey Plant responsive mobile interface" width="380" />
+  <img src="docs/images/petey-living-garden-mobile.png" alt="Petey Plant mobile garden layout" width="380" />
 </p>
 
 ---
 
-## 🛠️ Architecture & Tech Stack
+## The eight flagship Plant Pals
 
-```
-PeteyPlant/
-├── assets/characters/         # Editable Blender 5.2 source files (.blend) and specs
-├── backend/
-│   ├── data/seed_10k_species  # Curated species database with university extension citations
-│   ├── lens_pipeline/         # Offline model qualification & evaluation harness
-│   ├── models/schemas.py      # Pydantic v2 data models
-│   ├── services/              # ML vision, timeseries biophysics, and botanical engine
-│   └── main.py                # FastAPI REST endpoints & local SQLite store
-├── frontend/
-│   ├── src/components/garden/ # GardenApp, 3D InteractivePlantStage, PalCharacter
-│   ├── src/components/lab/    # PlantLab biophysical terrarium & sensor charts
-│   ├── src/lib/three/         # Species asset registry & Three.js shaders
-│   └── verification/          # Playwright test journeys & WCAG contrast audit
-└── docs/                      # Architectural diagrams, workflows, and test reports
-```
+Each companion has an editable Blender source, an exported GLB, a transparent WebP preview and a `spec.json` record. Counts below come from those records.
 
-- **Frontend:** React 19, TypeScript, React Three Fiber (`@react-three/fiber`), Three.js (`three`), Tailwind CSS, Framer Motion, and Lucide React.
-- **Backend:** FastAPI, Python 3.12+, Uvicorn, SQLite, Pydantic v2, and NumPy.
-- **3D Art Pipeline:** Blender 5.2 master models with clean topological quads, baked PBR glTF/GLB exports, and non-destructive modifier stacks.
-- **Verification:** Automated Playwright end-to-end user journeys, WCAG AA contrast audits, and SwiftShader headless visual rendering tests.
+| Companion | Species | Persona | Clips | Triangles | GLB |
+|---|---|---|---|---|---|
+| Monstera | *Monstera deliciosa* | The confident leader | 8 | 39,594 | 1.10 MB |
+| Golden Pothos | *Epipremnum aureum* | The friendly trailblazer | 6 | 16,038 | 0.41 MB |
+| Snake Plant | *Dracaena trifasciata* | The steady guardian | 6 | 37,304 | 0.93 MB |
+| Spider Plant | *Chlorophytum comosum* | The caring multitasker | 6 | 18,256 | 0.44 MB |
+| Aloe Vera | *Aloe vera* | The resourceful helper | 6 | 17,084 | 0.39 MB |
+| Fiddle-Leaf Fig | *Ficus lyrata* | The ambitious believer | 6 | 40,068 | 0.93 MB |
+| Peacock Plant | *Goeppertia makoyana* | The elegant diva | 6 | 43,500 | 1.15 MB |
+| Areca Palm | *Dypsis lutescens* | The sunny socialite | 6 | 45,956 | 0.93 MB |
 
----
+257,800 triangles and 6.27 MB of GLB in total. Clip names are `Idle`, `Notice`, `Curious`, `Concerned`, `Relieved`, `Celebrate`, plus `Blink` and `Return to idle` on the Monstera. Care state maps to a mood, and the mood picks the clip: `Curious`, `Concerned` and `Relieved` override `Idle`, and a recorded care event plays `Celebrate`.
 
-## 📖 Honest Disclosures & Data Provenance
+![The eight live Plant Pals rendered in the garden](docs/images/petey-live-plant-pals.png)
 
-- **Verified Qualitative Data:** 31 of the 79 catalog species carry rigorous, peer-reviewed qualitative care data directly cited to the Missouri Botanical Garden, ASPCA, NC State Extension, RHS, and UF/IFAS Extension.
-- **Deterministic Offline Fallbacks:** No external neural network API calls are required at runtime. When optional cloud endpoints are unconfigured, Petey executes deterministic local fallbacks with exact response shapes and disclosed telemetry headers (`X-Muse-Fallback: true`).
-- **Synthetic Lab Data:** The telemetry curves, sensor values, and historical walks in Plant Lab are clearly labeled synthetic simulations designed to stress-test biophysical equations.
-- **Offline-First Security:** Petey stores plant records in local SQLite and browser storage. Photos uploaded in Petey Lens are processed strictly in-memory and are never retained or used as training data.
+The eight flagships and 50 V5 additions are all registered in the app. The [shared model index](assets/characters/README.md) links every editable Blender master and its spec. Each spec records its GLB, WebP preview and owner review status. The registry holds camera framing and animation mappings. Owner visual approval is pending.
+
+Loading is deliberate: a GLB is fetched on demand, cloned with `SkeletonUtils`, and the clone shares GPU geometry, materials and textures with its cached source. Failures degrade to the procedural companion, so a missing or blocked asset never blocks the care journey.
 
 ---
 
-## 🚀 Quickstart Guide
+## How a companion is built
 
-### 1. Backend (FastAPI)
+1. **Author** an editable `.blend` master under `assets/characters/<species>/source/`, using botanical references for silhouette and growth habit.
+2. **Export** the runtime GLB and preview WebP, then record clips, triangle count and byte size in `spec.json`.
+3. **Register** the species in the asset registry with its camera preset and clip map.
+4. **Check** budgets, files and rendering with the verification scripts before review.
 
 ```bash
+# Build and review a companion (Blender 5.2.2 LTS, background process)
+blender -b --factory-startup --python-exit-code 1 -P tools/blender/build_monstera.py -- \
+  --source assets/characters/monstera/source/monstera.blend \
+  --glb frontend/public/characters/monstera-v3.glb \
+  --renders artifacts/monstera
+
+blender --disable-autoexec -b assets/characters/monstera/source/monstera.blend \
+  --python-exit-code 1 -P tools/blender/review_monstera.py -- \
+  artifacts/monstera --thumbnail frontend/public/characters/monstera-v3-preview.webp
+
+# Audit the registry against the files on disk, then render the flagships and three expansion representatives in a browser
+cd frontend
+node verification/character-assets.mjs
+node verification/characters.mjs
+```
+
+Each species has its own builder under `tools/blender/`. The full argument list and the per-species records live in [tools/blender/README.md](tools/blender/README.md).
+
+---
+
+## Architecture
+
+```text
+PeteyPlant/
+├── assets/characters/<species>/     # Editable Blender source, spec.json, previews
+├── backend/
+│   ├── main.py                      # FastAPI app, health, legacy endpoints, SQLite
+│   ├── services/garden.py           # Garden routes: plants, care, checkups, assessments
+│   ├── services/care_policy.py      # Deterministic watering decisions
+│   ├── services/plant_health.py     # Source-cited symptom triage
+│   ├── services/lens.py             # Lens status and gated identify endpoint
+│   ├── services/timeseries_vpd.py   # VPD, moisture decay, weather logic
+│   └── tests/                       # 391 backend tests
+├── frontend/
+│   ├── src/components/garden/       # GardenApp, stage, checkup, health, Lens, alerts
+│   ├── src/components/lab/          # Plant Lab shell
+│   ├── src/lib/care/                # Client-side care projection
+│   ├── src/lib/three/               # Asset registry, loader, shaders
+│   └── verification/                # Playwright journeys, asset audits, contrast gate
+├── tools/blender/                   # Per-species builders and review scripts
+└── docs/                            # Workflows, release gate, screenshots
+```
+
+**Frontend:** React 19, TypeScript, React Three Fiber, Three.js, Vite, Tailwind, Framer Motion, Lucide.
+**Backend:** FastAPI, Python 3.12+, Uvicorn, SQLite, Pydantic v2, NumPy.
+**Art pipeline:** Blender 5.2.2 LTS masters, original geometry and authored keyframes, vertex-pigmented materials, GLB runtime exports.
+**Verification:** Playwright journeys in Chromium or Edge, asset budget audits, WCAG contrast gate.
+
+| Method | Path | Purpose |
+|---|---|---|
+| `GET` | `/health` | Service status |
+| `GET` | `/api/v1/garden/species` | Catalog search |
+| `GET` `POST` | `/api/v1/garden/plants` | List and create garden plants |
+| `POST` | `/api/v1/garden/plants/{id}/care` | Record a care event |
+| `GET` | `/api/v1/garden/plants/{id}/checkup` | Checkup context and prompt |
+| `POST` | `/api/v1/garden/plants/{id}/assessments` | Run the care policy |
+| `POST` | `/api/v1/garden/plants/{id}/assessments/{aid}/confirm` | Confirm an assessment |
+| `POST` | `/api/v1/plant-health/triage` | Source-cited symptom triage |
+| `GET` | `/api/v1/lens/status` | Lens availability |
+| `POST` | `/api/v1/lens/identify` | Gated identification, unavailable without a release manifest |
+
+Every garden request carries the browser's garden key in a header. The key is random and local: it isolates one browser's data, and clearing site data loses it. Production accounts, recovery and cross-device use are separate work.
+
+---
+
+## Run it
+
+```bash
+# Terminal 1 - backend on http://localhost:8000
 cd backend
 python -m uvicorn main:app --port 8000
-# API available at http://localhost:8000
-# Interactive Swagger docs at http://localhost:8000/docs
-```
 
-### 2. Frontend (Vite + React)
-
-```bash
+# Terminal 2 - frontend on http://localhost:3000
 cd frontend
 npm ci
-npm run dev      # Local dev server at http://localhost:3000
-npm run build    # Production build into frontend/dist/
+npm run dev
 ```
 
-### 3. Verification & Visual Audits
-
-```bash
-# Run backend test suite (391 tests)
-cd backend
-python -m pytest -q
-
-# Run frontend WCAG AA contrast audit
-cd ../frontend
-npm run verify:contrast
-
-# Run visual verification screenshots
-node tools/capture_showcase.mjs
-```
+The Vite dev server proxies `/api/v1/*` to FastAPI on the same origin, so the browser never makes a cross-origin call. Point `PETEY_GARDEN_DB` at another SQLite file to keep test data separate from `backend/garden.sqlite`.
 
 ---
 
-## 📜 License & Acknowledgments
+## Verification
 
-Petey Plant is licensed under the MIT License. See [LICENSE](LICENSE) for details. Special thanks to the extension horticultural programs at NC State, Missouri Botanical Garden, and RHS for published plant care methodologies.
+```bash
+cd backend && python -m pytest -q                 # 391 tests
+cd ../frontend && npm run build                   # tsc --noEmit && vite build
+npm run verify:contrast                           # WCAG AA contrast gate
+
+# With both services running and Playwright Chromium installed
+node verification/garden.mjs                      # garden journey + 320-1440 layouts
+node verification/character-assets.mjs            # asset budgets, clips, files
+node verification/characters.mjs                  # renders flagships and expansion examples
+node verification/plant-tools.mjs                 # checkup and health tools
+node verification/screenshot.mjs                  # 320/768/1440 screenshots
+```
+
+Set `PETEY_BROWSER_CHANNEL=msedge` to run the journeys in an installed Edge instead of the bundled Chromium. `node tools/capture_showcase.mjs` regenerates the screenshots in `docs/images/`.
+
+Recorded evidence for the current working tree includes 395 backend tests, a 58-model asset audit, and the Garden and 3D stage browser checks. The [Antigravity handoff](ANTIGRAVITY_HANDOFF.md) records the exact scope and open work.
+
+---
+
+## Honest limits
+
+- **Lens is NO-GO.** `docs/FLIGHT_READINESS_REPORT.md` records every suite as incomplete or unavailable. The runtime returns `unavailable` without a release manifest, and the app offers manual species search instead. No accuracy number is claimed for photo identification.
+- **Care dates are estimates.** Next-check dates are follow-up suggestions derived from the last recorded observation. They are never moisture readings, sensor values or an automatic watering schedule.
+- **Verified guidance is narrow.** 31 of the 79 catalog species carry cited qualitative care data, and only Monstera and golden pothos have an actionable watering policy. Everything else asks for evidence rather than guessing.
+- **Plant Lab is synthetic.** Its telemetry, sensor walks and growth curves are generated to exercise the biophysics model, and they are labelled as such in the app.
+- **Reminders are preferences, not delivery.** Quiet hours and notification choices are stored locally; the app requests permission but does not run a scheduler.
+- **Open issues are tracked.** `PLANS.md` lists the current gaps, including duplicate care events on a retried write, client-side recommendation staleness in a long-open tab, and missing listbox focus behaviour in the plant switcher.
+- **No physical device, screen reader or deployment has been tested.** Browser verification ran in desktop Chromium and emulated mobile widths.
+
+Petey stores plants in local SQLite and the garden key in browser storage. Lens images are processed in memory and are not retained or used as training data. Sitter access tokens are demo-grade and in-memory.
+
+---
+
+## Working on Petey with OpenCode
+
+The repository's agent skills are available as slash commands, so a workflow can be invoked directly:
+
+```text
+/blender-asset-qa        # mesh and asset review gate before calling a model done
+/blender-export-pipelines # verified GLB export presets and post-export checks
+/ui-ux-pro-max           # layout and interaction guidance for the garden UI
+/systematic-debugging    # isolate a root cause before touching code
+```
+
+Use `@skill-id` when a skill is not present as a command. Regenerate the command files after adding a skill, since commands are static.
+
+---
+
+## License and acknowledgements
+
+Petey Plant is licensed under the MIT License. See [LICENSE](LICENSE) for details. Special thanks to the extension horticultural programs at NC State, Missouri Botanical Garden, RHS, UF/IFAS and University of Maryland Extension for the published plant care methodologies cited in the app.

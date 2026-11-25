@@ -238,14 +238,31 @@ async function main() {
   console.log('📸 3. Capturing Soil Checkup Modal...');
   {
     const page = await createConfiguredPage({ width: 1440, height: 920 });
+    await page.addInitScript(() => {
+      localStorage.setItem('petey-selected-plant-v1', 'plant-spider');
+    });
+    await page.route('**/api/v1/garden/plants/*/checkup', (route) => {
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          plant_id: 'plant-spider',
+          name: 'Balcony Spider Plant',
+          species_id: 'Chlorophytum comosum',
+          drainage: 'yes',
+          check_prompt: 'Feel the top inch of potting mix before watering.',
+          based_on: null,
+        }),
+      });
+    });
     await page.goto('http://127.0.0.1:4173/?view=home', { waitUntil: 'networkidle' });
     await page.waitForSelector('canvas', { timeout: 15000 }).catch(() => {});
     await page.waitForTimeout(2000);
-    // Click update observations button
-    const checkBtn = page.getByRole('button', { name: /Update observations|Check potting mix|Check soil/i }).first();
+    const checkBtn = page.getByRole('button', { name: /Open soil checkup/i }).first();
     if (await checkBtn.isVisible()) {
       await checkBtn.click();
-      await page.waitForTimeout(1000);
+      await page.locator('dialog[open]').waitFor({ timeout: 8000 }).catch(() => {});
+      await page.waitForTimeout(500);
     }
     const targetPath = path.join(IMAGES_DIR, 'petey-soil-checkup.png');
     await page.screenshot({ path: targetPath, fullPage: false });
@@ -349,6 +366,7 @@ async function main() {
     });
 
     await page.goto('http://127.0.0.1:4173/?view=home', { waitUntil: 'networkidle' });
+    await page.addStyleTag({ content: '.lv-stage-speech-wrap, .stage-toast { display: none !important; }' });
     const stageLocator = page.locator('.companion-stage');
     if (await stageLocator.isVisible()) {
       await page.waitForTimeout(1800);

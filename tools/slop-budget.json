@@ -1,0 +1,12 @@
+{
+  "ts_type_escapes": 0,
+  "todo_markers": 0,
+  "console_log": 0,
+  "nondeterminism": 0,
+  "css_raw_hex": 340,
+  "css_px_literals": 1056,
+  "css_important": 10,
+  "largest_ts_file_lines": 1278,
+  "largest_css_file_lines": 4217,
+  "care_decision_authorities": 1
+}
