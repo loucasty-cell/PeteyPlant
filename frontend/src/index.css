@@ -59,6 +59,13 @@
     display: none;
   }
 
+  h1[tabindex='-1']:focus,
+  h2[tabindex='-1']:focus,
+  h3[tabindex='-1']:focus,
+  [tabindex='-1']:focus:not(:focus-visible) {
+    outline: none;
+  }
+
   * {
     scrollbar-width: thin;
     scrollbar-color: transparent transparent;

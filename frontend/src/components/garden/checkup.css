@@ -9,13 +9,13 @@
   padding: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  border: 1px solid #bdc7b9;
-  border-radius: 1rem;
-  color: var(--garden-ink);
-  background: var(--garden-paper);
-  box-shadow: 0 24px 70px #182f2552;
+  border: 1px solid var(--petey-border-strong);
+  border-radius: var(--petey-radius-xl);
+  color: var(--petey-ink);
+  background: var(--petey-ivory);
+  box-shadow: var(--petey-shadow-lg);
 }
-.petey-checkup::backdrop { background: #172e25a3; }
+.petey-checkup::backdrop { background: rgba(17, 30, 22, 0.64); }
 .petey-checkup-header,
 .petey-checkup-body { padding: clamp(1rem, 4vw, 1.5rem); }
 .petey-checkup-header {
@@ -23,14 +23,27 @@
   grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   gap: .75rem;
-  background: #e0e7db;
-  border-bottom: 1px solid #c0cec0;
+  background: var(--petey-forest-soft);
+  border-bottom: 1px solid var(--petey-border);
 }
-.petey-checkup .garden-kicker { margin: 0 0 .15rem; }
+.petey-checkup .garden-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  font-size: .78rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: var(--petey-forest);
+  margin: 0 0 .15rem;
+}
+.petey-checkup .garden-kicker svg,
+.petey-checkup button svg,
+.petey-checkup a svg { width: 1rem; height: 1rem; flex-shrink: 0; }
 .petey-checkup h2, .petey-checkup h3, .petey-checkup p { margin: 0; overflow-wrap: anywhere; }
-.petey-checkup h2 { font-size: clamp(1.65rem, 4vw, 2.45rem); }
+.petey-checkup h2 { font-size: clamp(1.5rem, 3.5vw, 2.15rem); font-family: var(--petey-font-display); }
 .petey-checkup h3 {
-  font: 700 clamp(1.35rem, 3vw, 1.9rem)/1.15 var(--garden-display);
+  font: 700 clamp(1.25rem, 2.8vw, 1.65rem)/1.2 var(--petey-font-display);
   margin: 0;
 }
 .petey-checkup-art {
@@ -38,21 +51,66 @@
   place-items: center;
   width: 3.4rem;
   height: 3.4rem;
-  border-radius: .7rem;
+  border-radius: var(--petey-radius-md);
   overflow: hidden;
-  background: #c7d8c0;
-  color: var(--garden-green);
+  background: var(--petey-botanical-soft);
+  color: var(--petey-forest);
 }
 .petey-checkup-art img { width: 100%; height: 100%; object-fit: cover; }
 .petey-checkup-close {
-  min-width: 44px;
-  min-height: 44px;
+  min-width: var(--petey-touch-min);
+  min-height: var(--petey-touch-min);
   display: grid;
   place-items: center;
-  border-radius: .5rem;
+  border-radius: var(--petey-radius-sm);
 }
-.petey-checkup-close:hover { background: #c7d8c0; }
-.petey-checkup-body { display: grid; gap: 1rem; }
+.petey-checkup-close:hover { background: var(--petey-botanical-soft); }
+.petey-checkup-body { display: grid; gap: 1rem; background: var(--petey-ivory); }
+.petey-checkup .garden-tool-stack { display: grid; gap: .9rem; }
+.petey-checkup .garden-tool-actions { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.petey-checkup .garden-primary,
+.petey-checkup .garden-secondary,
+.petey-checkup .garden-text-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .45rem;
+  min-height: var(--petey-touch-min);
+  padding: .6rem 1rem;
+  border-radius: var(--petey-radius-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+.petey-checkup .garden-primary { background: var(--petey-forest); color: var(--petey-white); }
+.petey-checkup .garden-primary:hover:not(:disabled) { background: var(--petey-forest-hover); }
+.petey-checkup .garden-primary:disabled,
+.petey-checkup .garden-secondary:disabled { opacity: .65; cursor: not-allowed; }
+.petey-checkup .garden-secondary { background: var(--petey-white); color: var(--petey-forest); border: 1px solid var(--petey-border-strong); }
+.petey-checkup .garden-secondary:hover:not(:disabled) { background: var(--petey-forest-soft); }
+.petey-checkup .garden-text-button { color: var(--petey-forest); text-decoration: underline; text-underline-offset: .2rem; }
+.petey-checkup .garden-error {
+  padding: .65rem .8rem;
+  border-radius: var(--petey-radius-sm);
+  background: var(--petey-critical-bg);
+  border: 1px solid var(--petey-critical-border);
+  color: var(--petey-critical-text);
+  font-weight: 600;
+}
+.petey-checkup .garden-tool-notice {
+  padding: .75rem .9rem;
+  border-radius: var(--petey-radius-md);
+  background: var(--petey-forest-soft);
+  border: 1px solid var(--petey-border);
+}
+.petey-checkup .garden-tool-list { margin: .5rem 0 0; padding-left: 1.1rem; display: grid; gap: .4rem; }
+.petey-checkup .garden-tool-source {
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+  color: var(--petey-forest);
+  font-weight: 700;
+  text-decoration: underline;
+}
 .petey-checkup-options {
   display: grid;
   gap: .45rem;
@@ -67,16 +125,17 @@
   align-items: center;
   gap: .65rem;
   padding: .65rem .75rem;
-  min-height: 44px;
-  border-radius: .45rem;
-  border: 1px solid #96a28f;
+  min-height: var(--petey-touch-min);
+  border-radius: var(--petey-radius-sm);
+  border: 1px solid var(--petey-border-strong);
+  background: var(--petey-white);
   cursor: pointer;
 }
-.petey-checkup-options label:has(:checked) { background: var(--garden-sage); border-color: var(--garden-green); }
-.petey-checkup-options input { accent-color: var(--garden-green); flex: none; width: 1rem; height: 1rem; }
-.petey-checkup-evidence summary { cursor: pointer; font-weight: 700; min-height: 44px; padding-block: .6rem; }
-.petey-checkup-evidence small { display: block; color: var(--garden-muted); }
-.petey-checkup-saved { display: flex; align-items: center; gap: .4rem; color: var(--garden-green); }
+.petey-checkup-options label:has(:checked) { background: var(--petey-forest-soft); border-color: var(--petey-forest); }
+.petey-checkup-options input { accent-color: var(--petey-forest); flex: none; width: 1rem; height: 1rem; }
+.petey-checkup-evidence summary { cursor: pointer; font-weight: 700; min-height: var(--petey-touch-min); padding-block: .6rem; }
+.petey-checkup-evidence small { display: block; color: var(--petey-ink-muted); }
+.petey-checkup-saved { display: flex; align-items: center; gap: .4rem; color: var(--petey-forest); }
 .petey-checkup-saved svg { width: 1.1rem; height: 1.1rem; }
 
 @media (max-width: 600px) {
@@ -85,7 +144,7 @@
     margin: 0;
     width: 100%;
     max-height: 94dvh;
-    border-radius: 1rem 1rem 0 0;
+    border-radius: var(--petey-radius-xl) var(--petey-radius-xl) 0 0;
   }
   .petey-checkup-body { padding-bottom: max(1rem, env(safe-area-inset-bottom)); }
   .petey-checkup .garden-tool-actions { width: 100%; }
