@@ -5,7 +5,7 @@
   "commonName": "Zebra Haworthia",
   "rank": "species",
   "version": 1,
-  "design": "Tapering rosette leaves with pale bands limited to the outer faces",
+  "design": "Tapering rosette with smooth inner blade faces and interrupted bands of raised outer tubercles",
   "source": "assets/characters/zebra-haworthia/source/zebra-haworthia.blend",
   "runtime": "frontend/public/characters/zebra-haworthia-v1.glb",
   "thumbnail": "frontend/public/characters/zebra-haworthia-v1-preview.webp",
@@ -21,12 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 394940,
-  "triangles": 16072,
+  "glbBytes": 655864,
+  "triangles": 23886,
   "fallback": 4,
-  "stageScale": 1.1492,
+  "stageScale": 1.1227,
+  "runtimePrimitives": 13,
   "identitySources": [
-    "https://powo.science.kew.org/taxon/77138009-1"
-  ],
-  "runtimePrimitives": 86
+    "https://powo.science.kew.org/taxon/77138009-1",
+    "https://plants.ces.ncsu.edu/plants/haworthiopsis-fasciata/"
+  ]
 }

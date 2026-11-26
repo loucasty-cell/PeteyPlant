@@ -5,7 +5,7 @@
   "commonName": "Bunny Ears Cactus",
   "rank": "species",
   "version": 1,
-  "design": "Flattened oval pads with paired offsets and golden raised areoles",
+  "design": "Joined paired oval cladodes with two-sided, staggered felt areoles and short gold glochid tufts",
   "source": "assets/characters/bunny-ears/source/bunny-ears.blend",
   "runtime": "frontend/public/characters/bunny-ears-v1.glb",
   "thumbnail": "frontend/public/characters/bunny-ears-v1-preview.webp",
@@ -21,12 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 632920,
-  "triangles": 25780,
+  "glbBytes": 705984,
+  "triangles": 21876,
   "fallback": 4,
-  "stageScale": 0.8222,
+  "stageScale": 0.8283,
+  "runtimePrimitives": 14,
   "identitySources": [
-    "https://powo.science.kew.org/taxon/136806-1"
-  ],
-  "runtimePrimitives": 63
+    "https://powo.science.kew.org/taxon/136806-1",
+    "https://plants.ces.ncsu.edu/plants/opuntia-microdasys/"
+  ]
 }

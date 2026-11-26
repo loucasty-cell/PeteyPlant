@@ -2,7 +2,7 @@
 
 **A houseplant companion with living 3D botanical twins.** Petey helps busy people remember when to check the houseplants they already own, record what they actually observe, and get one next step that shows the evidence behind it. Fifty-eight Plant Pals authored in Blender 5.2 react to the care state you record, drawn by React Three Fiber on a single canvas.
 
-[Walk through the workflows](docs/WORKFLOWS.md) · [Browse the Blender models](assets/characters/README.md) · [Read the Lens release gate](docs/FLIGHT_READINESS_REPORT.md) · [Track the roadmap](PLANS.md)
+[Walk through the workflows](docs/WORKFLOWS.md) · [Browse the Blender models](assets/characters/README.md) · [Read the Lens release gate](docs/FLIGHT_READINESS_REPORT.md) · [Follow Project Connect](docs/connect/MASTER_PLAN.md)
 
 ---
 
@@ -15,7 +15,7 @@
 | Screen | What is built and working |
 |---|---|
 | **Home** | One plant, one next action. A care surface states what the recorded observation supports, the estimated next check, and the current garden weather context. |
-| **My Garden** | Save plants from a 79-record catalog, keep them in a hydration cart, and open any plant's profile with its care ledger and 3D companion. |
+| **My Garden** | Save plants from 84 catalog identities, keep them in a hydration cart, and open any plant's profile with its care ledger and companion. The Blender roster covers 58 identities. |
 | **Care & Alerts** | Prioritized care queue with acknowledgeable alerts, explicit "care schedule unavailable" and "nothing scheduled yet" states. No invented water volumes. |
 | **Plant checkup** | Four physical questions — soil feel, inspection depth, drainage, standing water — resolved by a deterministic policy that refuses to recommend water without evidence. |
 | **Plant Health** | A symptom and environment interview that returns source-cited, advisory next steps. It never writes to the saved garden record. |
@@ -61,7 +61,7 @@ flowchart TD
 | `INSUFFICIENT_EVIDENCE` | The species has no verified watering policy in Petey. |
 | `WATER_IF_APPROPRIATE` | Dry at the recommended depth, drainage confirmed, saucer checked. |
 
-A checkup is valid for one hour (`CHECKUP_MAX_AGE`), and an assessment must be confirmed before it becomes a care record. Observation-led watering guidance currently covers *Monstera deliciosa* and golden pothos; other species fall through to `INSUFFICIENT_EVIDENCE` by design.
+A checkup is valid for one hour (`CHECKUP_MAX_AGE`), and an assessment must be confirmed before it becomes a care record. Thirty-one Garden identities have verified watering guidance. Species without a verified source return `INSUFFICIENT_EVIDENCE`.
 
 ```mermaid
 flowchart LR

@@ -5,7 +5,7 @@
   "commonName": "Chinese Money Plant",
   "rank": "species",
   "version": 1,
-  "design": "Petiole-centered coin leaves fan out on long fine stems.",
+  "design": "Satin circular leaves with radial veins and centered petiole attachments to a scarred upright stem.",
   "source": "assets/characters/chinese-money-plant/source/chinese-money-plant.blend",
   "runtime": "frontend/public/characters/chinese-money-plant-v1.glb",
   "thumbnail": "frontend/public/characters/chinese-money-plant-v1-preview.webp",
@@ -21,9 +21,12 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 298768,
-  "triangles": 11870,
+  "glbBytes": 395032,
+  "triangles": 15044,
   "fallback": 7,
-  "stageScale": 1.004,
-  "runtimePrimitives": 29
+  "stageScale": 0.991,
+  "runtimePrimitives": 15,
+  "identitySources": [
+    "https://plants.ces.ncsu.edu/plants/pilea-peperomioides/"
+  ]
 }

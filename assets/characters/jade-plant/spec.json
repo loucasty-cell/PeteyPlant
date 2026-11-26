@@ -5,7 +5,7 @@
   "commonName": "Jade Plant",
   "rank": "species",
   "version": 1,
-  "design": "Asymmetric branched woody habit with opposite fleshy oval leaves",
+  "design": "Grey leaf-scarred bark, living green shoots and obovate leaf pairs with restrained margin tint",
   "source": "assets/characters/jade-plant/source/jade-plant.blend",
   "runtime": "frontend/public/characters/jade-plant-v1.glb",
   "thumbnail": "frontend/public/characters/jade-plant-v1-preview.webp",
@@ -21,12 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 315716,
-  "triangles": 12420,
+  "glbBytes": 699464,
+  "triangles": 24228,
   "fallback": 4,
-  "stageScale": 0.8946,
+  "stageScale": 0.8801,
+  "runtimePrimitives": 14,
   "identitySources": [
-    "https://powo.science.kew.org/taxon/273350-1"
-  ],
-  "runtimePrimitives": 43
+    "https://powo.science.kew.org/taxon/273350-1",
+    "https://plants.ces.ncsu.edu/plants/crassula-ovata/"
+  ]
 }

@@ -116,7 +116,7 @@ Each row is keyed by the editable asset ID. Where the column names a root or bra
 - For each of the 58, record **references attached → model revised → front/back/macro reviewed → runtime export verified**. For art review check recognizable silhouette without the name, documented pigment placement and face difference, continuous joints in orbit, and credible growth at the soil line. Keep a known issue open if any check still fails.
 - Run the Blender source and Three.js asset verifiers. Preserve named clips and their Idle seam, keep each GLB at or below 2,000,000 bytes and 50,000 triangles, and each preview at or below 100,000 bytes. Log geometry and primitive deltas. Keep a single live canvas and keep shelf portraits lazy.
 - Capture the motion and reduced-motion paths at phone and desktop widths, including missing GLB and WebGL loss. On a physical phone, measure render frame time and GPU/thermal behavior for the eight benchmarks before shipping heavier maps broadly. Record the device, resolution, build and comparison under the same lighting and animation.
-- All 58 companions have an authored source and runtime asset. The 13 rows below have received the deeper anatomy and surface pass. The other 45 rows in the roster matrix are the remaining detail backlog.
+- All 58 companions have an authored source and runtime asset. The delivered tables track 37 deeper anatomy and surface passes. The other 21 rows in the roster matrix are the remaining detail backlog.
 
 
 ## Calibration assets delivered
@@ -147,8 +147,8 @@ Editable files, runtime exports and thumbnails are listed in the [shared charact
 
 ## Next production batches
 
-1. Start with **Bunny Ears, Boston Fern and Spider Plant**. Prove pad joint plus dense areole pattern, continuous divided fronds, and parent-to-runner-to-plantlet attachment. Sample the existing assets first so the evidence shows what changed.
-2. Continue by growth habit. Pair one structural model with one pigment-heavy model for each review. Start with the 45 IDs in the matrix that do not appear in the delivered table. Work in small batches so the model builder, canonical exports, registry and stage captures land together. Each art agent owns distinct IDs and writes candidate builds to a separate folder before integration.
+1. Start the next wave with **Areca Palm, Peacock Plant and Split-Leaf Philodendron**. Verify tapered pinnae on attached axes, paired markings with a purple reverse, and lobed blades grounded at a compact crown.
+2. Continue by growth habit. Pair one structural model with one pigment-heavy model for each review. Start with the 21 IDs in the remaining roster. Work in small batches so the model builder, canonical exports, registry and stage captures land together. Each art agent owns distinct IDs and writes candidate builds to a separate folder before integration.
 3. After the 58 species are reviewed, confirm the additional six Garden identities and their references for the 64-species roadmap. Choose cultivar variants based on documented distinguishable anatomy or pigments. Preserve the existing Garden record's species key and plan any per-plant skin as a separate owner-controlled setting whose default is the species artwork.
 
 ## Build and integrate one replica
@@ -168,3 +168,40 @@ Editable files, runtime exports and thumbnails are listed in the [shared charact
 
 5. **Check the actual Three.js stage.** New runtime assets appear through the generated registry and lease-based GLB loader. Keep one Canvas, preserve the authored asset's scale and camera framing, and check that two different assets can switch without a stale model or extra canvas. Use the six named clips and preserve the procedural and static fallbacks. Compare the exported finish to Blender from the same angle under the app's greenhouse lights. Verify 375 px and desktop framing, pointer reaction, reduced motion and WebGL context restore. Use the live FastAPI catalog and save a representative owned plant so mapping survives a real reload.
 6. **Close the record.** Update the asset spec, model index when adding an ID, delivered table and `PLANS.md`. Record the exact commands, output numbers, checked references, previews and any remaining issue. Device QA will compare physical-phone frame time, dropped frames, thermal and battery behavior under controlled conditions. Keep rendered stress or mood tied to supported signals with provenance. A character pose alone cannot establish a diagnosis.
+
+## Project Connect detail passes · 2026-11-27
+
+| Asset | Reviewed change | GLB bytes | Triangles | Primitives |
+| --- | --- | ---: | ---: | ---: |
+| [african-violet](../assets/characters/african-violet/spec.json) | Crenate velvet rosette with short hairs, three branching cymes and paired anthers in five-lobed violet flowers | 1,239,492 | 38,212 | 17 |
+| [aloe](../assets/characters/aloe/spec.json) | Fleshy wedge-section rosette with shallow concave inner faces, rounded outer faces and pale staggered teeth in canteen ceramic | 511,232 | 20,348 | 43 |
+| [baby-rubber-plant](../assets/characters/baby-rubber-plant/spec.json) | A bush of thick glossy, cupped obovate leaves on branching stems with pink sub-peltate petioles | 574,372 | 22,460 | 14 |
+| [boston-fern](../assets/characters/boston-fern/spec.json) | Eleven arching fronds with alternating tapered pinnae, asymmetric basal auricles and shaded rachises | 1,026,488 | 40,700 | 12 |
+| [bunny-ears](../assets/characters/bunny-ears/spec.json) | Joined paired oval cladodes with two-sided, staggered felt areoles and short gold glochid tufts | 705,984 | 21,876 | 14 |
+| [chinese-money-plant](../assets/characters/chinese-money-plant/spec.json) | Satin circular leaves with radial veins and centered petiole attachments to a scarred upright stem | 395,032 | 15,044 | 15 |
+| [dwarf-umbrella-tree](../assets/characters/dwarf-umbrella-tree/spec.json) | Eight compound leaves with seven to nine stalked glossy obovate leaflets on a continuous branched stem | 771,796 | 30,494 | 13 |
+| [flaming-katy](../assets/characters/flaming-katy/spec.json) | Glossy opposite crenate leaves and three attached clusters of coral salverform flowers and buds | 982,868 | 31,580 | 17 |
+| [green-velvet-alocasia](../assets/characters/green-velvet-alocasia/spec.json) | Dark matte sagittate foliage with pale curving veins, greener reverses, and sheathing petioles | 563,508 | 22,040 | 14 |
+| [heartleaf-philodendron](../assets/characters/heartleaf-philodendron/spec.json) | Alternating glossy, subtly veined hearts with free terminal stipules on trailing vines | 922,060 | 36,836 | 15 |
+| [jade-plant](../assets/characters/jade-plant/spec.json) | Grey leaf-scarred bark, living green shoots and obovate leaf pairs with restrained margin tint | 699,464 | 24,228 | 14 |
+| [maranta](../assets/characters/maranta/spec.json) | Oblong low-spreading blades with pale central patches, red radiating veins and burgundy backs | 861,812 | 34,724 | 12 |
+| [orbifolia](../assets/characters/orbifolia/spec.json) | Round pleated blades with bent silver-green sectors, pale undersides and linked petiole hinges | 622,368 | 24,756 | 12 |
+| [parlor-palm](../assets/characters/parlor-palm/spec.json) | Three individually rooted seedlings with stem scars, clasping petiole bases and arched linear pinnae | 935,972 | 37,298 | 13 |
+| [ponytail-palm](../assets/characters/ponytail-palm/spec.json) | Continuous grooved, swollen caudex with 34 narrow folded ribbons curling from its crown | 588,632 | 22,984 | 13 |
+| [rattlesnake-plant](../assets/characters/rattlesnake-plant/spec.json) | Rippling lanceolate blades with alternating large and small oval pigment and maroon reverses | 788,836 | 31,588 | 12 |
+| [satin-pothos](../assets/characters/satin-pothos/spec.json) | Irregular upper-surface silver blotches, plain pale reverses, and attached rootlets on arching vines | 1,112,464 | 44,854 | 15 |
+| [silver-inch-plant](../assets/characters/silver-inch-plant/spec.json) | Two-ranked silver-striped blades with burgundy reverses, closed sheaths and rooting nodes | 1,073,104 | 43,080 | 15 |
+| [silver-monstera](../assets/characters/silver-monstera/spec.json) | Unequal juvenile blades with dark reticulate veins on satin silver fields and connected climbing nodes | 625,604 | 24,662 | 15 |
+| [snake-plant](../assets/characters/snake-plant/spec.json) | Laurentii-inspired rosette with nine upright swords, irregular broken green chevrons, uneven golden margins, olive-rim ceramic and amber inlay eyes | 972,316 | 37,304 | 32 |
+| [spider-plant](../assets/characters/spider-plant/spec.json) | Vittatum-inspired green ribbons with longitudinal grooves, calibrated cream pigment, matte-green backs and two runner-borne daughter rosettes in fluted blue stoneware | 747,984 | 28,432 | 28 |
+| [string-of-hearts](../assets/characters/string-of-hearts/spec.json) | Purple wiry vines with opposite silver-etched hearts, violet reverses and small aerial tubers | 1,232,080 | 43,228 | 15 |
+| [string-of-pearls](../assets/characters/string-of-pearls/spec.json) | Pendent stems with attached fleshy bead leaves, pointed tips and narrow epidermal window stripes | 632,580 | 24,644 | 13 |
+| [zebra-haworthia](../assets/characters/zebra-haworthia/spec.json) | Tapering rosette with smooth inner blade faces and interrupted bands of raised outer tubercles | 655,864 | 23,886 | 13 |
+
+The four-week dependency plan and acceptance evidence are recorded in [Project Connect](connect/MASTER_PLAN.md). Per-model specs preserve botanical references. On Spider Plant, the two hanging rosettes depict naturally produced plantlets. The Blender source check confirms each rosette attaches to a runner and inherits the crown motion. [University of Wisconsin Extension](https://hort.extension.wisc.edu/articles/spider-plant-chlorophytum-comosum/)
+
+[Spider Plant in the live 375 px Garden stage](images/petey-spider-plant-mobile.png)
+
+### Remaining roster · 21 detailed passes
+
+areca-palm, arrowhead-plant, chinese-evergreen, cylindrical-snake, dragon-tree, fishbone-prayer-plant, flamingo-flower, kentia-palm, lady-palm, money-tree, monstera, peace-lily, peacock-plant, pothos, split-leaf-philodendron, stromanthe, wax-plant, weeping-fig, whale-fin, white-bird-of-paradise, zz-plant.

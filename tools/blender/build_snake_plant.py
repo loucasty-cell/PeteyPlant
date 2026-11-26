@@ -23,17 +23,22 @@ def linear_color(hex_color):
 
 
 def leaf_pigment(t, u, seed, back):
-    wave = t * (10.5 + seed * .47) + .14 * math.sin(u * 3.3 + seed) + .07 * math.cos(u * 12 + t * 22)
-    band = .5 + .5 * math.sin(math.tau * (wave + seed * .21))
-    band = band ** 1.8 * (.70 + .30 * math.cos(u * 6 - t * 15) ** 2)
+    # Warped bands split into unequal chevrons and fade at occasional crossings.
+    off_center = u - .12 * math.sin(t * 8 + seed)
+    phase = t * (9.7 + seed * .44) - .23 * abs(off_center)
+    phase += .13 * math.sin(t * 29 + seed) + .10 * math.sin(u * 9 + t * 19)
+    band = (.5 + .5 * math.sin(math.tau * (phase + seed * .21))) ** 1.55
+    interrupted = .5 + .5 * math.sin(u * 11.7 + t * 53.4 + seed)
+    band *= .60 + .40 * interrupted
     dark = linear_color("225135" if not back else "315741")
     light = linear_color("7c9e6c" if not back else "6c8c63")
     center = dark.lerp(light, band * (.76 + .16 * math.sin(t * 19 + seed) ** 2))
-    margin_width = .80 + .04 * math.sin(t * 25 + seed) + .024 * math.cos(t * 48)
-    margin = max(0.0, min(1.0, (abs(u) - margin_width) / .14))
+    margin_width = .79 + .044 * math.sin(t * 21 + seed + .7 * u) + .019 * math.cos(t * 48)
+    margin = max(0.0, min(1.0, (abs(u) - margin_width) / .17))
     gold = linear_color("c7b951").lerp(linear_color("ebdc75"), .48 + .27 * math.sin(t * 35 + seed))
     color = center.lerp(gold, margin)
-    color *= .75 + .25 * min(t * 5, 1.0)
+    longitudinal_grain = 1.0 + .038 * math.cos(24 * u + seed) * math.sin(7 * t + u)
+    color *= (.75 + .25 * min(t * 5, 1.0)) * longitudinal_grain
     return (*color, 1.0)
 
 

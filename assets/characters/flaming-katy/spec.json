@@ -5,7 +5,7 @@
   "commonName": "Flaming Katy",
   "rank": "species",
   "version": 1,
-  "design": "Succulent basal foliage with dense clusters of small four-lobed coral flowers",
+  "design": "Glossy opposite crenate leaves and three attached clusters of coral salverform flowers and buds",
   "source": "assets/characters/flaming-katy/source/flaming-katy.blend",
   "runtime": "frontend/public/characters/flaming-katy-v1.glb",
   "thumbnail": "frontend/public/characters/flaming-katy-v1-preview.webp",
@@ -21,12 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 527484,
-  "triangles": 21428,
+  "glbBytes": 982868,
+  "triangles": 31580,
   "fallback": 4,
-  "stageScale": 0.9972,
+  "stageScale": 1.0229,
+  "runtimePrimitives": 17,
   "identitySources": [
-    "https://powo.science.kew.org/taxon/274279-1"
-  ],
-  "runtimePrimitives": 116
+    "https://powo.science.kew.org/taxon/274279-1",
+    "https://plants.ces.ncsu.edu/plants/kalanchoe-blossfeldiana/"
+  ]
 }

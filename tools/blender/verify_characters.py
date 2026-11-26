@@ -122,6 +122,25 @@ def verify_thanksgiving_cactus(scene):
             assert (tip - axis * .012 - tube.data.splines[0].bezier_points[0].co).length < 1e-6
 
 
+def verify_spider_plant(scene):
+    mother = scene.objects["Mother rosette / sixteen ribbon leaves"]
+    rosettes = [mother]
+    for index in (1, 2):
+        runner = scene.objects[f"Arching stolon {index}"]
+        pivot = scene.objects[f"Plantlet {index} pivot"]
+        daughter = scene.objects[f"Daughter rosette {index}"]
+        assert runner.parent == pivot.parent == mother.parent and daughter.parent == pivot
+        assert (runner.data.vertices[-1].co - pivot.location).length < 1e-6, (
+            f"{pivot.name} no longer meets its runner"
+        )
+        rosettes.append(daughter)
+    for rosette in rosettes:
+        colors = rosette.data.color_attributes["Ribbon pigments"]
+        assert colors.domain == "POINT" and len(colors.data) == len(rosette.data.vertices)
+        assert {polygon.material_index for polygon in rosette.data.polygons} == {0, 1}
+        assert len({tuple(round(channel, 3) for channel in sample.color) for sample in colors.data}) > 40
+
+
 def main():
     specs = sorted((ROOT / "assets/characters").glob("*/spec.json"))
     assert specs, "Missing character specs"
@@ -139,6 +158,8 @@ def main():
                 verify_orchid(scene)
             if spec["id"] == "thanksgiving-cactus":
                 verify_thanksgiving_cactus(scene)
+            if spec["id"] == "spider-plant":
+                verify_spider_plant(scene)
         except AssertionError as error:
             raise AssertionError(f"{spec['id']}: {error}") from error
         print(f"{spec['id']}: Idle seam {seam:.7f}, sampled motion {motion:.5f}", flush=True)

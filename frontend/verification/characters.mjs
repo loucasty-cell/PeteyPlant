@@ -17,11 +17,10 @@ const representativeExpansion = [
   'moth-orchid', 'golden-barrel', 'echeveria',
   'mini-monstera', 'dieffenbachia', 'birds-nest-fern', 'rubber-plant', 'thanksgiving-cactus',
 ];
-const authoredSpecies = SPECIES_ASSET_MANIFEST.filter(entry =>
-  FLAGSHIP_SPECIES_MANIFEST.includes(entry) || representativeExpansion.includes(entry.assetId));
-if (process.env.PETEY_TEST_EXPANSION === '1') {
-  assert.equal(authoredSpecies.length, FLAGSHIP_SPECIES_MANIFEST.length + representativeExpansion.length);
-}
+const authoredSpecies = process.env.PETEY_TEST_EXPANSION === '1'
+  ? SPECIES_ASSET_MANIFEST.filter(entry => entry.modelUrl)
+  : SPECIES_ASSET_MANIFEST.filter(entry =>
+    FLAGSHIP_SPECIES_MANIFEST.includes(entry) || representativeExpansion.includes(entry.assetId));
 const errors = [];
 const plants = authoredSpecies.map(entry => ({
   id: `stage-${entry.assetId}`,
@@ -128,7 +127,7 @@ try {
   await noPreview.locator('.stage-fallback-card svg').waitFor();
   assert.equal(await noPreview.locator('.companion-stage canvas').count(), 0);
   assert.deepEqual(errors, []);
-  console.log('Authored model switching, single canvas, WebGL recovery, reduced motion, procedural fallback, and both static fallbacks passed.');
+  console.log(`${authoredSpecies.length} authored models at desktop and mobile widths. Single canvas, WebGL recovery, reduced motion, procedural fallback, and both static fallbacks passed.`);
 } finally {
   await browser.close();
 }

@@ -5,7 +5,7 @@
   "commonName": "Rattlesnake Plant",
   "rank": "species",
   "version": 1,
-  "design": "Narrow rippled blades with alternating oval spots and purple backs.",
+  "design": "Rippling lanceolate blades with alternating large and small oval pigment and maroon reverses.",
   "source": "assets/characters/rattlesnake-plant/source/rattlesnake-plant.blend",
   "runtime": "frontend/public/characters/rattlesnake-plant-v1.glb",
   "thumbnail": "frontend/public/characters/rattlesnake-plant-v1-preview.webp",
@@ -21,13 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 770608,
-  "triangles": 30660,
+  "glbBytes": 788836,
+  "triangles": 31588,
   "fallback": 6,
-  "stageScale": 0.8519,
+  "stageScale": 0.8679,
+  "runtimePrimitives": 12,
   "identitySources": [
     "https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:77174285-1",
     "https://plants.ces.ncsu.edu/plants/goeppertia-insignis/"
-  ],
-  "runtimePrimitives": 12
+  ]
 }

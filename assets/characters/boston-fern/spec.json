@@ -5,7 +5,7 @@
   "commonName": "Boston Fern",
   "rank": "species",
   "version": 1,
-  "design": "A layered fountain of long arching fronds with dense paired pinnae.",
+  "design": "Eleven arching fronds with alternating tapered pinnae, asymmetric basal auricles and shaded rachises.",
   "source": "assets/characters/boston-fern/source/boston-fern.blend",
   "runtime": "frontend/public/characters/boston-fern-v1.glb",
   "thumbnail": "frontend/public/characters/boston-fern-v1-preview.webp",
@@ -21,9 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 752856,
-  "triangles": 29032,
+  "glbBytes": 1026488,
+  "triangles": 40700,
   "fallback": 3,
-  "stageScale": 1.0074,
-  "runtimePrimitives": 12
+  "stageScale": 0.9924,
+  "runtimePrimitives": 12,
+  "identitySources": [
+    "https://plants.ces.ncsu.edu/plants/nephrolepis-exaltata/",
+    "https://hort.extension.wisc.edu/articles/boston-fern-nephrolepis-exaltata-bostoniensis/"
+  ]
 }

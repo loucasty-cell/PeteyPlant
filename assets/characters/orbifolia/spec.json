@@ -5,7 +5,7 @@
   "commonName": "Orbifolia Prayer Plant",
   "rank": "species",
   "version": 1,
-  "design": "Near-round silver-banded discs on ascending petioles.",
+  "design": "Round pleated blades with bent silver-green sectors, pale undersides and linked petiole hinges.",
   "source": "assets/characters/orbifolia/source/orbifolia.blend",
   "runtime": "frontend/public/characters/orbifolia-v1.glb",
   "thumbnail": "frontend/public/characters/orbifolia-v1-preview.webp",
@@ -21,12 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 695404,
-  "triangles": 27724,
+  "glbBytes": 622368,
+  "triangles": 24756,
   "fallback": 6,
-  "stageScale": 0.8284,
+  "stageScale": 0.8472,
+  "runtimePrimitives": 12,
   "identitySources": [
+    "https://www.rhs.org.uk/plants/357191/goeppertia-orbifolia/details",
     "https://plants.ces.ncsu.edu/plants/goeppertia-orbifolia/"
-  ],
-  "runtimePrimitives": 12
+  ]
 }

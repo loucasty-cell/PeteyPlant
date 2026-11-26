@@ -105,6 +105,12 @@ class Foliage:
                 breadth = math.sin(math.pi * t ** .91) ** .55 * (1 - .49 * ease((t - .86) / .12))
             elif kind == 'fanlet':
                 breadth = math.sin(math.pi * t ** 2.1) ** .52
+            elif kind == 'fern-pinna':
+                breadth = math.sin(math.pi * t ** .64) ** .82
+            elif kind == 'obovate':
+                breadth = math.sin(math.pi * t ** 1.38) ** .67
+            elif kind == 'maranta':
+                breadth = math.sin(math.pi * t) ** .53 * (1 - .66 * ease((t - .92) / .075))
             else:
                 breadth = math.sin(math.pi * t ** .80) ** .78
             arch = math.sin(math.pi * t)
@@ -115,6 +121,9 @@ class Foliage:
                 if kind == 'banana' and edge > .32:
                     cuts = (.49, .68, .78) if u < 0 else (.58, .72, .87)
                     ripple *= 1 - .41 * max(math.exp(-((t - cut) / .015) ** 2) for cut in cuts) * edge ** 2
+                if kind == 'fern-pinna':
+                    # The forward margin carries the shallow basal auricle.
+                    ripple *= 1 + .34 * (u > 0) * math.exp(-((t - .16) / .14) ** 2)
                 x = width * breadth * u * ripple
                 thickness = max(.0018, width * .017) * (.63 + .62 * (1 - u * u))
                 center = start + direction * t
@@ -124,24 +133,56 @@ class Foliage:
                                              direction.z * t + lift * arch))
                     if face < 0:
                         thickness += .012 * math.exp(-((u / .10) ** 2)) * (1 - t)
-                center += front * (bow * arch - fold * u * u * arch)
-                points.append(center + right * (x + .030 * arch * math.sin(seed)) + front * (face * thickness))
                 shade = top.lerp(highlight, ease(.22 + .27 * math.sin(math.pi * t) - .26 * edge + .07 * math.sin(19 * t + u * 7 + seed)))
                 stripe = t - .10 * edge + .012 * math.sin(9 * u + seed)
                 pigment_band = .5 + .5 * math.cos(math.tau * (stripe * 7.1 + .11 * seed))
                 midrib = math.exp(-((u / .066) ** 2))
+                relief = 0
                 if pattern == 'orbifolia':
-                    shade = shade.lerp(highlight, .85 * ease((pigment_band - .23) * 1.68))
+                    # Pale silver sectors follow the direction of the secondary veins,
+                    # widening through each rounded shoulder rather than repeating as bars.
+                    phase = (t - (.16 + .025 * math.sin(seed)) * edge ** 1.32) * 7.8
+                    phase += .12 * math.sin(t * 13 + seed) + .065 * u
+                    sector = .5 + .5 * math.cos(math.tau * phase)
+                    silver = ease((sector - .22) * 1.52) * (.83 + .12 * math.sin(seed + t * 9))
+                    shade = shade.lerp(highlight, silver * ease(t * 14) * ease((1 - t) * 17))
+                    rib = math.exp(-((sector / .28) ** 2))
+                    relief = (.0027 * rib * edge + .0046 * midrib) * arch
                 elif pattern == 'rattlesnake':
-                    paired = (stripe * 8.5 + .15 * (u > 0)) % 1 - .5
-                    size = .25 + .074 * math.sin(math.floor(stripe * 8.5) * math.pi / 2)
-                    ellipse = (paired / size) ** 2 + ((edge - .53) / .34) ** 2
-                    shade = shade.lerp(dark, ease((1.34 - ellipse) * 1.65))
+                    phase = (t - .039 * edge) * 5.8 + .058 * u + .025 * math.sin(seed)
+                    large = (phase % 1 - .5) / (.336 + .028 * math.sin(seed + math.floor(phase)))
+                    small = ((phase + .5) % 1 - .5) / .165
+                    outer_oval = large ** 2 + ((edge - .56) / .355) ** 2
+                    inner_oval = small ** 2 + ((edge - .31) / .198) ** 2
+                    spots = ease((1.14 - min(outer_oval, inner_oval)) * 2.65)
+                    shade = shade.lerp(dark, .93 * spots * ease(t * 20) * ease((1 - t) * 13))
+                    relief = (.006 * math.sin(t * 43 + seed + u * .46) * edge ** 2
+                              + .0035 * midrib) * arch
+                elif pattern == 'boston':
+                    longitudinal = .63 + .37 * math.sin(2.27 * t + seed) ** 2
+                    shade = shade.lerp(highlight, .36 * arch * longitudinal)
+                    shade = shade.lerp(dark, .24 * edge * (1 - t))
+                    relief = .003 * midrib * arch
                 elif pattern == 'fishbone':
                     shade = shade.lerp(dark, .91 * ease((pigment_band - .43) * 2.7) * ease((edge - .05) * 6))
                 elif pattern == 'maranta':
-                    shade = shade.lerp(dark, .74 * ease((edge - .15) * 2.1))
-                    shade = shade.lerp(vein, .88 * ease((pigment_band - .82) * 5.5) * ease((.93 - edge) * 4))
+                    sweep = t - .19 * edge ** 1.26 + .015 * u
+                    position = (sweep * 7.6 + .13 * math.sin(11 * t + seed)) % 1 - .5
+                    rib = math.exp(-((position / (.093 + .028 * (1 - edge))) ** 2))
+                    track = ease((.44 - edge) * 6) * (.62 + .38 * math.cos(math.tau * sweep * 8.1) ** 2)
+                    margin = ease((edge - .78) * 4.8)
+                    shade = shade.lerp(dark, .85 * ease((edge - .12) * 6))
+                    shade = shade.lerp(highlight, max(track * .76, margin * .39))
+                    shade = shade.lerp(vein, .84 * rib * ease((.95 - edge) * 4) * ease(t * 10) * ease((1 - t) * 10))
+                    relief = arch * (.0045 * midrib + .0024 * rib)
+                elif pattern == 'parlor':
+                    streak = .5 + .5 * math.cos((u + .17 * math.sin(t * 3 + seed)) * 9)
+                    shade = shade.lerp(highlight, .27 * streak * arch)
+                    relief = arch * .0032 * midrib
+                elif pattern == 'umbrella':
+                    ray = .5 + .5 * math.cos(math.tau * (t - .12 * edge) * 10)
+                    shade = shade.lerp(highlight, .19 * ray ** 4 * arch)
+                    relief = arch * (.004 * midrib + .0015 * ray ** 4 * edge)
                 elif pattern == 'maidenhair':
                     # Fine forked veins spreading out into each fanlet.
                     ray = .5 + .5 * math.cos(math.pi * u * (3 + 2 * t))
@@ -152,11 +193,20 @@ class Foliage:
                 elif nest:
                     ray = .5 + .5 * math.cos(math.tau * (t - .10 * edge) * 16)
                     shade = shade.lerp(highlight, .16 * ray ** 3 * arch)
+                center += front * (bow * arch - fold * u * u * arch + relief)
+                lateral_drift = .030 * arch * math.sin(seed) if kind != 'fern-pinna' else .028 * width * arch * u
+                points.append(center + right * (x + lateral_drift) + front * (face * thickness))
                 if not (pattern == 'stromanthe'):
                     shade = shade.lerp(vein, midrib * (.88 if nest else .78 if pattern == 'maranta' else .51))
                 shade = shade.lerp(dark, ease((edge - .90) * 6) * .34)
                 if face < 0:
                     shade = reverse.lerp(shade, .18 + .12 * midrib)
+                    if pattern == 'orbifolia':
+                        shade = reverse.lerp(highlight, .16 * silver).lerp(vein, .20 * midrib)
+                    if pattern == 'rattlesnake':
+                        shade = reverse.lerp(dark, .12 * spots).lerp(vein, .16 * midrib)
+                    if pattern == 'maranta':
+                        shade = reverse.lerp(vein, .18 * midrib + .13 * rib)
                     if nest:
                         shade = shade.lerp(vein, .70 * midrib)
                     if pattern == 'nest-sori':
@@ -168,17 +218,18 @@ class Foliage:
             colors.append(tones)
         self.sweep(rings, colors, start, end)
 
-    def finish(self, crown, name, roughness=.48):
-        coating = material(name + " pigments", "ffffff", roughness, .135)
+    def finish(self, crown, name, roughness=.48, *, coating=None):
+        if coating is None:
+            coating = material(name + " pigments", "ffffff", roughness, .135)
+            shader = next(node for node in coating.node_tree.nodes if node.type == "BSDF_PRINCIPLED")
+            attribute = coating.node_tree.nodes.new("ShaderNodeVertexColor")
+            attribute.layer_name = "Botanical pigments"
+            coating.node_tree.links.new(attribute.outputs["Color"], shader.inputs["Base Color"])
         object = mesh(name, self.vertices, self.faces, coating, crown)
         mesh_data = object.data
         color = mesh_data.color_attributes.new(name="Botanical pigments", type="FLOAT_COLOR", domain="POINT")
         mesh_data.color_attributes.active_color = color
         color.data.foreach_set("color", [component for rgb in self.colors for component in (*rgb, 1)])
-        shader = next(node for node in coating.node_tree.nodes if node.type == "BSDF_PRINCIPLED")
-        attribute = coating.node_tree.nodes.new("ShaderNodeVertexColor")
-        attribute.layer_name = color.name
-        coating.node_tree.links.new(attribute.outputs["Color"], shader.inputs["Base Color"])
         return object
 
 
@@ -197,31 +248,55 @@ def prayer(crown, name, pattern, palette, layouts, petiole, *, kind="oval", wavi
     leaves.finish(crown, name)
 
 
+def prayer_layers(crown, name, pattern, palette, layouts, petiole, *, kind, waviness, roughness):
+    stems = Foliage()
+    colors = pigment(palette)
+    stem_color = linear_color(petiole)
+    coating = None
+    for index, (base, end, width, exposure) in enumerate(layouts):
+        hinge, end = Vector(base), Vector(end)
+        direction = (end - hinge).normalized()
+        root = Vector((hinge.x * .17, hinge.y * .19, -.046))
+        bend = root.lerp(hinge, .65) + Vector((-.026, .016, .048))
+        stems.tube((root, root.lerp(bend, .54), bend, bend.lerp(hinge, .65), hinge), .019, stem_color, .62)
+        stems.tube((hinge - direction * .037, hinge + direction * .017), .019, colors[3], .68)
+        leaf = Foliage()
+        leaf.blade(hinge - direction * .018, end, width, colors,
+                   normal=(.22 * math.sin(index * 1.9), -exposure, .71), kind=kind,
+                   pattern=pattern, seed=index * 1.28, wave=waviness,
+                   rows=40 if kind == "rounded" else 49, columns=17 if kind == "maranta" else 15,
+                   bow=.090 if kind == "rounded" else .053, fold=.13 if kind == "rounded" else .045)
+        obj = leaf.finish(crown, f"{name} blade {index + 1:02d}", roughness, coating=coating)
+        if coating is None:
+            coating = obj.data.materials[0]
+    stems.finish(crown, name + " petioles and pulvinus joints", coating=coating)
+
+
 def orbifolia(crown):
-    prayer(crown, "Orbifolia silver discs", 'orbifolia', "607c4b b8caa0 315b42 aac598 a0ac79", [
-        ((-.10,.14,.91),(-.33,.19,1.77),.47,1), ((.33,.09,.71),(.83,.04,1.49),.48,1),
-        ((-.39,.04,.64),(-.91,.10,1.32),.47,1), ((.02,-.19,.49),(.09,-.62,1.12),.40,1),
-        ((.42,.28,.49),(.96,.45,1.03),.37,-.5), ((-.34,.35,.44),(-.77,.64,.90),.35,-.35),
-        ((.20,.24,.97),(.41,.43,1.58),.36,1),
-    ], "758a57", kind="rounded", waviness=.04)
+    prayer_layers(crown, "Orbifolia", 'orbifolia', "3a684e a2bc9b 28553c 779b67 9eaf91", [
+        ((-.11,.16,.87),(-.35,.24,1.71),.43,1), ((.28,.08,.63),(.80,.12,1.37),.46,1),
+        ((-.32,.02,.60),(-.98,.13,1.30),.44,.69), ((.03,-.23,.39),(.19,-.72,1.09),.38,1),
+        ((.36,.23,.46),(.98,.48,1.04),.36,-.65), ((-.33,.37,.39),(-.86,.66,.85),.35,-.48),
+        ((.19,.27,.91),(.49,.50,1.63),.31,.52),
+    ], "6b8854", kind="rounded", waviness=.047, roughness=.43)
 
 
 def rattlesnake(crown):
-    prayer(crown, "Rattlesnake spotted lancelets", 'rattlesnake', "a5b85f c0cf7f 234c34 7d9f51 793a58", [
-        ((-.06,.12,.78),(-.28,.26,1.70),.15,1), ((.18,.03,.69),(.75,.02,1.56),.16,1),
-        ((-.26,-.01,.58),(-.90,.01,1.31),.17,1), ((.06,-.19,.49),(.30,-.62,1.41),.17,1),
-        ((.29,.26,.43),(.98,.61,1.15),.15,-1), ((-.24,.28,.47),(-.86,.61,1.35),.14,-1),
-        ((.12,.23,.81),(.26,.69,1.69),.14,1), ((-.13,-.23,.43),(-.39,-.75,1.08),.12,1),
-    ], "715951", kind="ribbon", waviness=.14)
+    prayer_layers(crown, "Rattlesnake", 'rattlesnake', "9cab60 b8c77e 20492f 789654 632b47", [
+        ((-.10,.17,.58),(-.25,.21,1.60),.129,1), ((.19,.02,.51),(.73,.10,1.41),.143,1),
+        ((-.26,-.04,.49),(-.91,-.07,1.07),.142,1), ((.06,-.24,.37),(.26,-.81,1.24),.144,1),
+        ((.30,.30,.34),(.97,.71,.97),.131,-.94), ((-.27,.31,.40),(-.92,.72,1.24),.132,-1),
+        ((.12,.28,.72),(.31,.64,1.65),.123,.82), ((-.16,-.25,.33),(-.53,-.64,1.06),.120,.91),
+    ], "745858", kind="ribbon", waviness=.145, roughness=.50)
 
 
 def maranta(crown):
-    prayer(crown, "Maranta red herringbone", 'maranta', "4c6c43 a8b661 234539 d67773 7c4958", [
-        ((-.10,.16,.66),(-.35,.28,1.32),.33,1), ((.36,-.04,.52),(.89,-.20,1.07),.33,1),
-        ((-.44,-.02,.48),(-1.00,-.15,.83),.30,1), ((.01,-.33,.35),(.18,-.76,.82),.29,1),
-        ((.42,.36,.39),(1.01,.52,.65),.26,-1), ((-.43,.31,.41),(-.97,.51,.63),.27,-.8),
-        ((.09,.16,.70),(.40,.47,1.35),.30,1), ((.03,.53,.39),(.05,.95,.75),.25,-.7),
-    ], "755640", waviness=.03)
+    prayer_layers(crown, "Maranta", 'maranta', "456b48 b1bf6e 244e38 dd6e83 733a50", [
+        ((-.10,.18,.52),(-.35,.27,1.30),.282,1), ((.38,-.04,.38),(.94,-.18,.94),.290,1),
+        ((-.43,-.03,.34),(-1.08,-.17,.71),.264,1), ((.02,-.29,.25),(.17,-.84,.74),.247,1),
+        ((.41,.29,.32),(1.02,.58,.58),.246,-1), ((-.42,.30,.37),(-.99,.55,.65),.252,-.82),
+        ((.10,.20,.59),(.45,.46,1.19),.239,.84), ((.04,.43,.36),(.05,.99,.80),.22,-.74),
+    ], "6c7651", kind="maranta", waviness=.027, roughness=.51)
 
 
 def ctenanthe(crown):
@@ -268,15 +343,46 @@ def pinnate(plants, start, direction, reach, rise, droop, pairs, spread, palette
 
 
 def boston(crown):
-    fern = Foliage()
-    tones = pigment('428552 73ae61 295f43 8fa15f 376948')
-    for i in range(10):
-        direction = radial(i * GOLDEN + .22)
+    palettes = (
+        pigment('327444 6fa451 284e39 759458 648951'),
+        pigment('437c42 7da853 2c5838 85a460 759354'),
+        pigment('66914a 96b968 3c6843 a1ad62 7fa568'),
+    )
+    coating = None
+    for i in range(11):
+        fern = Foliage()
+        heading = radial(i * GOLDEN + .26)
+        side_axis = UP.cross(heading)
         layer = i % 3
-        pinnate(fern, direction * .047 - UP * .025, direction, (1.09, .89, .63)[layer],
-                (.86, 1.18, 1.42)[layer], (.75, .47, .24)[layer], 18 - layer * 2, .21 + layer * .018,
-                tones, seed=i * .66)
-    fern.finish(crown, "Boston fern arching pinnae", .53)
+        tones = palettes[layer]
+        reach = (1.19, .90, .63)[layer] * (1 + .077 * math.sin(4.3 * i))
+        rise = (.95, 1.16, 1.38)[layer]
+        droop = (.93, .59, .32)[layer] + .051 * math.cos(2.4 * i)
+        origin = heading * .072 - UP * .033
+        curve = frond_path(origin, heading, reach, rise, droop)
+        def path(t):
+            return curve(t) + side_axis * (.10 * math.sin(1.13 * i) * t ** 1.45)
+        ranks = (30, 27, 23)[layer]
+        points = [.18 + j * .775 / (ranks - 1) for j in range(ranks)]
+        fern.tube([path(t) for t in (0, .08, *points, 1)], .014, tones[3], .09, 6)
+        for j, t in enumerate(points):
+            side = 1 if j % 2 else -1
+            envelope = math.sin(math.pi * (.041 + .97 * (t - .16) / .84)) ** .85
+            span = (.223 + layer * .018) * (.095 + .905 * envelope)
+            span *= 1 + .082 * math.sin(i * 1.9 + j * 2.1)
+            base = path(t)
+            tangent = (path(t + .015) - path(t - .015)).normalized()
+            tip = base + side * side_axis * span + tangent * (.48 * span)
+            tip += UP * (.21 * span * math.sin(i + j * .7) - .08 * span)
+            fern.blade(base - side * side_axis * .005, tip, span * .224, tones,
+                       kind="fern-pinna", pattern="boston", normal=(.11 * side, -.18, 1),
+                       rows=6, columns=4, bow=span * .115, fold=span * .19,
+                       wave=.067, seed=.63 * i + .44 * j)
+        fern.blade(path(.91), path(1) + heading * .08, .027, tones, kind="fern-pinna",
+                   pattern="boston", rows=6, columns=4, bow=.016, fold=.007)
+        obj = fern.finish(crown, f"Boston fern frond {i + 1:02d}", .55, coating=coating)
+        if coating is None:
+            coating = obj.data.materials[0]
 
 
 def bird_nest(crown):
@@ -409,17 +515,52 @@ def rabbit_fern(crown):
 
 
 def parlor(crown):
-    palm = Foliage()
-    colors = pigment('49794d 76a060 2e5e46 8e9d61 52774d')
-    for i in range(8):
-        direction = radial(i * GOLDEN + .15)
-        lean = radial(i % 3 * 2.13) * .18
-        height = (.34, .57, .75)[i % 3]
-        base = lean + UP * height
-        palm.tube((lean * .61 - UP * .023, lean * .88 + UP * height * .49, base), .031 - .004 * (i % 3), colors[3], .74)
-        pinnate(palm, base, direction, .78 + .09 * (i % 2), .91 - .06 * (i % 3), .16, 9, .25,
-                colors, style='palm', seed=i * .52)
-    palm.finish(crown, "Parlor palm clustered fine canes", .49)
+    mature = pigment('457d4d 76a661 2d593f 84a469 597c55')
+    young = pigment('63924e 9db572 447047 a7b573 6a8e55')
+    cane_green, scar = pigment('729557 a9af73')
+    trunks = Foliage()
+    foliage_coating = None
+    for seedling, (height, offset, phase) in enumerate(((.84, .21, .28), (.68, .25, 2.46), (.49, .22, 4.54))):
+        outward = radial(phase)
+        root = outward * offset - UP * .031
+        nodes = [root + outward * (.086 * t ** 2) + UP * (height * t) for t in (0, .23, .45, .63, .79, .91, 1)]
+        radius = .031 - .004 * seedling
+        trunks.tube(nodes, radius, cane_green, .76, 10)
+        for index in range(1, 4):
+            center = nodes[index]
+            scar_radius = radius * (1 - .24 * index / (len(nodes) - 1))
+            collar = [center + radial(math.tau * j / 14) * scar_radius for j in range(14)]
+            trunks.tube(collar, .0028, scar, 1, 5, loop=True)
+        for rank, start in enumerate(nodes[-3:]):
+            frond = Foliage()
+            heading = radial(phase + rank * 1.84)
+            side_axis = UP.cross(heading)
+            reach = (.76, .82, .53)[rank] - .069 * seedling
+            path = frond_path(start, heading, reach, (.46, .56, .76)[rank] - .072 * seedling,
+                              (.44, .39, .16)[rank])
+            pairs = (9, 8, 7)[rank] - seedling % 2
+            positions = [(left, .24 + .73 * i / (pairs - 1) + .011 * left)
+                         for i in range(pairs) for left in (-1, 1)]
+            tones = young if rank == 2 else mature
+            rachis_samples = [start, path(.09), *(path(t) for _, t in positions), path(1)]
+            frond.tube(rachis_samples, .012, tones[3], .10, 7)
+            clasp_center = start - UP * .028
+            clasp = [clasp_center + radial(math.tau * j / 12) * (radius * .85) for j in range(12)]
+            frond.tube(clasp, .005, tones[3], 1, 6, loop=True)
+            for index, (left, t) in enumerate(positions):
+                pinna_base = path(t)
+                span = .29 * (.29 + .71 * math.sin(math.pi * (t - .07)) ** .88)
+                span *= 1 + .12 * math.sin(1.2 * index + phase)
+                drift = side_axis * left
+                tip = pinna_base + drift * span + heading * (span * (.45 + t * .21)) - UP * (span * .31)
+                frond.blade(pinna_base - drift * .005, tip, span * .14, tones,
+                            normal=UP - heading * .52, kind="ribbon", pattern="parlor",
+                            rows=9, columns=5, bow=span * .134, fold=span * .11, seed=index + seedling)
+            obj = frond.finish(crown, f"Parlor seedling {seedling + 1} frond {rank + 1}", .46,
+                               coating=foliage_coating)
+            if foliage_coating is None:
+                foliage_coating = obj.data.materials[0]
+    trunks.finish(crown, "Parlor palm three separate seedling stems", .64)
 
 
 def kentia(crown):
@@ -541,28 +682,52 @@ def money_tree(crown):
 
 
 def umbrella(crown):
-    tree = Foliage()
-    tones = pigment('4d8250 7fa859 2b593c 78985e 4e7848')
-    bark = linear_color('84704c')
-    for branch in range(3):
-        heading = radial(branch * 2.05 + .3)
-        root = heading * .07 - UP * .027
-        end = heading * .29 + UP * (1.09 + .17 * branch)
-        tree.tube((root, root.lerp(end,.41), end), .050, bark, .51, 9)
-        for i in range(3):
-            branch_angle = branch * 2.05 + .3 + (i - 1) * 1.05
-            outward = radial(branch_angle)
-            at = root.lerp(end, .54 + .22 * i)
-            center = at + outward * (.32 + .034 * i) + UP * (.21 + .02 * i)
-            tree.tube((at, at.lerp(center,.52), center), .021, tones[3], .51, 7)
-            for petal in range(7):
-                leaflet = radial(branch_angle + math.tau * petal / 7)
-                length = .30 + .07 * math.cos(math.tau * petal / 7)
-                base = center + leaflet * .023
-                tip = base + leaflet * length - UP * .065
-                tree.blade(base, tip, .083, tones, normal=UP + outward * -.35, kind='rounded', rows=7, columns=5,
-                           fold=.038, bow=.045, seed=branch + i + petal)
-    tree.finish(crown, "Dwarf umbrella tree radial whorls", .39)
+    wood = Foliage()
+    bark = linear_color('806945')
+    mature = pigment('3e7747 72a45b 244d36 92b26e 538052')
+    young = pigment('5b8b4d 94b468 3f6943 a0bc74 6e9558')
+    root = Vector((-.028, -.04, -.043))
+    main_nodes = [root, Vector((.026,.0,.30)), Vector((-.028,.037,.53)), Vector((.016,.051,.79)),
+                  Vector((.091,.06,1.10)), Vector((.076,.089,1.43))]
+    wood.tube(main_nodes, .054, bark, .36, 12)
+    branches = [
+        (main_nodes[2], -.45, (.28, .42), .31),
+        (main_nodes[3], 2.28, (.24, .38), .25),
+        (main_nodes[4], 4.11, (.22, .34), .23),
+    ]
+    leafy_nodes = []
+    for attach, bearing, reaches, rise in branches:
+        heading = radial(bearing)
+        lower = attach + heading * reaches[0] + UP * (.48 * rise)
+        upper = attach + heading * reaches[1] + UP * rise
+        wood.tube((attach, lower, upper), .026, bark, .59, 9)
+        leafy_nodes.extend((node, bearing + angle) for node, angle in ((lower, -.62), (upper, .34)))
+    leafy_nodes.extend(((main_nodes[4], 1.1), (main_nodes[-1], -.76)))
+    foliage_coating = None
+    for index, (node, heading) in enumerate(leafy_nodes):
+        leaf = Foliage()
+        outward = radial(heading)
+        hub = node + outward * (.286 - .013 * (index % 3)) + UP * (.178 + .019 * (index % 2))
+        tones = young if index in (2, 7) else mature
+        leaf.tube((node, node.lerp(hub, .50) + UP * .053, hub), .020, tones[3], .57, 7)
+        axis = (UP + outward * (.48 + .06 * (index % 3))).normalized()
+        tangent = UP.cross(outward)
+        lateral = axis.cross(tangent)
+        quantity = 7 + index % 3
+        for spoke in range(quantity):
+            angle = math.tau * spoke / quantity + .13 * math.sin(index)
+            direction = tangent * math.cos(angle) + lateral * math.sin(angle)
+            length = .275 + .067 * math.cos(angle + .74) + .035 * math.sin(index * 2 + spoke * .89)
+            base = hub + direction * (.058 + .012 * math.cos(angle))
+            tip = base + direction * length - UP * (.053 + .015 * math.sin(angle))
+            leaf.tube((hub, base + direction * .012), .0085, tones[3], .60, 6)
+            leaf.blade(base, tip, .068 + .018 * math.cos(angle + .45), tones,
+                       normal=axis, kind='obovate', pattern='umbrella', rows=12, columns=7,
+                       fold=.023, bow=.033, wave=.02, seed=index + spoke * .64)
+        obj = leaf.finish(crown, f"Umbrella compound leaf {index + 1:02d}", .35, coating=foliage_coating)
+        if foliage_coating is None:
+            foliage_coating = obj.data.materials[0]
+    wood.finish(crown, "Umbrella branched woody centerline", .72)
 
 
 def strelitzia(crown):
@@ -588,21 +753,23 @@ def model(slug, species, common, note, build, fallback, pot, *, accepted=None, r
 
 
 MODELS = [
-    model("orbifolia", "Goeppertia orbifolia", "Orbifolia Prayer Plant", "Near-round silver-banded discs on ascending petioles.",
-          orbifolia, 6, ("a5b3a2", "527b68"), sources=("https://plants.ces.ncsu.edu/plants/goeppertia-orbifolia/",)),
-    model("rattlesnake-plant", "Goeppertia lancifolia", "Rattlesnake Plant", "Narrow rippled blades with alternating oval spots and purple backs.",
+    model("orbifolia", "Goeppertia orbifolia", "Orbifolia Prayer Plant", "Round pleated blades with bent silver-green sectors, pale undersides and linked petiole hinges.",
+          orbifolia, 6, ("a5b3a2", "527b68"), sources=("https://www.rhs.org.uk/plants/357191/goeppertia-orbifolia/details",
+              "https://plants.ces.ncsu.edu/plants/goeppertia-orbifolia/")),
+    model("rattlesnake-plant", "Goeppertia lancifolia", "Rattlesnake Plant", "Rippling lanceolate blades with alternating large and small oval pigment and maroon reverses.",
           rattlesnake, 6, ("b58b85", "865b68"), accepted="Goeppertia insignis", sources=(
               "https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:77174285-1",
               "https://plants.ces.ncsu.edu/plants/goeppertia-insignis/")),
-    model("maranta", "Maranta leuconeura", "Prayer Plant", "Low spreading foliage with red herringbone veins in a red-veined form.",
-          maranta, 6, ("b97669", "9a5759"), sources=("https://plants.ces.ncsu.edu/plants/maranta-leuconeura/",)),
+    model("maranta", "Maranta leuconeura", "Prayer Plant", "Oblong low-spreading blades with pale central patches, red radiating veins and burgundy backs.",
+          maranta, 6, ("b97669", "9a5759"), sources=("https://plants.ces.ncsu.edu/plants/maranta-leuconeura/common-name/red-veined-prayer-plant/",)),
     model("fishbone-prayer-plant", "Ctenanthe burle-marxii", "Fishbone Prayer Plant", "Pale oblong leaves with dark fishbone bands and purple backs.",
           ctenanthe, 6, ("8894a5", "575d79"), sources=("https://www.rhs.org.uk/plants/5026/ctenanthe-burle-marxii/details",)),
     model("stromanthe", "Stromanthe sanguinea", "Stromanthe", "Straight-species dark emerald blades with burgundy backs on reddish stems.",
           stromanthe, 6, ("c39d99", "90536c"), accepted="Stromanthe thalia", sources=(
               "https://powo.science.kew.org/taxon/1211666-2", "https://plants.ces.ncsu.edu/plants/stromanthe-thalia/")),
-    model("boston-fern", "Nephrolepis exaltata", "Boston Fern", "A layered fountain of long arching fronds with dense paired pinnae.",
-          boston, 3, ("a59277", "7b654a")),
+    model("boston-fern", "Nephrolepis exaltata", "Boston Fern", "Eleven arching fronds with alternating tapered pinnae, asymmetric basal auricles and shaded rachises.",
+          boston, 3, ("a59277", "7b654a"), sources=("https://plants.ces.ncsu.edu/plants/nephrolepis-exaltata/",
+              "https://hort.extension.wisc.edu/articles/boston-fern-nephrolepis-exaltata-bostoniensis/")),
     model("birds-nest-fern", "Asplenium nidus", "Bird's Nest Fern", "Three ranks of simple glossy fronds rise from a rosette with rounded dark ribs and distal underside sori.",
           bird_nest, 3, ("d8bd86", "94784c"), sources=("https://plants.ces.ncsu.edu/plants/asplenium-nidus/",)),
     model("maidenhair-fern", "Adiantum raddianum", "Maidenhair Fern", "Small fanlets distributed on near-black wiry branchlets.",
@@ -611,7 +778,7 @@ MODELS = [
           rabbit_fern, 3, ("b8a194", "9a7359"), accepted="Davallia solida var. fejeensis", rank="variety", sources=(
               "https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:17564870-1",
               "https://davalliacea.linnaeana.nl/linnaeus_ng/app/views/species/nsr_taxon.php?epi=150&id=112773")),
-    model("parlor-palm", "Chamaedorea elegans", "Parlor Palm", "A pot-grown cluster of slender palms with delicate pinnate fans.",
+    model("parlor-palm", "Chamaedorea elegans", "Parlor Palm", "Three individually rooted seedlings with stem scars, clasping petiole bases and arched linear pinnae.",
           parlor, 5, ("c09970", "9d714e"), sources=("https://plants.ces.ncsu.edu/plants/chamaedorea-elegans/",)),
     model("kentia-palm", "Howea forsteriana", "Kentia Palm", "A single trunk and broad, spaced, descending pinnae on arched fronds.",
           kentia, 5, ("859d89", "4c766b")),
@@ -623,8 +790,8 @@ MODELS = [
           weeping, 7, ("b0a49c", "827771"), sources=("https://plants.ces.ncsu.edu/plants/ficus-benjamina/",)),
     model("money-tree", "Pachira aquatica", "Money Tree", "Braided horticultural stems and palmate clusters with long fingers.",
           money_tree, 7, ("c9ac74", "967348")),
-    model("dwarf-umbrella-tree", "Heptapleurum arboricola", "Dwarf Umbrella Tree", "Layered umbrellas of seven rounded, glossy leaflets.",
-          umbrella, 7, ("b78b79", "9b6859")),
+    model("dwarf-umbrella-tree", "Heptapleurum arboricola", "Dwarf Umbrella Tree", "Eight compound leaves with seven to nine stalked glossy obovate leaflets on a continuous branched stem.",
+          umbrella, 7, ("b78b79", "9b6859"), sources=("https://plants.ces.ncsu.edu/plants/heptapleurum-arboricola/",)),
     model("white-bird-of-paradise", "Strelitzia nicolai", "White Bird of Paradise", "Two-ranked long-petioled fans with broad banana-like blades and age splits.",
           strelitzia, 7, ("91a8a4", "668581")),
 ]

@@ -1,5 +1,7 @@
 # Petey Plant development roadmap
 
+The [Project Connect plan](docs/connect/MASTER_PLAN.md#four-week-execution-plan) records the four-week sequence, all 24 work packages, dependencies and acceptance evidence. The milestones below record completed work and checks.
+
 Product focus: a busy plant owner opens Petey, knows which plant to check, and sees a care record they can trust. The greenhouse collection and character moments support that task. Pricing is out of scope.
 
 ## Repository audit
@@ -178,3 +180,11 @@ Lens release still requires independently grouped, rights-reviewed indoor photos
 - Pot capacity and owner-described mix persist through Plant Profile, FastAPI and additive SQLite v2. A live Edge profile edit persisted across reload. Watering guidance stays qualitative pending a validated model. All 404 backend tests passed.
 - Fixed the three design identity audit failures by replacing raised-edge care controls with soft greenhouse shadows and short press motion, applying the existing type scale and enlarging the 11 px switcher text. The identity audit and engineering ratchet passed with 283 raw CSS hex values, 1,005 px literals and five `!important` declarations.
 - Blender 5.2.2 verified visible Idle motion and the loop seam across all 58 sources. All 58 assets matched the live Garden catalog and Three.js sampled all 350 authored clips within the asset budgets. The Edge character journey passed across 20 authored models at desktop and 375 px, with a single canvas, context recovery, reduced motion and fallback states. The production build and 28 contrast checks passed. Vite still reports two chunks above 500 KB. See [Antigravity handoff](ANTIGRAVITY_HANDOFF.md) for remaining work.
+
+## 2026-11-27 Project Connect · botanical material pass
+
+- Added the four-week dependency plan, 24 work packages, acceptance evidence and blocked release prerequisites to [Project Connect](docs/connect/MASTER_PLAN.md). Reconciled the documented Garden catalog with the live 84 identities and 31 verified watering records.
+- Detailed 24 existing Blender companions. The [model results and backlog](docs/botanical-art-plan.md#project-connect-detail-passes--2026-11-27) list each change and export size, triangles and primitives. The reviewed total is 37 of 58. Owner visual approval and physical device profiling remain open.
+- Verified the two Spider Plant offshoots against the real growing habit and inspected their source in Blender 5.2.2. The attachment test checks each runner endpoint, crown hierarchy and retained pigments. The desktop material viewport showed both attached rosettes.
+- Recovered candidate artwork from the three specialist workstreams. Reopened 12 candidate sources for geometry and Idle checks and reviewed their front and side renders. The full gate verified 58 saved Blender sources, all 350 actual Three.js animation clips, asset budgets and catalog identity. Edge rendered all 58 at desktop and 375 px and passed single-canvas, context recovery, reduced-motion and fallback checks.
+- All 404 backend tests, the frontend production build, 28 contrast checks and both code and identity audits passed. Production-preview Edge passed the live Garden save, reload and Checkup journey and the Plant Tools journey. Lens model matching used a test stub in the latter. Vite still reports two chunks above 500 KB.

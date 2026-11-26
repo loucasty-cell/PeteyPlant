@@ -1,6 +1,6 @@
 """Botanically distinct crowns for Petey's sculptural and flowering characters."""
 
-from math import cos, pi, sin, tau
+from math import cos, exp, pi, sin, tau
 
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
@@ -14,6 +14,62 @@ def ray(angle, radius=1, height=0):
 
 def palette(name, *colors):
     return [material(f"{name} {i + 1}", color, .47, .12) for i, color in enumerate(colors)]
+
+
+def skin_color(name, roughness, coat=0):
+    surface = material(name, "ffffff", roughness, coat)
+    nodes = surface.node_tree.nodes
+    color = nodes.new("ShaderNodeVertexColor")
+    color.layer_name = "Botanical pigments"
+    shader = next(node for node in nodes if node.type == "BSDF_PRINCIPLED")
+    surface.node_tree.links.new(color.outputs["Color"], shader.inputs["Base Color"])
+    return surface
+
+
+def pigment(obj, tint, light, variation):
+    attribute = obj.data.color_attributes.new(name="Botanical pigments", type="FLOAT_COLOR", domain="POINT")
+    obj.data.color_attributes.active_color = attribute
+    for vertex, element in zip(obj.data.vertices, attribute.data):
+        color = tint.lerp(light, max(0, min(1, variation(vertex.index))))
+        element.color = (*color, 1)
+
+
+def linear_rgb(hex_color):
+    components = [int(hex_color[i:i + 2], 16) / 255 for i in (0, 2, 4)]
+    return Vector([v / 12.92 if v < .04045 else ((v + .055) / 1.055) ** 2.4 for v in components])
+
+
+def surface_map(obj):
+    return BVHTree.FromPolygons(
+        [vertex.co for vertex in obj.data.vertices], [polygon.vertices[:] for polygon in obj.data.polygons],
+    )
+
+
+def small_bump(vertices, faces, center, normal, tangent, width, height, sides=6):
+    """Closed contact detail with its base recessed into the surface."""
+    across = normal.cross(tangent).normalized()
+    tangent = across.cross(normal)
+    start = len(vertices)
+    center = center - normal * (height * .36)
+    for i in range(sides):
+        phase = tau * i / sides
+        vertices.append(center + width * (tangent * cos(phase) + across * (.77 * sin(phase))))
+    tip = len(vertices)
+    vertices.append(center + normal * height)
+    faces.append(tuple(range(start + sides - 1, start - 1, -1)))
+    faces.extend((start + i, start + (i + 1) % sides, tip) for i in range(sides))
+
+
+def closed_rings(name, crown, mat, vertices, sides):
+    """Close a sweep of equally sized rings with oppositely wound end caps."""
+    faces = [tuple(range(sides))]
+    last = len(vertices) - sides
+    for start in range(0, last, sides):
+        for i in range(sides):
+            following = (i + 1) % sides
+            faces.append((start + i, start + i + sides, start + following + sides, start + following))
+    faces.append(tuple(range(last + sides - 1, last - 1, -1)))
+    return mesh(name, vertices, faces, mat, crown)
 
 
 def loft(name, crown, a, b, width, depth, mat, *, bulge=(0, 0, 0), form=.7,
@@ -53,18 +109,67 @@ def loft(name, crown, a, b, width, depth, mat, *, bulge=(0, 0, 0), form=.7,
 
 
 def ponytail(crown):
-    leaves = palette("Recurved ribbons", "467844", "68994f", "375c36")
-    bark = palette("Caudex", "81654b", "a08660")
-    sphere("Swollen water-storage base", (0, 0, .22), (.53, .46, .42), bark[0], crown)
-    trunk = stem("Short tapered trunk", [(0, 0, .26), (-.06, 0, .60), (-.13, .06, 1.13)],
-                 .29, bark[1], crown, [1.55, .80, .34])
-    trunk.data.resolution_u = 5
-    for i in range(22):
+    leaves = skin_color("Longitudinal evergreen leaf cuticle", .53, .075)
+    bark = skin_color("Corky grey bottle trunk", .88)
+    base_colors = (linear_rgb("78664d"), linear_rgb("b49c73"))
+    leaf_colors = (linear_rgb("254531"), linear_rgb("739652"))
+    crown_center = Vector((-.075, .035, 1.135))
+    body = [
+        (-.115, .37), (-.015, .492), (.088, .52), (.198, .499), (.315, .445),
+        (.438, .365), (.55, .285), (.662, .197), (.758, .142), (.865, .128),
+        (.97, .117), (1.04, .114), (1.10, .127), (1.158, .109),
+    ]
+    sides = 84
+    points, colors = [], []
+    for row, (z, radius) in enumerate(body):
+        for col in range(sides):
+            phi = tau * col / sides
+            slant = phi + .072 * sin(4 * z + 2 * phi)
+            creases = exp(-34 * sin(13 * slant + 2.2 * z) ** 2)
+            furrow = (.038 if z < .55 else .019) * creases
+            envelope = radius * (1 + .039 * cos(5 * slant) + .012 * cos(19 * phi + row)) - furrow
+            center = crown_center * (max(0, z) / crown_center.z)
+            points.append(Vector((center.x + envelope * cos(phi), center.y - .92 * envelope * sin(phi), z)))
+            colors.append(.51 - .28 * creases + .12 * sin(5 * phi + 1.2 * row)
+                          + .074 * cos(9 * phi - .81 * row))
+    trunk = closed_rings("Continuous swollen caudex and tapered neck", crown, bark, points, sides)
+    pigment(trunk, *base_colors, colors.__getitem__)
+    for i in range(44):
         angle = i * 2.39996
-        origin = Vector((-.13, .06, 1.14)) + ray(angle, .07, .04 * (i % 4))
-        end = ray(angle, .67 + .13 * (i % 4), .36 + .14 * (i % 5))
-        loft("Fountain ribbon", crown, origin, end, .035 + .008 * (i % 3), .007,
-             [leaves[i % 3]], bulge=ray(angle, .26, .45), form=.38, sides=6)
+        age = i / 43
+        origin = crown_center + ray(angle, .036 + .037 * age, -.032 + .035 * (1 - age))
+        reach = .38 + .67 * age + .105 * sin(i * 3.2)
+        rise = .17 + .23 * (1 - age) + .051 * cos(i)
+        drop = .105 + .65 * age + .12 * sin(i * 4.1)
+        width = .032 + .010 * sin(i * 4.3) + .007 * age
+        rows, sides = 24, 8
+        spine = [
+            origin + ray(angle + .24 * t * t * sin(i + t * 4), reach * t ** 1.15,
+                         rise * sin(pi * t) - drop * t ** 1.8)
+            for t in (row / rows for row in range(rows + 1))
+        ]
+        points = []
+        for row, center in enumerate(spine):
+            t = row / rows
+            axis = (spine[min(row + 1, rows)] - spine[max(0, row - 1)]).normalized()
+            transverse = axis.cross(ray(angle + pi / 2)).normalized()
+            side = axis.cross(transverse).normalized()
+            taper = .015 + .985 * (1 - t) ** .62
+            for j in range(sides):
+                phase = tau * j / sides
+                lateral = cos(phase)
+                points.append(center + side * width * taper * lateral
+                              + transverse * taper * (.0047 * sin(phase) + .009 * lateral ** 2))
+        ribbon = closed_rings("Recurved strappy blade", crown, leaves, points, sides)
+
+        def tint(index):
+            row, col = divmod(index, sides)
+            t = row / rows
+            phase = tau * col / sides
+            midline = exp(-18 * cos(phase) ** 2)
+            return .30 + .17 * (1 - age) + .17 * midline + .06 * sin(phase) + .048 * cos(i * 3 + t * 8)
+
+        pigment(ribbon, *leaf_colors, tint)
 
 
 def dragon_tree(crown):
@@ -126,32 +231,124 @@ def echeveria(crown):
 
 
 def jade(crown):
-    leaf = palette("Thick jade foliage", "356b49", "508054", "7fab70")
-    bark = palette("Jade twig", "8b7057", "a98b6b")
-    joints = [Vector((0, .03, .53)), Vector((-.20, .05, .92)), Vector((.26, .14, 1.04))]
-    stem("Woody miniature trunk", [(0, 0, -.07), joints[0], joints[1]], .12, bark[0], crown, [1, .74, .36])
-    stem("Second woody leader", [joints[0], (.15, .14, .77), joints[2]], .067, bark[1], crown, [1, .78, .49])
-    for i, (base, angle, radius, h) in enumerate([(0, 3.42, .58, .92), (0, -.30, .63, .84),
-                                                      (1, 2.75, .48, 1.29), (1, 4.12, .34, 1.42),
-                                                      (2, 1.38, .41, 1.42), (2, .30, .52, 1.28)]):
+    leaf = skin_color("Satin succulent leaves", .38, .16)
+    bark = skin_color("Grey bark and leaf-scar rings", .79)
+    shoot = material("Living olive tips", "667739", .68)
+    greens = (linear_rgb("1f573e"), linear_rgb("75a351"))
+    wood = (linear_rgb("6b5e4c"), linear_rgb("aa9d84"))
+    red = linear_rgb("994c49")
+    joints = [Vector((0, .03, .48)), Vector((-.19, .05, .86)), Vector((.26, .14, 1.03))]
+    for number, (path, start_r, end_r) in enumerate((
+        ((Vector((.035, -.012, -.078)), joints[0], joints[1]), .113, .058),
+        ((joints[0], Vector((.135, .112, .72)), joints[2]), .081, .047),
+    )):
+        points, tones = [], []
+        ring_count = 14
+        for row in range(ring_count + 1):
+            t = row / ring_count
+            center = path[0].lerp(path[1], t * 2) if t <= .5 else path[1].lerp(path[2], t * 2 - 1)
+            radius = start_r * (1 - t) + end_r * t
+            scar = .008 if row in (5, 9, 12) else 0
+            for col in range(36):
+                phi = col * tau / 36
+                profile = radius * (1 + .037 * sin(8 * phi + t * 1.6)) + scar
+                points.append(center + Vector((profile * cos(phi), -profile * sin(phi), .008 * sin(4 * phi + row))))
+                tones.append(.45 + .21 * cos(phi * 7 - .2 * row) + .13 * sin(row * .725 + phi) + .15 * bool(scar))
+        axis = closed_rings(f"Aging jade leader {number + 1}", crown, bark, points, 36)
+        pigment(axis, *wood, tones.__getitem__)
+
+    for i, (base, angle, radius, h) in enumerate(((0, 3.35, .54, .81), (0, -.44, .61, .82),
+                                                  (1, 2.70, .53, 1.18), (1, 4.20, .37, 1.34),
+                                                  (2, 1.40, .42, 1.43), (2, .28, .59, 1.34))):
+        anchor = joints[base]
         tip = ray(angle, radius, h)
-        stem("Forking twig", [joints[base], joints[base].lerp(tip, .55), tip], .036, bark[i % 2], crown,
-             [1, .76, .48])
-        for j in range(4):
-            node = joints[base].lerp(tip, .62 + .12 * (j // 2))
-            out = angle + (-1 if j % 2 else 1) * (1.08 - .35 * (j // 2))
-            loft("Opposite succulent leaf", crown, node, node + ray(out, .32, .14 + .035 * j), .10, .033,
-                 [leaf[(i + j) % 3]], bulge=(0, 0, .055), rows=8, sides=8)
+        nodes = [anchor.lerp(tip, .56), anchor.lerp(tip, .80), tip]
+        stem("Growth shoot with shared opposite nodes", [anchor, *nodes], .042, shoot, crown,
+             [1, .79, .60, .34])
+        twig_axis = (tip - anchor).normalized()
+        flank = twig_axis.cross(Vector((0, 0, 1))).normalized()
+        shoulder = flank.cross(twig_axis).normalized()
+        for level, node in enumerate(nodes):
+            paired_axis = shoulder if level == 1 else flank
+            for side in (-1, 1):
+                length = .29 - .047 * level + .025 * sin(i * 4 + side)
+                end = node + length * (twig_axis * .53 + paired_axis * .85 * side) + Vector((0, 0, .052))
+                sides, rows = 12, 14
+                blade = loft("Nearly sessile obovate paired leaf", crown, node, end, length * .405, .034 - .006 * level,
+                             [leaf], bulge=(0, 0, .032), rows=rows, sides=sides, form=.48)
+                axis = (end - node).normalized()
+                across = axis.cross(Vector((0, 0, 1))).normalized()
+
+                def color(index):
+                    row, col = divmod(index, sides)
+                    t = row / rows
+                    phi = tau * col / sides
+                    return .24 + .14 * t + .118 * level + .12 * sin(phi) + .07 * sin(6 * t + i + side)
+
+                for v in blade.data.vertices:
+                    row, col = divmod(v.index, sides)
+                    t = row / rows
+                    # Jade is fullest toward the apex, with a narrow cuneate base.
+                    v.co += across * length * .17 * (t - .4) * sin(pi * t) * cos(tau * col / sides)
+                blade.data.update()
+                pigment(blade, *greens, color)
+                attr = blade.data.color_attributes["Botanical pigments"]
+                if (i + level) % 3 != 0:
+                    for index, element in enumerate(attr.data):
+                        row, col = divmod(index, sides)
+                        t = row / rows
+                        margin = abs(cos(tau * col / sides)) ** 22
+                        tint = margin * .29 * sin(pi * t) * (.46 + .54 * t)
+                        tinted = Vector(element.color[:3]).lerp(red, tint)
+                        element.color = (*tinted, 1)
 
 
 def haworthia(crown):
-    stripe = palette("Outer tubercle bands", "2d5941", "d2d7b2", "427454")
-    for ring, (count, length, rise) in enumerate([(11, .65, .59), (9, .42, .84), (5, .20, 1.0)]):
+    cuticle = skin_color("Smooth Haworthiopsis cuticle", .51, .09)
+    tubercle = material("Raised ivory epidermis", "e4e6c5", .77)
+    dark, light = linear_rgb("214a37"), linear_rgb("588551")
+    vertices, faces = [], []
+    bands = (.23, .34, .46, .58, .70, .81, .89)
+    for ring, (count, spread, rise, width) in enumerate(((10, .72, .56, .113), (7, .52, .80, .097), (5, .29, 1, .078))):
         for i in range(count):
-            angle = tau * i / count + ring * .39
-            loft("Tapered banded rosette leaf", crown, ray(angle, .05, -.01), ray(angle, length, rise),
-                 .102 - ring * .018, .043, stripe, bulge=ray(angle, -.09, .16), normal=ray(angle), form=.46,
-                 rows=17, markings=lambda row, col: 1 if row in (4, 7, 10, 13) and 0 < col < 4 else 2 if 5 < col < 9 else 0)
+            angle = tau * i / count + ring * .38
+            radial = ray(angle)
+            base = ray(angle, .038 + .015 * (2 - ring), -.034 + .013 * ring)
+            tip = ray(angle + .035 * sin(i), spread * (1 + .07 * sin(3 * i + ring)),
+                      rise + .049 * cos(i * 2 + ring))
+            bow = ray(angle, .075, .113)
+            rows, sides = 18, 12
+            blade = loft("Smooth inner crown blade", crown, base, tip, width, .047 - .006 * ring,
+                         [cuticle], bulge=bow, normal=radial, form=.54, rows=rows, sides=sides)
+
+            def leaf_tint(index):
+                t, c = divmod(index, sides)
+                t /= rows
+                face = sin(c * tau / sides)
+                around_band = min(abs(t - band) for band in bands)
+                halo = max(0, face) ** 2 * exp(-850 * around_band ** 2)
+                return .19 + .29 * t + .07 * ring + .09 * face + .10 * halo + .046 * sin(i * 2.8 + 9 * t)
+
+            pigment(blade, dark, light, leaf_tint)
+            surface = surface_map(blade)
+            axis = (tip - base).normalized()
+            across = axis.cross(radial).normalized()
+            outside = across.cross(axis).normalized()
+            for row, t in enumerate(bands):
+                if ring == 2 and row >= 5:
+                    continue
+                for col, u in enumerate((-.72, -.39, -.04, .31, .64)):
+                    if (i * 3 + row * 5 + col * 7 + ring) % 17 == 0:
+                        continue
+                    fraction = t + .018 * sin(2 * col + row + i)
+                    line = base.lerp(tip, fraction) + bow * sin(pi * fraction)
+                    along = width * sin(pi * fraction) ** .55 * u
+                    p, normal, _, _ = surface.ray_cast(line + across * along + outside * .25, -outside, .45)
+                    if p is None:
+                        raise ValueError("Tubercle missed the outer Haworthiopsis surface")
+                    size = (.019 if row < 5 else .013) * (1 - ring * .11) * (1 + .15 * sin(col + i))
+                    small_bump(vertices, faces, p, normal, across, size, size * .63)
+    mesh("Interrupted rows of outer tubercles", vertices, faces, tubercle, crown)
 
 
 def cylindrical_snake(crown):
@@ -188,37 +385,121 @@ def petals(crown, origin, color, eye, *, count=5, radius=.16, face="front", star
 
 
 def kalanchoe(crown):
-    foliage = palette("Scalloped succulent foliage", "326646", "498454")
-    corolla = palette("Tight coral corymb", "cb5352", "e66c63", "ea9284", "f2c873")
-    for i in range(12):
-        angle = i * 2.39996
-        start = ray(angle, .12, .05 + .11 * (i % 3))
-        tip = ray(angle, .64 + .08 * (i % 4), .20 + .14 * (i % 3))
-        loft("Broad glossy succulent blade", crown, start, tip, .17, .039, [foliage[i % 2]],
-             bulge=(0, 0, .16), teeth=4, rows=17, sides=8)
-    for n, (x, y, h) in enumerate([(-.34, .07, 1.10), (.25, .04, 1.24), (.11, -.32, .83)]):
-        top = Vector((x, y, h))
-        stem("Branched flowering stem", [(0, 0, .04), top * .52, top], .043, foliage[0], crown, [1, .75, .45])
-        for i in range(5):
-            p = top + ray(tau * i / 5 + n, .14, .01 * i)
-            stem("Pedicel", [top - Vector((0, 0, .09)), p], .010, foliage[1], crown)
-            petals(crown, p, corolla[(i + n) % 3], corolla[3], count=4, radius=.096, face="up", start=.3 * i)
+    cuticle = skin_color("Glossy crenate Kalanchoe blades", .40, .14)
+    flower = skin_color("Coral salverform petals", .52)
+    stalk = material("Fleshy leaf and flower stalks", "507347", .60, .1)
+    throat = material("Red corolla tube", "a33247", .58)
+    bud = material("Dark closed flower buds", "b44b54", .60)
+    eye = material("Restrained cream flower throats", "e6bb6e", .71)
+    leaf_colors = (linear_rgb("264b38"), linear_rgb("669559"))
+    flower_colors = (linear_rgb("a72146"), linear_rgb("e77778"))
+    for n, (x, y, h) in enumerate(((-.31, .04, .88), (.29, .12, 1.00), (.05, -.31, .70))):
+        terminal = Vector((x, y, h))
+        anchors = [terminal * .06 + Vector((0, 0, -.084)), terminal * .15, terminal * .30, terminal * .49]
+        stem("Fleshy stem with decussate leaf nodes", [*anchors, terminal], .039, stalk, crown, [1, .94, .84, .71, .43])
+        for level, joint in enumerate(anchors[1:], start=1):
+            for sign in (-1, 1):
+                angle = n * 2.39996 + level * pi / 2 + (pi if sign < 0 else 0)
+                base = joint + ray(angle, .10, -.018)
+                tip = base + ray(angle, .49 - .066 * level + .045 * sin(n + sign), .076)
+                stem("Short attached opposite Kalanchoe petiole", [joint, base], .022, stalk, crown, [1, .73])
+                rows, sides = 20, 12
+                blade = loft("Fleshy dark crenate Kalanchoe blade", crown, base, tip, .169 - .023 * level,
+                             .034, [cuticle], bulge=(0, 0, .093), teeth=4, form=.57, rows=rows, sides=sides)
+
+                def leaf_tint(index):
+                    row, col = divmod(index, sides)
+                    t = row / rows
+                    c = tau * col / sides
+                    rib = exp(-21 * cos(c) ** 2) * max(0, sin(c))
+                    return .24 + .072 * level + .14 * t + .22 * rib + .067 * sin(8 * t + n)
+
+                pigment(blade, *leaf_colors, leaf_tint)
+
+        for i in range(9):
+            angle = i * 2.39996 + n
+            length = .07 if i < 2 else .16 + .029 * sin(3 * i + n)
+            base = terminal + ray(angle, length, .069 + .071 * (i < 2) + .024 * sin(i * 6 + n))
+            stem("Cluster pedicel anchored to terminal node", [terminal, base], .010, stalk, crown, [1, .71])
+            normal = ray(angle, .25, 1).normalized()
+            if i in (1, 5):
+                stem("Swollen closed bud", [base, base + normal * .052, base + normal * .094],
+                     .023, bud, crown, [.60, 1, .29])
+                continue
+            center = base + normal * .043
+            tube = stem("Short coral corolla tube", [base, center], .019, throat, crown, [.58, 1])
+            tube.data.bevel_resolution = 1
+            along = normal.cross(ray(angle)).normalized()
+            across = along.cross(normal).normalized()
+            for lobe in range(4):
+                phase = angle * .30 + pi / 2 * lobe
+                direction = across * cos(phase) + along * sin(phase)
+                length = .065 + .009 * cos(i + n) + .006 * sin(lobe + i)
+                petal = loft("Rounded four-lobed coral corolla", crown, center + direction * .010,
+                             center + direction * length, length * .52, .007, [flower],
+                             bulge=normal * .012, normal=normal, form=.46, rows=7, sides=8)
+
+                def petal_tint(index):
+                    row, col = divmod(index, 8)
+                    return .19 + .57 * row / 7 + .085 * sin(col * tau / 8) + .065 * cos(n + i + lobe)
+
+                pigment(petal, *flower_colors, petal_tint)
+            stem("Small cream flower throat", [center - normal * .004, center + normal * .011], .009,
+                 eye, crown, [.93, .68])
 
 
 def bunny_ears(crown):
-    pads = palette("Paired velvety pads", "5c9a54", "70a65d", "4f8c50")
-    dots = palette("Amber glochid clusters", "ddba70")[0]
-    for i, (base, top, width) in enumerate([((0, .02, -.16), (-.03, .12, .98), .42),
-                                             ((-.23, .09, .66), (-.70, .15, 1.63), .29),
-                                             ((.20, .11, .82), (.50, .25, 1.78), .27),
-                                             ((.18, -.23, .22), (.68, -.23, .95), .25)]):
-        loft("Flattened cactus pad", crown, base, top, width, .089, [pads[i % 3]], normal=(0, -1, 0),
-             form=.47, rows=13, sides=12)
+    skin = skin_color("Satin cactus cuticle", .57, .08)
+    cushion = material("Ochre felted areoles", "c79652", .88)
+    bristle = material("Short gold glochids", "f0cd8e", .73)
+    areoles, areole_faces, tips, tip_faces = [], [], [], []
+    shadow, sunlit = linear_rgb("397646"), linear_rgb("81ae60")
+    anatomy = (
+        ((0, .02, -.12), (-.05, .08, 1.14), .402, .104, -.08),
+        ((-.187, .063, .91), (-.63, .03, 1.75), .281, .077, .34),
+        ((.106, .062, .90), (.57, .29, 1.72), .270, .079, -.46),
+        ((.142, -.02, .55), (.65, -.21, 1.17), .230, .067, .48),
+    )
+    for i, (base, top, width, thickness, twist) in enumerate(anatomy):
         base, top = Vector(base), Vector(top)
-        for j, t in enumerate((.31, .46, .61, .76)):
-            for u in (-.5, 0, .5):
-                p = base.lerp(top, t) + Vector((u * width, -.079 * sin(pi * t), 0))
-                sphere("Raised areole", p, (.022, .014, .018), dots, crown)
+        axis = (top - base).normalized()
+        face = Vector((sin(twist), -cos(twist), 0))
+        across = axis.cross(face).normalized()
+        face = across.cross(axis)
+        bow = face * (.033 - .01 * i)
+        rows, sides = 25, 24
+        pad = loft(f"Oval cladode {i + 1}", crown, base, top, width, thickness, [skin],
+                   normal=face, bulge=bow, form=.48, rows=rows, sides=sides)
+
+        def pad_tint(index):
+            row, column = divmod(index, sides)
+            t, c = row / rows, tau * column / sides
+            return .18 + .46 * t + .065 * i + .10 * sin(c) + .05 * sin(13 * t + c * 2 + i)
+
+        pigment(pad, shadow, sunlit, pad_tint)
+        surface = surface_map(pad)
+        for side in (-1, 1):
+            facing = face * side
+            for row, t in enumerate((.18, .30, .43, .56, .69, .81, .90)):
+                for j in range(4 if row % 2 else 5):
+                    u = (-.69 + j * .34) if row % 2 == 0 else (-.52 + j * .34)
+                    fraction = t + .017 * sin(i * 2.11 + side + j * 2.34 + row)
+                    center = base.lerp(top, fraction) + bow * sin(pi * fraction)
+                    lateral = width * sin(pi * fraction) ** .48 * u
+                    point, normal, _, _ = surface.ray_cast(center + across * lateral + facing * .23, -facing, .39)
+                    if point is None:
+                        raise ValueError("Areole missed its cladode")
+                    radius = (.022 + .003 * cos(j * 2 + row + i)) * (1 - .07 * i)
+                    small_bump(areoles, areole_faces, point, normal, across, radius, radius * .7)
+                    tuft_base = point + normal * radius * .36
+                    for k in range(7):
+                        turn = k * tau / 7 + fraction + i
+                        tuft = normal * .88 + .46 * (across * cos(turn) + normal.cross(across) * sin(turn))
+                        offset = (across * cos(turn) + normal.cross(across) * sin(turn)) * radius * .39
+                        small_bump(tips, tip_faces, tuft_base + offset, tuft.normalized(), across, .0031,
+                                   radius * (.84 + .18 * sin(k + j * 2)), sides=3)
+    mesh("Felt areoles on both pad faces", areoles, areole_faces, cushion, crown)
+    mesh("Short glochid tufts", tips, tip_faces, bristle, crown)
 
 
 def barrel(crown):
@@ -345,21 +626,98 @@ def moth_orchid(crown):
 
 
 def african_violet(crown):
-    foliage = palette("Velvet violet leaves", "3e694a", "6b8d5a", "4d804e")
-    bloom = palette("Purple violet flowers", "6d4c9d", "9a6cc1", "bc95d8", "f0d172")
-    for ring, (amount, extent, height, w) in enumerate([(10, .80, .20, .20), (8, .62, .39, .16)]):
+    velvet = skin_color("Matte velvet blades", .86)
+    petiole = material("Moss petioles and flower stems", "55774a", .81)
+    fibers = material("Fine olive trichomes", "859771", .91)
+    petal = skin_color("Violet corolla pigments", .64)
+    throat = material("Indigo flower cup", "493378", .63)
+    pollen = material("Butter-yellow paired anthers", "efce67", .66)
+    foliage = (linear_rgb("294d39"), linear_rgb("78915e"))
+    corolla = (linear_rgb("40246c"), linear_rgb("ae77d9"))
+    hair_points, hair_faces = [], []
+    for ring, (amount, extent, height, w) in enumerate([(9, .84, .19, .205), (8, .64, .34, .17), (5, .41, .405, .115)]):
         for i in range(amount):
-            angle = tau * i / amount + .25 * ring
-            base = ray(angle, .26, height * .55)
-            tip = ray(angle, extent, height)
-            stem("Fuzzy leaf stalk", [ray(angle, .052, .01), base], .028, foliage[1], crown)
-            loft("Rounded velvet blade", crown, base, tip, w, .025, [foliage[(i + ring) % 3]],
-                 bulge=(0, 0, .11), form=.58, rows=8, sides=8)
-    for i in range(9):
-        angle = i * 2.39996
-        p = ray(angle, .15 + .06 * (i % 5), .61 + .10 * (i % 4))
-        stem("Flower stalk", [(0, 0, .15), p], .017, foliage[1], crown, [1, .72])
-        petals(crown, p, bloom[i % 3], bloom[3], radius=.15 - .007 * (i % 3), start=i * .31)
+            angle = tau * i / amount + .25 * ring + .08 * sin(i * 3 + ring)
+            base = ray(angle, .25 - .045 * ring, height * .48)
+            tip = ray(angle, extent * (1 + .08 * sin(i * 2.9)), height + .027 * cos(i * 3 + ring))
+            stalk = stem("Leaf petiole anchored to basal rosette", [ray(angle, .029, -.012), base * .59, base],
+                         .027 - .004 * ring, petiole, crown, [1, .88, .71])
+            stalk.data.bevel_resolution = 1
+            stalk.data.resolution_u = 4
+            width = w * (1 + .07 * cos(i * 2 + ring))
+            rows, sides = 20, 16
+            bow = Vector((0, 0, .094 - .022 * ring))
+            blade = loft("Rounded scalloped velvet blade", crown, base, tip, width, .025 - .004 * ring, [velvet],
+                         bulge=bow, form=.53, rows=rows, sides=sides)
+            axis = (tip - base).normalized()
+            lateral = axis.cross(Vector((0, 0, 1))).normalized()
+            upper = lateral.cross(axis).normalized()
+
+            def leaf_tint(index):
+                row, column = divmod(index, sides)
+                t, c = row / rows, tau * column / sides
+                u, face = cos(c), sin(c)
+                if face < 0:
+                    return .42 + .10 * t
+                midrib = exp(-32 * u * u) * (.36 - .18 * t)
+                secondaries = max(0, cos(tau * (5 * t - .62 * abs(u)))) ** 11
+                return .12 + .07 * ring + .08 * t + .14 * secondaries + midrib + .12 * abs(u) ** 5
+
+            for vertex in blade.data.vertices:
+                row, column = divmod(vertex.index, sides)
+                t, phase = row / rows, tau * column / sides
+                u = cos(phase)
+                # Round, shallow crenations remain visible without making the rim jagged.
+                vertex.co += lateral * (.016 * u ** 5 * sin(pi * t) * cos(tau * 6 * t + u * .41))
+                vertex.co -= upper * (.015 * abs(u) ** 3 * sin(pi * t) * cos(tau * (4 * t)))
+            blade.data.update()
+            pigment(blade, *foliage, leaf_tint)
+            surface = surface_map(blade)
+            for j in range(7):
+                t = .23 + j * .10
+                center = base.lerp(tip, t) + bow * sin(pi * t)
+                for k in range(7):
+                    u = -.76 + .249 * k + .026 * sin(i * 3 + k + j)
+                    point, normal, _, _ = surface.ray_cast(center + lateral * width * sin(pi * t) ** .55 * u
+                                                           + upper * .19, -upper, .36)
+                    if point is None:
+                        raise ValueError("Velvet fiber missed its blade")
+                    small_bump(hair_points, hair_faces, point, (normal + lateral * .25).normalized(),
+                               lateral, .0017, .0058 + .002 * sin(j * 2 + k), sides=3)
+    mesh("Short velvet hairs across the upper surfaces", hair_points, hair_faces, fibers, crown)
+
+    for cluster, (x, y, z) in enumerate(((-.30, .05, .66), (.28, .12, .72), (.04, -.27, .52))):
+        fork = Vector((x, y, z))
+        stem("Primary cyme peduncle", [(0, 0, .023), fork * .56, fork], .022, petiole, crown, [1, .83, .64])
+        for i in range(3):
+            direction = ray(i * tau / 3 + cluster * .84, .138 + .035 * i, .125 + .017 * i)
+            flower_base = fork + direction
+            pedicel = stem("Attached branch of three-flower cyme", [fork, flower_base],
+                           .013, petiole, crown, [1, .56])
+            pedicel.data.bevel_resolution = 1
+            facing = Vector((direction.x * .46, -.30 + direction.y, .23 + .04 * i)).normalized()
+            across = facing.cross(Vector((0, 0, 1))).normalized()
+            up = across.cross(facing).normalized()
+            flower_center = flower_base + facing * .024
+            stem("Short violet corolla tube", [flower_base, flower_center], .036, throat, crown, [.53, 1])
+            for j, (u, v) in enumerate(((-.54, .77), (.54, .77), (.98, -.30), (0, -1), (-.98, -.30))):
+                spread = across * u + up * v
+                reach = (.109 if j < 2 else .136) * (1 - .09 * i)
+                root = flower_center + spread * .020 - facing * .006
+                end = flower_center + spread * reach + facing * (.017 - .007 * (j % 2))
+                lobe = loft("Two upper and three wider lower violet lobes", crown, root, end,
+                            reach * (.44 if j < 2 else .51), .008, [petal], rows=8, sides=8,
+                            bulge=facing * .024, normal=facing, form=.49)
+
+                def petal_tint(index):
+                    row, column = divmod(index, 8)
+                    t = row / 8
+                    return .67 * t + .08 * cos(tau * column / 8) ** 2 + .07 * (j % 2)
+
+                pigment(lobe, *corolla, petal_tint)
+            for sign in (-1, 1):
+                anther = flower_center + facing * .017 + across * sign * .013
+                stem("Paired golden anther", [anther, anther + up * .025], .010, pollen, crown, [1, .7])
 
 
 def begonia_spots(leaf, base, end, tangent, normal, silver):
@@ -482,8 +840,9 @@ def thanksgiving(crown):
 
 MODELS = [
     dict(id="ponytail-palm", species="Beaucarnea recurvata", common="Ponytail Palm",
-         sources=["https://powo.science.kew.org/taxon/531735-1"],
-         note="Bulbous water-storing base, short cane and a fountain of drooping ribbons", build=ponytail, fallback=3),
+         sources=["https://powo.science.kew.org/taxon/531735-1", "https://plants.ces.ncsu.edu/plants/beaucarnea-recurvata/"],
+         note="Continuous grooved, swollen caudex with 44 narrow folded ribbons curling from its crown",
+         build=ponytail, fallback=3),
     dict(id="dragon-tree", species="Dracaena marginata", common="Madagascar Dragon Tree",
          accepted="Dracaena reflexa var. angustifolia", rank="variety",
          sources=["https://powo.science.kew.org/taxon/77189099-1"], pot=("9485a3", "51445e"),
@@ -495,11 +854,12 @@ MODELS = [
          sources=["https://powo.science.kew.org/taxon/86934-2"],
          note="Overlapping matte spoon leaves with pale new growth and restrained warm tips", build=echeveria, fallback=4),
     dict(id="jade-plant", species="Crassula ovata", common="Jade Plant",
-         sources=["https://powo.science.kew.org/taxon/273350-1"],
-         note="Asymmetric branched woody habit with opposite fleshy oval leaves", build=jade, fallback=4),
+         sources=["https://powo.science.kew.org/taxon/273350-1", "https://plants.ces.ncsu.edu/plants/crassula-ovata/"],
+         note="Grey leaf-scarred bark, living green shoots and obovate leaf pairs with restrained margin tint",
+         build=jade, fallback=4),
     dict(id="zebra-haworthia", species="Haworthiopsis fasciata", common="Zebra Haworthia",
-         sources=["https://powo.science.kew.org/taxon/77138009-1"],
-         note="Tapering rosette leaves with pale bands limited to the outer faces", build=haworthia, fallback=4),
+         sources=["https://powo.science.kew.org/taxon/77138009-1", "https://plants.ces.ncsu.edu/plants/haworthiopsis-fasciata/"],
+         note="Tapering rosette with smooth inner blade faces and interrupted bands of raised outer tubercles", build=haworthia, fallback=4),
     dict(id="cylindrical-snake", species="Dracaena angolensis", common="Cylindrical Snake Plant",
          sources=["https://powo.science.kew.org/taxon/77182375-1"],
          note="Seven round spears with staggered tips and interrupted gray-green bands", build=cylindrical_snake, fallback=2),
@@ -507,11 +867,13 @@ MODELS = [
          sources=["https://powo.science.kew.org/taxon/77183391-1"],
          note="Three broad asymmetric paddle leaves with mottled surfaces and darker rims", build=whale_fin, fallback=2),
     dict(id="flaming-katy", species="Kalanchoe blossfeldiana", common="Flaming Katy",
-         sources=["https://powo.science.kew.org/taxon/274279-1"],
-         note="Succulent basal foliage with dense clusters of small four-lobed coral flowers", build=kalanchoe, fallback=4),
+         sources=["https://powo.science.kew.org/taxon/274279-1", "https://plants.ces.ncsu.edu/plants/kalanchoe-blossfeldiana/"],
+         note="Glossy opposite crenate leaves and three attached clusters of coral salverform flowers and buds",
+         build=kalanchoe, fallback=4),
     dict(id="bunny-ears", species="Opuntia microdasys", common="Bunny Ears Cactus",
-         sources=["https://powo.science.kew.org/taxon/136806-1"],
-         note="Flattened oval pads with paired offsets and golden raised areoles", build=bunny_ears, fallback=4),
+         sources=["https://powo.science.kew.org/taxon/136806-1", "https://plants.ces.ncsu.edu/plants/opuntia-microdasys/"],
+         note="Joined paired oval cladodes with two-sided, staggered felt areoles and short gold glochid tufts",
+         build=bunny_ears, fallback=4),
     dict(id="golden-barrel", species="Echinocactus grusonii", common="Golden Barrel Cactus",
          accepted="Kroenleinia grusonii", sources=["https://powo.science.kew.org/taxon/77164085-1"],
          pot=("ba8b59", "75513a"),
@@ -520,8 +882,10 @@ MODELS = [
          sources=["https://powo.science.kew.org/taxon/650501-1"], pot=("988aa9", "625572"),
          note="Leathery basal fan, velamen-covered aerial roots, attached flower branches and three-lobed lips", build=moth_orchid, fallback=6),
     dict(id="african-violet", species="Streptocarpus ionanthus", common="African Violet",
-         sources=["https://powo.science.kew.org/taxon/77117375-1"], pot=("b17f9a", "73556e"),
-         note="Shallow rosette of rounded velvet leaves framing violet five-lobed flowers", build=african_violet, fallback=6),
+         sources=["https://powo.science.kew.org/taxon/77117375-1", "https://plants.ces.ncsu.edu/plants/streptocarpus-ionanthus/"],
+         pot=("b17f9a", "73556e"),
+         note="Crenate velvet rosette with short hairs, three branching cymes and paired anthers in five-lobed violet flowers",
+         build=african_violet, fallback=6),
     dict(id="polka-dot-begonia", species="Begonia maculata", common="Polka Dot Begonia",
          sources=["https://powo.science.kew.org/taxon/105130-1"], pot=("b38584", "6c4b57"),
          note="Upright cane habit with silver-spotted angel wings and claret undersides", build=polka_begonia, fallback=6),

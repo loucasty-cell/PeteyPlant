@@ -5,7 +5,7 @@
   "commonName": "Silver Monstera",
   "rank": "species",
   "version": 1,
-  "design": "Juvenile lanceolate leaves with a silver field and dark reticulated ribs.",
+  "design": "Unequal juvenile blades with dark reticulate veins on satin silver fields and connected climbing nodes.",
   "source": "assets/characters/silver-monstera/source/silver-monstera.blend",
   "runtime": "frontend/public/characters/silver-monstera-v1.glb",
   "thumbnail": "frontend/public/characters/silver-monstera-v1-preview.webp",
@@ -21,12 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 338808,
-  "triangles": 13854,
+  "glbBytes": 625604,
+  "triangles": 24662,
   "fallback": 0,
-  "stageScale": 0.9229,
+  "stageScale": 0.9397,
+  "runtimePrimitives": 15,
   "identitySources": [
-    "https://plants.ces.ncsu.edu/plants/monstera-siltepecana/"
-  ],
-  "runtimePrimitives": 28
+    "https://plants.ces.ncsu.edu/plants/monstera-siltepecana/",
+    "https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A163959-2/general-information"
+  ]
 }

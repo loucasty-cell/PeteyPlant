@@ -4,7 +4,7 @@
   "acceptedName": "Aloe vera",
   "rank": "species",
   "version": 1,
-  "design": "Serrated fleshy rosette, olive canteen ceramic, and brass field goggles",
+  "design": "Fleshy wedge-section rosette with shallow concave inner faces, rounded outer faces and pale staggered teeth in canteen ceramic.",
   "source": "assets/characters/aloe/source/aloe.blend",
   "runtime": "frontend/public/characters/aloe-v1.glb",
   "thumbnail": "frontend/public/characters/aloe-v1-preview.webp",
@@ -17,9 +17,13 @@
     "Curious"
   ],
   "status": "INTEGRATED",
-  "visualReview": "awaiting-owner-review",
+  "visualReview": "Blender front, side and rear review. Cuticle pigment and distinct upper and lower roughness survive glTF export. Owner approval pending.",
   "provenance": "Original Blender geometry, materials and keyframes. The user reference informed the character direction.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 406052,
-  "triangles": 17084
+  "glbBytes": 511232,
+  "triangles": 20348,
+  "runtimePrimitives": 43,
+  "morphologySources": [
+    "https://plants.ces.ncsu.edu/plants/aloe-vera/"
+  ]
 }

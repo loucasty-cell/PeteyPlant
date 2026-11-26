@@ -5,7 +5,7 @@
   "commonName": "Satin Pothos",
   "rank": "species",
   "version": 1,
-  "design": "Asymmetric silver dappled hearts on arching tails.",
+  "design": "Irregular upper-surface silver blotches, plain pale reverses, and attached rootlets on arching vines.",
   "source": "assets/characters/satin-pothos/source/satin-pothos.blend",
   "runtime": "frontend/public/characters/satin-pothos-v1.glb",
   "thumbnail": "frontend/public/characters/satin-pothos-v1-preview.webp",
@@ -21,12 +21,12 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 558016,
-  "triangles": 25066,
+  "glbBytes": 1112464,
+  "triangles": 44854,
   "fallback": 1,
-  "stageScale": 1.0197,
+  "stageScale": 1.0204,
+  "runtimePrimitives": 15,
   "identitySources": [
     "https://plants.ces.ncsu.edu/plants/scindapsus-pictus/"
-  ],
-  "runtimePrimitives": 60
+  ]
 }

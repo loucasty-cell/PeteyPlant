@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 import bpy
-from mathutils import Vector
+from mathutils import Color, Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_monstera import empty, material, mesh, pose_track, sphere, stem, studio
@@ -13,25 +13,40 @@ from build_monstera import empty, material, mesh, pose_track, sphere, stem, stud
 TAU = math.tau
 
 
-def leaf(parent, index, angle, length, reach, width, leaf_material, tooth):
+def leaf(parent, index, angle, length, reach, width, leaf_materials):
     radial = Vector((math.cos(angle), math.sin(angle), 0))
     sideways = Vector((-radial.y, radial.x, 0))
     count = 34
     verts = []
     faces = []
-    ring = 8
+    colors = []
+    ring = 12
+    mature = Vector(Color((.31, .46, .34)).from_srgb_to_scene_linear())
+    young = Vector(Color((.45, .57, .37)).from_srgb_to_scene_linear())
+    tooth = Vector(Color((.76, .79, .59)).from_srgb_to_scene_linear())
+    ground = mature.lerp(young, .17 + .34 * (index >= 6) + .13 * math.sin(index * 1.9))
     for j in range(count):
         t = j / count
         center = radial * (.07 + reach * t ** 1.32)
         center.z = length * t - reach * .31 * t ** 3
         profile = (.43 + .57 * math.sin(math.pi * (t + .18) / 1.18)) * (1 - t) ** .65
-        edge = width * profile * (1 + (.15 if j % 3 == 1 else 0) * math.sin(math.pi * t))
+        tangent = radial * (1.32 * reach * t ** .32) + Vector((0, 0, length - .93 * reach * t * t))
+        normal = tangent.normalized().cross(sideways)
         for k in range(ring):
             a = TAU * k / ring
             x = math.cos(a)
-            position = center + sideways * (edge * x + .15 * width * t * math.sin(index))
-            position.z += profile * (.08 * math.sin(a) + .065 * x * x)
+            is_edge = k in (0, ring // 2)
+            is_tooth = is_edge and 3 <= j <= 29 and (j + (index % 2 if k else 0)) % 3 == 1
+            breadth = width * profile * (1 + (.20 * math.sin(math.pi * t) if is_tooth else 0))
+            position = center + sideways * (breadth * x + .15 * width * t * math.sin(index))
+            # The inside face is shallowly concave and the outside remains thick and rounded.
+            height = .054 * math.sin(a) if k <= ring // 2 else .100 * math.sin(a)
+            position += normal * profile * (height + .074 * x * x)
             verts.append(tuple(position))
+            segment_pigment = ground * (.87 + .14 * math.sin(math.pi * t) + .045 * math.sin(t * 8 + index))
+            if k > ring // 2:
+                segment_pigment = segment_pigment.lerp(mature, .25)
+            colors.append((*segment_pigment.lerp(tooth, .77 if is_tooth else .10 * abs(x) ** 4), 1))
     for j in range(count - 1):
         for k in range(ring):
             faces.append((j * ring + k, (j + 1) * ring + k,
@@ -41,14 +56,16 @@ def leaf(parent, index, angle, length, reach, width, leaf_material, tooth):
     tip.z = length - reach * .31
     tip_id = len(verts)
     verts.append(tuple(tip))
+    colors.append((*ground.lerp(tooth, .21), 1))
     for k in range(ring):
         faces.append(((count - 1) * ring + k, tip_id, (count - 1) * ring + (k + 1) % ring))
-    obj = mesh(f"Fleshy tapered blade {index:02}", verts, [tuple(reversed(face)) for face in faces], leaf_material, parent)
-    obj.data.materials.append(tooth)
-    for face in obj.data.polygons:
-        row, side = divmod(face.index, ring)
-        if 4 <= row <= 27 and row % 3 == 1 and side in (0, 3, 4, 7):
-            face.material_index = 1
+    obj = mesh(f"Fleshy tapered blade {index:02}", verts,
+               [tuple(reversed(face)) for face in faces], leaf_materials[0], parent)
+    obj.data.materials.append(leaf_materials[1])
+    for face in obj.data.polygons[:(count - 1) * ring]:
+        face.material_index = int(face.index % ring >= ring // 2)
+    pigment = obj.data.color_attributes.new(name="Aloe cuticle pigment", type="FLOAT_COLOR", domain="POINT")
+    pigment.data.foreach_set("color", [channel for rgba in colors for channel in rgba])
     return obj
 
 
@@ -86,9 +103,14 @@ def build():
     bronze = material("Goggle bronze", "c78b47", .34, .24)
     enamel = material("Warm porcelain", "f9e4bf", .32)
     soil = material("Coarse dark potting mix", "43352a", .94)
-    leaf_mats = [material(f"Succulent wax tone {i}", hex_color, .45, .17)
-                 for i, hex_color in enumerate(("4c7443","5e894d","43683c","719756","365e3b"))]
-    tooth = material("Serrated translucent green", "87a75d", .47)
+    leaf_mats = [material("Adaxial waxy cuticle", "ffffff", .49, .10),
+                 material("Abaxial diffuse cuticle", "ffffff", .64)]
+    for cuticle in leaf_mats:
+        nodes = cuticle.node_tree.nodes
+        color = nodes.new("ShaderNodeVertexColor")
+        color.layer_name = "Aloe cuticle pigment"
+        shader = next(node for node in nodes if node.type == "BSDF_PRINCIPLED")
+        cuticle.node_tree.links.new(color.outputs["Color"], shader.inputs["Base Color"])
     planter(root, sage, clay, rim)
     sphere("Potting mix surface", (0, 0, 1.003), (.68,.62,.047), soil, root)
     for n, (a, l, r, w) in enumerate([
@@ -97,7 +119,7 @@ def build():
         (.79,1.52,.35,.132),(2.02,1.66,.32,.144),(3.56,1.53,.38,.126),
         (4.81,1.30,.38,.129),(5.98,1.51,.34,.128), (2.97,1.83,.19,.116),
     ]):
-        leaf(crown, n, a, l, r, w, leaf_mats[n % len(leaf_mats)], tooth)
+        leaf(crown, n, a, l, r, w, leaf_mats)
 
     stem("Leather goggle strap", [(x, -.598 + .19 * x*x, .851 + x*.06)
                                     for x in (-.64,-.40,-.15,.16,.40,.64)], .046, rim, root)

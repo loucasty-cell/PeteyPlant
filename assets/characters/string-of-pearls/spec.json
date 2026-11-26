@@ -5,7 +5,7 @@
   "commonName": "String of Pearls",
   "rank": "species",
   "version": 1,
-  "design": "Slender pendent stems studded with round succulent pearl leaves.",
+  "design": "Pendent stems with attached fleshy bead leaves, pointed tips and narrow epidermal window stripes.",
   "source": "assets/characters/string-of-pearls/source/string-of-pearls.blend",
   "runtime": "frontend/public/characters/string-of-pearls-v1.glb",
   "thumbnail": "frontend/public/characters/string-of-pearls-v1-preview.webp",
@@ -21,12 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 919752,
-  "triangles": 38756,
+  "glbBytes": 632580,
+  "triangles": 24644,
   "fallback": 1,
-  "stageScale": 1.1557,
+  "stageScale": 1.1704,
+  "runtimePrimitives": 13,
   "identitySources": [
-    "https://powo.science.kew.org/taxon/1011412-1"
-  ],
-  "runtimePrimitives": 101
+    "https://powo.science.kew.org/taxon/1011412-1",
+    "https://plants.ces.ncsu.edu/plants/curio-rowleyanus/"
+  ]
 }

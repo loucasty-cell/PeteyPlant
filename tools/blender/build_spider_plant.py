@@ -7,7 +7,7 @@ from pathlib import Path
 
 import bmesh
 import bpy
-from mathutils import Matrix, Vector
+from mathutils import Color, Matrix, Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_monstera import empty, material, mesh, pose_track, sphere, studio
@@ -59,11 +59,15 @@ def tube(name, points, radii, mat, parent):
 
 
 def arching_rosette(name, parent, leaves, materials, resolution):
-    vertices, faces, slots = [], [], []
-    # The narrow lens section has distinct shoulders around the cream stripe.
-    section = ((-1, 0), (-.49, .54), (0, .78), (.47, .54), (1, 0),
-               (.47, -.44), (0, -.65), (-.49, -.44))
-    stripe_sides = {1, 2, 5, 6}
+    vertices, faces, slots, pigment = [], [], [], []
+    # Shoulders rise above the midline, preserving the blade's lengthwise groove.
+    section = ((-1, 0), (-.76, .37), (-.55, .56), (-.39, .59), (-.24, .52),
+               (0, .33), (.24, .52), (.39, .59), (.55, .56), (.76, .37), (1, 0),
+               (.55, -.32), (.33, -.46), (0, -.50), (-.33, -.46), (-.55, -.32))
+    greens = [Vector(Color(rgb).from_srgb_to_scene_linear()) for rgb in
+              ((.32, .51, .25), (.25, .44, .23), (.40, .56, .30))]
+    stripe = Vector(Color((.89, .88, .70)).from_srgb_to_scene_linear())
+    reverse_stripe = Vector(Color((.73, .77, .57)).from_srgb_to_scene_linear())
     for index, (base_radius, angle, reach, lift, fall, width) in enumerate(leaves):
         radial = Vector((math.cos(angle), math.sin(angle), 0))
         across = Vector((-radial.y, radial.x, 0))
@@ -85,18 +89,31 @@ def arching_rosette(name, parent, leaves, materials, resolution):
             for u, v in section:
                 corrugation = -.115 * u * u + direction * u * t * .32
                 vertices.append(point + width * envelope * (across * u + normal * (v * .235 + corrugation)))
+                band_center = .035 * math.sin(t * 5 + index * .83)
+                band_edge = .37 + .042 * math.sin(t * 6 - index * .61)
+                cream = max(0, min(1, (band_edge - abs(u - band_center)) / .20 + .44))
+                green = greens[index % len(greens)].copy()
+                if v < 0:
+                    green *= .79
+                green *= .96 + .11 * math.sin(math.pi * t) + .024 * math.sin(t * 19 + u * 6 + index)
+                color = green.lerp(reverse_stripe if v < 0 else stripe, cream)
+                pigment.append((*color, 1))
         sides = len(section)
         connect_rings(faces, start, resolution, sides)
-        green = index % 3
-        slots.extend(3 if side in stripe_sides else green
+        slots.extend(int(side >= 10)
                      for _ in range(resolution - 1) for side in range(sides))
         for offset, point in ((start, center(0)), (len(vertices) - sides, center(1))):
             tip = len(vertices)
             vertices.append(point)
+            pigment.append(pigment[offset + 5])
             for side in range(sides):
                 faces.append((tip, offset + side, offset + (side + 1) % sides))
-                slots.append(3 if side in stripe_sides else green)
-    return closed_mesh(name, vertices, faces, materials, parent, slots)
+                slots.append(int(side >= 10))
+    rosette = closed_mesh(name, vertices, faces, materials, parent, slots)
+    colors = rosette.data.color_attributes.new(name="Ribbon pigments", type="FLOAT_COLOR", domain="POINT")
+    colors.data.foreach_set("color", [component for rgba in pigment for component in rgba])
+    rosette.data.update()
+    return rosette
 
 
 def pottery(root, glaze, foot, slip):
@@ -144,10 +161,14 @@ def build():
     shine = material("Soft porcelain gleam", "ffecd2", .29)
     soil = material("Dark potting mix", "4a3529", .95)
     stalk = material("Yellow-green runner", "7a8f46", .57)
-    leaves = [material(name, color, .46, .14) for name, color in (
-        ("Fresh green margin", "4f8041"), ("Forest green margin", "386c3b"),
-        ("Tender green margin", "649753"), ("Cream blade stripe", "e3e2b0"),
-    )]
+    leaves = [material("Upper ribbon cuticle", "ffffff", .41, .10),
+              material("Diffuse lower ribbon cuticle", "ffffff", .62)]
+    for leaf in leaves:
+        nodes = leaf.node_tree.nodes
+        pigment = nodes.new("ShaderNodeVertexColor")
+        pigment.layer_name = "Ribbon pigments"
+        shader = next(node for node in nodes if node.type == "BSDF_PRINCIPLED")
+        leaf.node_tree.links.new(pigment.outputs["Color"], shader.inputs["Base Color"])
     pottery(root, glaze, foot, clay)
     sphere("Potting mix", (0, 0, .861), (.610, .610, .033), soil, root)
     lengths = [(1.09,.87,.43,.112),(1.00,.92,.29,.100),(1.04,.79,.43,.112),

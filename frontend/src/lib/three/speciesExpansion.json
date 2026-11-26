@@ -4,8 +4,8 @@
     "speciesId": "Streptocarpus ionanthus",
     "acceptedName": "Streptocarpus ionanthus",
     "commonName": "African Violet",
-    "design": "Shallow rosette of rounded velvet leaves framing violet five-lobed flowers",
-    "stageScale": 1.1297,
+    "design": "Crenate velvet rosette with short hairs, three branching cymes and paired anthers in five-lobed violet flowers",
+    "stageScale": 1.1674,
     "fallback": 6
   },
   {
@@ -22,8 +22,8 @@
     "speciesId": "Peperomia obtusifolia",
     "acceptedName": "Peperomia obtusifolia",
     "commonName": "Baby Rubber Plant",
-    "design": "A compact mound of thick spoon-shaped leaves with rounded tips.",
-    "stageScale": 1.1702,
+    "design": "A bush of thick glossy, cupped obovate leaves on branching stems with pink sub-peltate petioles.",
+    "stageScale": 1.1286,
     "fallback": 4
   },
   {
@@ -40,8 +40,8 @@
     "speciesId": "Nephrolepis exaltata",
     "acceptedName": "Nephrolepis exaltata",
     "commonName": "Boston Fern",
-    "design": "A layered fountain of long arching fronds with dense paired pinnae.",
-    "stageScale": 1.0074,
+    "design": "Eleven arching fronds with alternating tapered pinnae, asymmetric basal auricles and shaded rachises.",
+    "stageScale": 0.9924,
     "fallback": 3
   },
   {
@@ -49,8 +49,8 @@
     "speciesId": "Opuntia microdasys",
     "acceptedName": "Opuntia microdasys",
     "commonName": "Bunny Ears Cactus",
-    "design": "Flattened oval pads with paired offsets and golden raised areoles",
-    "stageScale": 0.8222,
+    "design": "Joined paired oval cladodes with two-sided, staggered felt areoles and short gold glochid tufts",
+    "stageScale": 0.8283,
     "fallback": 4
   },
   {
@@ -67,8 +67,8 @@
     "speciesId": "Pilea peperomioides",
     "acceptedName": "Pilea peperomioides",
     "commonName": "Chinese Money Plant",
-    "design": "Petiole-centered coin leaves fan out on long fine stems.",
-    "stageScale": 1.004,
+    "design": "Satin circular leaves with radial veins and centered petiole attachments to a scarred upright stem.",
+    "stageScale": 0.991,
     "fallback": 7
   },
   {
@@ -103,8 +103,8 @@
     "speciesId": "Heptapleurum arboricola",
     "acceptedName": "Heptapleurum arboricola",
     "commonName": "Dwarf Umbrella Tree",
-    "design": "Layered umbrellas of seven rounded, glossy leaflets.",
-    "stageScale": 0.8598,
+    "design": "Eight compound leaves with seven to nine stalked glossy obovate leaflets on a continuous branched stem.",
+    "stageScale": 0.8473,
     "fallback": 7
   },
   {
@@ -130,8 +130,8 @@
     "speciesId": "Kalanchoe blossfeldiana",
     "acceptedName": "Kalanchoe blossfeldiana",
     "commonName": "Flaming Katy",
-    "design": "Succulent basal foliage with dense clusters of small four-lobed coral flowers",
-    "stageScale": 0.9972,
+    "design": "Glossy opposite crenate leaves and three attached clusters of coral salverform flowers and buds",
+    "stageScale": 1.0229,
     "fallback": 4
   },
   {
@@ -157,8 +157,8 @@
     "speciesId": "Alocasia micholitziana",
     "acceptedName": "Alocasia micholitziana",
     "commonName": "Green Velvet Alocasia",
-    "design": "Upright sagittate velvet leaves contrast with pale ribs and wavering margins.",
-    "stageScale": 0.9289,
+    "design": "Dark matte sagittate foliage with pale curving veins, greener reverses, and sheathing petioles.",
+    "stageScale": 0.9472,
     "fallback": 7
   },
   {
@@ -166,8 +166,8 @@
     "speciesId": "Philodendron hederaceum",
     "acceptedName": "Philodendron hederaceum",
     "commonName": "Heartleaf Philodendron",
-    "design": "Alternating glossy hearts on layered loose climbing and trailing vines.",
-    "stageScale": 0.9157,
+    "design": "Alternating glossy, subtly veined hearts with free terminal stipules on trailing vines.",
+    "stageScale": 0.92,
     "fallback": 1
   },
   {
@@ -175,8 +175,8 @@
     "speciesId": "Crassula ovata",
     "acceptedName": "Crassula ovata",
     "commonName": "Jade Plant",
-    "design": "Asymmetric branched woody habit with opposite fleshy oval leaves",
-    "stageScale": 0.8946,
+    "design": "Grey leaf-scarred bark, living green shoots and obovate leaf pairs with restrained margin tint",
+    "stageScale": 0.8801,
     "fallback": 4
   },
   {
@@ -211,8 +211,8 @@
     "speciesId": "Maranta leuconeura",
     "acceptedName": "Maranta leuconeura",
     "commonName": "Prayer Plant",
-    "design": "Low spreading foliage with red herringbone veins in a red-veined form.",
-    "stageScale": 0.9787,
+    "design": "Oblong low-spreading blades with pale central patches, red radiating veins and burgundy backs.",
+    "stageScale": 1.0,
     "fallback": 6
   },
   {
@@ -247,8 +247,8 @@
     "speciesId": "Goeppertia orbifolia",
     "acceptedName": "Goeppertia orbifolia",
     "commonName": "Orbifolia Prayer Plant",
-    "design": "Near-round silver-banded discs on ascending petioles.",
-    "stageScale": 0.8284,
+    "design": "Round pleated blades with bent silver-green sectors, pale undersides and linked petiole hinges.",
+    "stageScale": 0.8472,
     "fallback": 6
   },
   {
@@ -256,8 +256,8 @@
     "speciesId": "Chamaedorea elegans",
     "acceptedName": "Chamaedorea elegans",
     "commonName": "Parlor Palm",
-    "design": "A pot-grown cluster of slender palms with delicate pinnate fans.",
-    "stageScale": 0.9438,
+    "design": "Three individually rooted seedlings with stem scars, clasping petiole bases and arched linear pinnae.",
+    "stageScale": 0.932,
     "fallback": 5
   },
   {
@@ -283,8 +283,8 @@
     "speciesId": "Beaucarnea recurvata",
     "acceptedName": "Beaucarnea recurvata",
     "commonName": "Ponytail Palm",
-    "design": "Bulbous water-storing base, short cane and a fountain of drooping ribbons",
-    "stageScale": 0.8989,
+    "design": "Continuous grooved, swollen caudex with 34 narrow folded ribbons curling from its crown",
+    "stageScale": 0.8964,
     "fallback": 3
   },
   {
@@ -301,8 +301,8 @@
     "speciesId": "Goeppertia lancifolia",
     "acceptedName": "Goeppertia insignis",
     "commonName": "Rattlesnake Plant",
-    "design": "Narrow rippled blades with alternating oval spots and purple backs.",
-    "stageScale": 0.8519,
+    "design": "Rippling lanceolate blades with alternating large and small oval pigment and maroon reverses.",
+    "stageScale": 0.8679,
     "fallback": 6
   },
   {
@@ -319,8 +319,8 @@
     "speciesId": "Scindapsus pictus",
     "acceptedName": "Scindapsus pictus",
     "commonName": "Satin Pothos",
-    "design": "Asymmetric silver dappled hearts on arching tails.",
-    "stageScale": 1.0197,
+    "design": "Irregular upper-surface silver blotches, plain pale reverses, and attached rootlets on arching vines.",
+    "stageScale": 1.0204,
     "fallback": 1
   },
   {
@@ -328,8 +328,8 @@
     "speciesId": "Tradescantia zebrina",
     "acceptedName": "Tradescantia zebrina",
     "commonName": "Silver Inch Plant",
-    "design": "A low violet trailing clump of lance-shaped leaves with two silver-white bands.",
-    "stageScale": 0.9958,
+    "design": "Two-ranked silver-striped blades with burgundy reverses, closed sheaths and rooting nodes.",
+    "stageScale": 1.2837,
     "fallback": 1
   },
   {
@@ -337,8 +337,8 @@
     "speciesId": "Monstera siltepecana",
     "acceptedName": "Monstera siltepecana",
     "commonName": "Silver Monstera",
-    "design": "Juvenile lanceolate leaves with a silver field and dark reticulated ribs.",
-    "stageScale": 0.9229,
+    "design": "Unequal juvenile blades with dark reticulate veins on satin silver fields and connected climbing nodes.",
+    "stageScale": 0.9397,
     "fallback": 0
   },
   {
@@ -355,8 +355,8 @@
     "speciesId": "Ceropegia woodii",
     "acceptedName": "Ceropegia woodii",
     "commonName": "String of Hearts",
-    "design": "Thin purple vines of opposite silver-marbled hearts with violet undersides.",
-    "stageScale": 0.9815,
+    "design": "Purple wiry vines with opposite silver-etched hearts, violet reverses and small aerial tubers.",
+    "stageScale": 0.9838,
     "fallback": 1
   },
   {
@@ -364,8 +364,8 @@
     "speciesId": "Curio rowleyanus",
     "acceptedName": "Curio rowleyanus",
     "commonName": "String of Pearls",
-    "design": "Slender pendent stems studded with round succulent pearl leaves.",
-    "stageScale": 1.1557,
+    "design": "Pendent stems with attached fleshy bead leaves, pointed tips and narrow epidermal window stripes.",
+    "stageScale": 1.1704,
     "fallback": 1
   },
   {
@@ -436,8 +436,8 @@
     "speciesId": "Haworthiopsis fasciata",
     "acceptedName": "Haworthiopsis fasciata",
     "commonName": "Zebra Haworthia",
-    "design": "Tapering rosette leaves with pale bands limited to the outer faces",
-    "stageScale": 1.1492,
+    "design": "Tapering rosette with smooth inner blade faces and interrupted bands of raised outer tubercles",
+    "stageScale": 1.1227,
     "fallback": 4
   },
   {

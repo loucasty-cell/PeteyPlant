@@ -5,7 +5,7 @@
   "commonName": "Green Velvet Alocasia",
   "rank": "species",
   "version": 1,
-  "design": "Upright sagittate velvet leaves contrast with pale ribs and wavering margins.",
+  "design": "Dark matte sagittate foliage with pale curving veins, greener reverses, and sheathing petioles.",
   "source": "assets/characters/green-velvet-alocasia/source/green-velvet-alocasia.blend",
   "runtime": "frontend/public/characters/green-velvet-alocasia-v1.glb",
   "thumbnail": "frontend/public/characters/green-velvet-alocasia-v1-preview.webp",
@@ -21,12 +21,12 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 324736,
-  "triangles": 13496,
+  "glbBytes": 563508,
+  "triangles": 22040,
   "fallback": 7,
-  "stageScale": 0.9289,
+  "stageScale": 0.9472,
+  "runtimePrimitives": 14,
   "identitySources": [
     "https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A84208-1/general-information"
-  ],
-  "runtimePrimitives": 23
+  ]
 }

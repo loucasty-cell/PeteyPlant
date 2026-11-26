@@ -5,7 +5,7 @@
   "commonName": "String of Hearts",
   "rank": "species",
   "version": 1,
-  "design": "Thin purple vines of opposite silver-marbled hearts with violet undersides.",
+  "design": "Purple wiry vines with opposite silver-etched hearts, violet reverses and small aerial tubers.",
   "source": "assets/characters/string-of-hearts/source/string-of-hearts.blend",
   "runtime": "frontend/public/characters/string-of-hearts-v1.glb",
   "thumbnail": "frontend/public/characters/string-of-hearts-v1-preview.webp",
@@ -21,12 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 891568,
-  "triangles": 41788,
+  "glbBytes": 1232080,
+  "triangles": 43228,
   "fallback": 1,
-  "stageScale": 0.9815,
+  "stageScale": 0.9838,
+  "runtimePrimitives": 15,
   "identitySources": [
-    "https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A95848-1"
-  ],
-  "runtimePrimitives": 119
+    "https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A95848-1",
+    "https://plants.ces.ncsu.edu/plants/ceropegia-woodii/"
+  ]
 }

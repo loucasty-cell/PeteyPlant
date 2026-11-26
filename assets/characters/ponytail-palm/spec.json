@@ -5,7 +5,7 @@
   "commonName": "Ponytail Palm",
   "rank": "species",
   "version": 1,
-  "design": "Bulbous water-storing base, short cane and a fountain of drooping ribbons",
+  "design": "Continuous grooved, swollen caudex with 34 narrow folded ribbons curling from its crown",
   "source": "assets/characters/ponytail-palm/source/ponytail-palm.blend",
   "runtime": "frontend/public/characters/ponytail-palm-v1.glb",
   "thumbnail": "frontend/public/characters/ponytail-palm-v1-preview.webp",
@@ -21,12 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 271692,
-  "triangles": 11048,
+  "glbBytes": 588632,
+  "triangles": 22984,
   "fallback": 3,
-  "stageScale": 0.8989,
+  "stageScale": 0.8964,
+  "runtimePrimitives": 13,
   "identitySources": [
-    "https://powo.science.kew.org/taxon/531735-1"
-  ],
-  "runtimePrimitives": 35
+    "https://powo.science.kew.org/taxon/531735-1",
+    "https://plants.ces.ncsu.edu/plants/beaucarnea-recurvata/"
+  ]
 }

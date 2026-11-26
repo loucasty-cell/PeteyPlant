@@ -5,7 +5,7 @@
   "commonName": "Prayer Plant",
   "rank": "species",
   "version": 1,
-  "design": "Low spreading foliage with red herringbone veins in a red-veined form.",
+  "design": "Oblong low-spreading blades with pale central patches, red radiating veins and burgundy backs.",
   "source": "assets/characters/maranta/source/maranta.blend",
   "runtime": "frontend/public/characters/maranta-v1.glb",
   "thumbnail": "frontend/public/characters/maranta-v1-preview.webp",
@@ -21,12 +21,12 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 768304,
-  "triangles": 30660,
+  "glbBytes": 861812,
+  "triangles": 34724,
   "fallback": 6,
-  "stageScale": 0.9787,
+  "stageScale": 1.0,
+  "runtimePrimitives": 12,
   "identitySources": [
-    "https://plants.ces.ncsu.edu/plants/maranta-leuconeura/"
-  ],
-  "runtimePrimitives": 12
+    "https://plants.ces.ncsu.edu/plants/maranta-leuconeura/common-name/red-veined-prayer-plant/"
+  ]
 }

@@ -5,7 +5,7 @@
   "commonName": "Parlor Palm",
   "rank": "species",
   "version": 1,
-  "design": "A pot-grown cluster of slender palms with delicate pinnate fans.",
+  "design": "Three individually rooted seedlings with stem scars, clasping petiole bases and arched linear pinnae.",
   "source": "assets/characters/parlor-palm/source/parlor-palm.blend",
   "runtime": "frontend/public/characters/parlor-palm-v1.glb",
   "thumbnail": "frontend/public/characters/parlor-palm-v1-preview.webp",
@@ -21,12 +21,12 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 478596,
-  "triangles": 18132,
+  "glbBytes": 935972,
+  "triangles": 37298,
   "fallback": 5,
-  "stageScale": 0.9438,
+  "stageScale": 0.932,
+  "runtimePrimitives": 13,
   "identitySources": [
     "https://plants.ces.ncsu.edu/plants/chamaedorea-elegans/"
-  ],
-  "runtimePrimitives": 12
+  ]
 }

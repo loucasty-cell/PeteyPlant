@@ -5,7 +5,7 @@
   "commonName": "African Violet",
   "rank": "species",
   "version": 1,
-  "design": "Shallow rosette of rounded velvet leaves framing violet five-lobed flowers",
+  "design": "Crenate velvet rosette with short hairs, three branching cymes and paired anthers in five-lobed violet flowers",
   "source": "assets/characters/african-violet/source/african-violet.blend",
   "runtime": "frontend/public/characters/african-violet-v1.glb",
   "thumbnail": "frontend/public/characters/african-violet-v1-preview.webp",
@@ -21,12 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 491896,
-  "triangles": 19340,
+  "glbBytes": 1239492,
+  "triangles": 38212,
   "fallback": 6,
-  "stageScale": 1.1297,
+  "stageScale": 1.1674,
+  "runtimePrimitives": 17,
   "identitySources": [
-    "https://powo.science.kew.org/taxon/77117375-1"
-  ],
-  "runtimePrimitives": 110
+    "https://powo.science.kew.org/taxon/77117375-1",
+    "https://plants.ces.ncsu.edu/plants/streptocarpus-ionanthus/"
+  ]
 }

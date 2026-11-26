@@ -5,7 +5,7 @@
   "commonName": "Dwarf Umbrella Tree",
   "rank": "species",
   "version": 1,
-  "design": "Layered umbrellas of seven rounded, glossy leaflets.",
+  "design": "Eight compound leaves with seven to nine stalked glossy obovate leaflets on a continuous branched stem.",
   "source": "assets/characters/dwarf-umbrella-tree/source/dwarf-umbrella-tree.blend",
   "runtime": "frontend/public/characters/dwarf-umbrella-tree-v1.glb",
   "thumbnail": "frontend/public/characters/dwarf-umbrella-tree-v1-preview.webp",
@@ -21,9 +21,12 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 435800,
-  "triangles": 16532,
+  "glbBytes": 771796,
+  "triangles": 30494,
   "fallback": 7,
-  "stageScale": 0.8598,
-  "runtimePrimitives": 12
+  "stageScale": 0.8473,
+  "runtimePrimitives": 13,
+  "identitySources": [
+    "https://plants.ces.ncsu.edu/plants/heptapleurum-arboricola/"
+  ]
 }

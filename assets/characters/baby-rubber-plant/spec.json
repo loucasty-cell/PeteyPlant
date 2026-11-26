@@ -5,7 +5,7 @@
   "commonName": "Baby Rubber Plant",
   "rank": "species",
   "version": 1,
-  "design": "A compact mound of thick spoon-shaped leaves with rounded tips.",
+  "design": "A bush of thick glossy, cupped obovate leaves on branching stems with pink sub-peltate petioles.",
   "source": "assets/characters/baby-rubber-plant/source/baby-rubber-plant.blend",
   "runtime": "frontend/public/characters/baby-rubber-plant-v1.glb",
   "thumbnail": "frontend/public/characters/baby-rubber-plant-v1-preview.webp",
@@ -21,9 +21,12 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 348132,
-  "triangles": 14426,
+  "glbBytes": 574372,
+  "triangles": 22460,
   "fallback": 4,
-  "stageScale": 1.1702,
-  "runtimePrimitives": 29
+  "stageScale": 1.1286,
+  "runtimePrimitives": 14,
+  "identitySources": [
+    "https://plants.ces.ncsu.edu/plants/peperomia-obtusifolia/"
+  ]
 }
