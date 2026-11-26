@@ -5,7 +5,7 @@
   "commonName": "Mexican Snowball",
   "rank": "species",
   "version": 1,
-  "design": "Low powder-blue rosette formed by thick spoon-like leaves",
+  "design": "Overlapping matte spoon leaves with pale new growth and restrained warm tips",
   "source": "assets/characters/echeveria/source/echeveria.blend",
   "runtime": "frontend/public/characters/echeveria-v1.glb",
   "thumbnail": "frontend/public/characters/echeveria-v1-preview.webp",
@@ -21,12 +21,12 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 337852,
-  "triangles": 14228,
+  "glbBytes": 373700,
+  "triangles": 16132,
   "fallback": 4,
-  "stageScale": 1.5203,
+  "stageScale": 1.5191,
+  "runtimePrimitives": 15,
   "identitySources": [
     "https://powo.science.kew.org/taxon/86934-2"
-  ],
-  "runtimePrimitives": 83
+  ]
 }

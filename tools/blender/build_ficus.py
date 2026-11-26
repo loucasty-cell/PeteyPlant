@@ -8,28 +8,56 @@ import bpy
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_monstera import empty, material, mesh, parent_axis, pose_track, pottery, sphere, stem
 from build_aloe import deliver
+from build_snake_plant import linear_color
 
 TAU = math.tau
+PIGMENT = "Ficus leaf pigment"
 
 
-def fiddle(parent, name, length, width, green, vein):
-    rows, across = 28, 10
-    # The constricted waist and widest distal lobes give the fiddle shape.
-    outline = ((0, .04), (.10, .56), (.23, .82), (.43, .60), (.61, .90), (.76, 1), (.89, .78), (1, .02))
+def fiddle(parent, name, length, width, cuticle, green, seed):
+    rows, across = 46, 14
+    # The blade broadens at the base and shoulder, with a waist and blunt apex.
+    outline = ((0, .04), (.10, .56), (.23, .82), (.43, .62), (.62, .92), (.79, 1), (.92, .72), (1, .07))
+    lower = linear_color("739055")
+    upper_vein = linear_color("9ba96c")
+    lower_vein = linear_color("b3bd81")
+    surface_vertices, underside_vertices, upper_colors, lower_colors = [], [], [], []
 
-    def surface(t, s):
+    for row in range(rows + 1):
+        t = row / rows
         for (a, x), (b, y) in zip(outline, outline[1:]):
             if a <= t <= b:
                 f = (t - a) / (b - a)
-                profile = x + (y - x) * (f*f*(3-2*f))
+                profile = x + (y - x) * f * f * (3 - 2 * f)
                 break
-        ripple = (.045*math.sin(23*t) + .024*math.sin(40*t)) * s*s
-        return (width * profile * s + .045 * math.sin(t*4), length*t,
-                .15*math.sin(math.pi*t) + .085*t*t - .13*s*s*math.sin(math.pi*t) + ripple)
+        envelope = math.sin(math.pi * t)
+        for column in range(across + 1):
+            u = 2 * column / across - 1
+            flank = abs(u)
+            # Lateral veins curve toward the apex and alternate along the midrib.
+            offset = .09 * flank + .02 * flank**2
+            phase = (t - .12 - offset - .013 * u) / .119 + .11 * math.sin(16*t + seed)
+            rib = math.exp(-((phase - round(phase)) / .15)**2) * envelope
+            rib *= 1 - .44 * flank**3
+            midrib = (1 - flank) ** 17 * envelope
+            ripple = flank**3 * (.021 * math.sin(25*t + seed + u) + .012 * math.sin(44*t - seed))
+            spread = width * profile * u * (1 + .05 * u * math.sin(6*t + seed))
+            x = spread + .047 * envelope * math.sin(2.5*t + seed)
+            y = length * t + .041 * flank**2 * envelope
+            z = .14 * envelope + .08*t*t - .11 * u*u * envelope + ripple
+            # Raised panels between the main veins and a thicker central midrib.
+            z += .016 * envelope * (1 - rib) * math.sin(math.pi * flank) + .018 * midrib
+            thickness = .005 + .008 * (1 - flank) * envelope
+            surface_vertices.append((x, y, z))
+            underside_vertices.append((x, y, z - thickness - .008 * (midrib + rib * flank)))
+            shades = .06 + .035 * math.sin(t * 33 + u * 6 + seed) + .04 * flank
+            pigment = green.lerp(lower, shades).lerp(upper_vein, .64 * midrib + .32 * rib)
+            upper_colors.append((*pigment, 1))
+            pigment = lower.lerp(green, .18 + .09 * flank).lerp(lower_vein, .61 * midrib + .52 * rib)
+            lower_colors.append((*pigment, 1))
 
-    surface_vertices = [surface(i/rows, -1+2*j/across) for i in range(rows+1) for j in range(across+1)]
     count = len(surface_vertices)
-    verts = surface_vertices + [(x,y,z-.012) for x,y,z in surface_vertices]
+    verts = surface_vertices + underside_vertices
     stride = across+1
     faces = []
     for i in range(rows):
@@ -40,15 +68,11 @@ def fiddle(parent, name, length, width, green, vein):
     border = ([j for j in range(stride)] + [i*stride+across for i in range(1,rows+1)]
               + [rows*stride+j for j in range(across-1,-1,-1)] + [i*stride for i in range(rows-1,0,-1)])
     faces.extend((b,a,a+count,b+count) for a,b in zip(border,border[1:]+border[:1]))
-    mesh(name, verts, faces, green, parent)
-    midrib = [(x,y,z+.012) for x,y,z in (surface(t, 0) for t in (0,.16,.33,.52,.72,.87,.97))]
-    stem(f"{name} midrib", midrib, .013, vein, parent, (.9,1,.85,.65,.46,.27,.08))
-    for k in range(1,7):
-        t = .12 + .113*k
-        for side in (-1,1):
-            points = [(x,y,z+.011) for x,y,z in
-                (surface(t,0),surface(t+.045,.35*side),surface(t+.08,.66*side),surface(t+.105,.87*side))]
-            stem(f"{name} vein {k} {side}", points, .0057, vein, parent, (.85,.71,.38,.09))
+    blade = mesh(name, verts, faces, cuticle, parent)
+    pigments = blade.data.color_attributes.new(name=PIGMENT, type="BYTE_COLOR", domain="POINT")
+    blade.data.color_attributes.active_color = pigments
+    for attribute, value in zip(pigments.data, upper_colors + lower_colors):
+        attribute.color = value
 
 
 def make():
@@ -69,31 +93,37 @@ def make():
     brass = material("Eyeglass frames in aged brass", "aa7647", .35, .27)
     ivory = material("Warm porcelain", "faf3da", .28)
     iris = material("Caramel iris", "925531", .43)
-    vein = material("Leaf veins in yellowed olive", "8da05c", .50)
-    greens = [material(f"Ficus cuticle tone {i}", tone, .39, .22)
-              for i,tone in enumerate(("305740","3f6946","244d35","527b46"))]
+    cuticle = material("Dull green, leathery Ficus cuticle", "ffffff", .56, .08)
+    shader = next(node for node in cuticle.node_tree.nodes if node.type == "BSDF_PRINCIPLED")
+    color = cuticle.node_tree.nodes.new("ShaderNodeVertexColor")
+    color.layer_name = PIGMENT
+    cuticle.node_tree.links.new(color.outputs["Color"], shader.inputs["Base Color"])
+    greens = [linear_color(tone) for tone in ("305740", "3d6346", "294f35", "527246")]
     pot = pottery(root, clay, foot, rim)
     pot.scale = (.94, .98, .93)
     sphere("Soil", (0,0,1.015), (.66,.61,.04), soil, root)
-    main = [(.01,.02,-.03),(.03,.06,.30),(-.07,.075,.62),(.025,.06,.93),(.10,.10,1.21)]
-    stem("Tapered, gently leaning trunk", main, .070, bark, crown, (1,.79,.57,.41,.20))
+    main = [(.01,.02,-.05),(.02,.06,.26),(-.015,.065,.38),(-.05,.083,.53),
+            (-.064,.076,.64),(-.027,.065,.76),(.024,.06,.91),(.064,.076,1.05),(.10,.10,1.21)]
+    stem("Tapered, gently leaning trunk", main, .070, bark, crown, (1,.8,.70,.62,.55,.49,.42,.32,.19))
     layouts = [
         ("Lower left",1,(-.43,-.06,.60),(-.9,-.25,.31),(.02,-1,.50),.68,.35),
-        ("Lower right",1,(.40,-.12,.63),(.8,-.19,.46),(.11,-1,.55),.75,.36),
-        ("Mid left",2,(-.37,.13,.83),(-.85,.07,.49),(.0,-1,.51),.86,.39),
-        ("Mid right",2,(.33,.10,.92),(.85,-.1,.63),(.24,-1,.59),.78,.36),
-        ("Rearmost",2,(-.04,.39,.99),(-.26,.83,.53),(.3,.2,.94),.65,.31),
-        ("Upper center",3,(.045,.055,1.16),(.005,.03,1),(.09,-1,.34),.86,.37),
-        ("Upper right",3,(.18,.16,1.31),(.5,.28,.85),(.17,-1,.52),.55,.27),
+        ("Lower right",2,(.40,-.12,.63),(.8,-.19,.46),(.11,-1,.55),.75,.36),
+        ("Mid left",3,(-.37,.13,.83),(-.85,.07,.49),(.0,-1,.51),.86,.39),
+        ("Mid right",4,(.33,.10,.92),(.85,-.1,.63),(.24,-1,.59),.78,.36),
+        ("Rearmost",5,(-.04,.39,.99),(-.26,.83,.53),(.3,.2,.94),.65,.31),
+        ("Upper center",6,(.045,.055,1.16),(.005,.03,1),(.09,-1,.34),.86,.37),
+        ("Upper right",7,(.18,.16,1.31),(.5,.28,.85),(.17,-1,.52),.55,.27),
     ]
     for idx,(name,anchor,at,toward,facing,length,width) in enumerate(layouts):
         # Start each petiole inside the same centerline used by the parent trunk.
         start = main[anchor]
-        middle = tuple((a+b)/2 for a,b in zip(start,at))
-        stem(f"{name} woody petiole", [start,middle,at], .036, bark, crown, (1.05,.75,.43))
+        middle = tuple(a + .48 * (b - a) for a, b in zip(start, at))
+        middle = (middle[0], middle[1], middle[2] - .022)
+        radius = .036 - idx * .0024
+        stem(f"{name} woody petiole", [start,middle,at], radius, bark, crown, (1.05,.72,.54))
         hinge = empty(f"{name} hinge", crown)
         parent_axis(hinge, at, toward, facing)
-        fiddle(hinge, name, length, width, greens[idx%len(greens)],vein)
+        fiddle(hinge, name, length, width, cuticle, greens[idx % len(greens)], idx * 1.7)
     eyes=[]
     for i,x in enumerate((-.212,.215)):
         eye=empty(f"Eye pivot {i}",root)

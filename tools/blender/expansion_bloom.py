@@ -3,6 +3,7 @@
 from math import cos, pi, sin, tau
 
 from mathutils import Vector
+from mathutils.bvhtree import BVHTree
 
 from build_monstera import material, mesh, sphere, stem
 
@@ -16,7 +17,7 @@ def palette(name, *colors):
 
 
 def loft(name, crown, a, b, width, depth, mat, *, bulge=(0, 0, 0), form=.7,
-         normal=(0, 0, 1), markings=None, teeth=0, rows=12, sides=10):
+         normal=(0, 0, 1), markings=None, teeth=0, rows=12, sides=10, wing_bias=0):
     """Closed blade with a curved midline and a continuous oval cross-section."""
     a, b, bulge = Vector(a), Vector(b), Vector(bulge)
     axis = (b - a).normalized()
@@ -33,7 +34,9 @@ def loft(name, crown, a, b, width, depth, mat, *, bulge=(0, 0, 0), form=.7,
         edge = 1 + .13 * sin(tau * teeth * t) if teeth else 1
         for column in range(sides):
             angle = tau * column / sides
-            vertices.append(center + taper * (side * width * edge * cos(angle) + up * depth * sin(angle)))
+            lateral = cos(angle)
+            breadth = width * edge * (1 + wing_bias * lateral * (1 - t))
+            vertices.append(center + taper * (side * breadth * lateral + up * depth * sin(angle)))
     for row in range(rows):
         for column in range(sides):
             left = row * sides + column
@@ -101,16 +104,25 @@ def zz_plant(crown):
 
 
 def echeveria(crown):
-    frost = palette("Powdery blue rosette", "93bdb7", "739f99", "b9d5cd", "a989aa")
-    for ring, (count, length, width, rise, z) in enumerate([(12, .81, .166, .08, .08),
-                                                             (10, .62, .144, .17, .13),
-                                                             (8, .43, .118, .26, .17),
-                                                             (6, .25, .083, .31, .20)]):
+    farina = [
+        material("Glaucous outer leaves", "91b5ad", .83),
+        material("Silvery middle leaves", "a2c3bb", .80),
+        material("Pale young leaves", "b1c9bf", .76),
+        material("Warmed leaf tip", "b7adae", .80),
+    ]
+    for ring, (count, length, width, rise) in enumerate([
+        (12, .81, .164, .10), (10, .63, .139, .22),
+        (8, .45, .105, .32), (5, .25, .067, .40),
+    ]):
         for i in range(count):
-            angle = tau * i / count + .29 * ring
-            loft("Fleshy spoon", crown, ray(angle, .034, z), ray(angle, length, z + rise), width,
-                 .047 - .006 * ring, [frost[ring % 3], frost[3]], bulge=ray(angle, .03, -.08),
-                 form=.54, rows=9, markings=lambda row, col: int(row == 8 and col % 3 == 0))
+            angle = tau * i / count + .31 * ring
+            extent = length * (1 + .043 * sin(angle * 3 + ring))
+            base = ray(angle, .012, .055 + .019 * ring)
+            tip = ray(angle, extent, base.z + rise + .017 * cos(angle * 5))
+            loft("Overlapping glaucous spoon", crown, base, tip, width,
+                 .052 - .007 * ring, [farina[min(ring, 2)], farina[3]],
+                 bulge=ray(angle, -.08, -.047 + .015 * ring), form=.50,
+                 rows=12, markings=lambda row, col: int(row == 11 and 1 < col < 4))
 
 
 def jade(crown):
@@ -210,46 +222,110 @@ def bunny_ears(crown):
 
 
 def barrel(crown):
-    skin = palette("Deep fluted green", "588253", "719251")
-    gold = palette("Golden ribs", "c5a75e", "edce76")
+    skin = material("Cactus cuticle", "477348", .63, .06)
+    areole = material("Felted golden areole", "ac884b", .92)
+    spines = [material("Young straw spine", "daba72", .73),
+              material("Older amber spine", "bc9353", .77)]
     vertices, faces = [], []
-    levels, sides = 20, 112
+    ribs, levels, sides = 20, 32, 160
+
+    def surface(theta, angle):
+        r = sin(theta) * (.66 + .052 * cos(ribs * angle))
+        return ray(angle, r, .60 - .72 * cos(theta))
+
     for row in range(levels + 1):
         theta = pi * (.013 + .974 * row / levels)
-        for j in range(sides):
-            a = tau * j / sides
-            r = sin(theta) * (.68 + .061 * cos(14 * a))
-            vertices.append((r * cos(a), r * sin(a), .60 - .72 * cos(theta)))
+        vertices.extend(surface(theta, tau * j / sides) for j in range(sides))
     for row in range(levels):
         for j in range(sides):
             a = row * sides + j
             b = row * sides + (j + 1) % sides
             faces.append((a, b, b + sides, a + sides))
     faces.extend([tuple(range(sides - 1, -1, -1)), tuple(range(levels * sides, (levels + 1) * sides))])
-    mesh("Fourteen-rib globular barrel", vertices, faces, skin[0], crown)
-    for i in range(14):
-        a = tau * i / 14
-        for j in range(5):
-            theta = .72 + j * .37
-            p = ray(a, .742 * sin(theta), .60 - .72 * cos(theta))
-            for turn in (-1, 1):
-                stem("Short golden radial spine", [p, p + ray(a + turn * .63, .09, .037)], .010,
-                     gold[j % 2], crown, [1, .19])
+    mesh("Twenty continuous cactus ribs", vertices, faces, skin, crown)
+    spine_vertices = [[], []]
+    spine_faces = [[], []]
+    for i in range(ribs):
+        angle = tau * i / ribs
+        side = ray(angle + pi / 2)
+        for j in range(7):
+            theta = .68 + j * .324
+            center = surface(theta, angle)
+            normal = ray(angle, sin(theta), -cos(theta))
+            tangent = normal.cross(side)
+            cushion = [center + .018 * (side * cos(k * tau / 6) + tangent * sin(k * tau / 6))
+                       for k in range(6)]
+            cushion.append(center + normal * .012)
+            mesh("Low felt cushion at rib crest", cushion,
+                 [(k, (k + 1) % 6, 6) for k in range(6)], areole, crown)
+            p = cushion[-1]
+            color = int(j < 2)
+            points, faces = spine_vertices[color], spine_faces[color]
+            for k in range(9):
+                turn = k * tau / 8 + .14 * sin(i + j)
+                spread = side * cos(turn) + tangent * sin(turn)
+                reach = .058 + .016 * sin(k * 2 + j)
+                tip = p + normal * (.029 + .010 * (k % 2)) + spread * reach
+                radius = .0048
+                if k == 8:
+                    tip = p + normal * .093 + tangent * .019
+                    radius = .0068
+                # At this scale a tapered triangular mesh resolves the silhouette.
+                axis = (tip - p).normalized()
+                across = axis.cross(side).normalized()
+                up = axis.cross(across)
+                index = len(points)
+                points.extend(p + radius * (across * cos(n * tau / 3) + up * sin(n * tau / 3))
+                              for n in range(3))
+                points.append(tip)
+                faces.extend((index + n, index + (n + 1) % 3, index + 3) for n in range(3))
+    for i, mat in enumerate(spines):
+        mesh("Tapered radial and central spines", spine_vertices[i], spine_faces[i], mat, crown)
 
 
 def moth_orchid(crown):
-    leaves = palette("Leathery basal orchid foliage", "4b795d", "628c68")
+    leaves = [material("Mature orchid cuticle", "315e43", .39, .22),
+              material("Younger orchid cuticle", "487955", .44, .15)]
+    velamen = material("Silver dry velamen", "a4b0a0", .71)
+    growing_tip = material("Orchid root growing tip", "769865", .51, .12)
+    bark = material("Coarse orchid bark", "69503b", .91)
+    for i, angle in enumerate((-.67, -1.52, -2.57, .31, 2.25)):
+        # Roots arise at the basal stem before following the bark and pot rim.
+        points = [ray(angle, .03, .042 + .018 * i), ray(angle + .12, .21, .12),
+                  ray(angle + .28, .46, .075 + .027 * (i % 2)),
+                  ray(angle + .38, .69, .11), ray(angle + .53, .77, .105)]
+        if i in (0, 2):
+            points.append(ray(angle + .60, .812, -.048))
+        root = stem("Aerial root with silver velamen", points, .027, velamen, crown,
+                    [1.15, 1.07, .91, .86, .80, .71])
+        root.data.resolution_u = 5
+        tip = points[-1] + (points[-1] - points[-2]).normalized() * .047
+        stem("Living green root tip", [points[-1], tip], .023, growing_tip, crown, [.89, .29])
+    for i in range(12):
+        angle = i * 2.39996
+        center = ray(angle, .19 + .106 * (i % 5), .045)
+        corners = [center + ray(angle + k * tau / 5, .044 + .013 * ((i + k) % 3),
+                               .02 + .01 * sin(k + i)) for k in range(5)]
+        corners.append(center + ray(angle + .9, .02, .063))
+        chip = mesh("Angular orchid bark chip", corners,
+                    [(k, (k + 1) % 5, 5) for k in range(5)], bark, crown)
+        for face in chip.data.polygons:
+            face.use_smooth = False
     petals_palette = palette("White phalaenopsis", "f5ebdc", "fff6e8", "ca777c", "e9bc61")
     for i in range(5):
         angle = .19 + pi * (i % 2) + .10 * (i // 2)
         loft("Opposite basal fan blade", crown, ray(angle, .035, .04 + .034 * i), ray(angle, .75 - .046 * i, .24 + .046 * i),
              .16, .032, [leaves[i % 2]], bulge=(0, 0, .29), form=.67)
-    for n, (bend, h) in enumerate([(.52, 1.46), (-.58, 1.17)]):
-        stem("Arching inflorescence", [(0, .07, .08), (-bend * .26, .20, .78), (bend * .38, .16, h - .08),
-              (bend, .14, h)], .031, leaves[0], crown, [1, .85, .62, .31])
-        for i in range(3):
-            p = Vector((bend * (.36 + .34 * i), -.012 - .032 * i, h + .09 - i * .18))
-            stem("Short flower spur", [(p.x, .155, h - .08 + i * .036), p], .012, leaves[1], crown)
+    for bend, height in ((.56, 1.47), (-.62, 1.14)):
+        nodes = [Vector((bend * t, .16 - .023 * i, height - .028 * i * i))
+                 for i, t in enumerate((.24, .61, .99))]
+        stem("Arching flowering spike with pedicel nodes",
+             [(bend * .05, .068, .044), (bend * .05, .14, height * .61), *nodes],
+             .028, leaves[0], crown, [1.04, .85, .63, .50, .31])
+        for i, node in enumerate(nodes):
+            p = node + Vector((.039 if bend > 0 else -.039, -.142, -.016))
+            stem("Attached flower pedicel", [node, node.lerp(p, .55) + Vector((0, 0, .032)), p],
+                 .012, leaves[1], crown, [.91, .7, .5])
             size = 1 - .092 * i
             for angle, length, width in ((.13, .21, .092), (2.99, .21, .092), (1.57, .182, .053),
                                          (3.93, .155, .045), (5.50, .155, .045)):
@@ -258,8 +334,14 @@ def moth_orchid(crown):
                      width * size, .013, [petals_palette[i % 2]], bulge=(0, -.035, 0), normal=(0, -1, 0),
                      rows=8, sides=8)
             sphere("Golden orchid column", p + Vector((0, -.017, -.016)), (.029, .023, .034), petals_palette[3], crown)
-            loft("Rose-marked orchid lip", crown, p, p + Vector((-.015 * n, -.04, -.11)),
-                 .047, .014, [petals_palette[2]], normal=(0, -1, 0), rows=6, sides=8)
+            for side in (-1, 1):
+                loft("Side lobe of the orchid lip", crown, p + Vector((0, -.019, -.027)),
+                     p + Vector((side * .051 * size, -.057, -.040)), .028 * size, .009,
+                     [petals_palette[2]], normal=(0, -1, 0), rows=6, sides=8)
+            loft("Pale projecting middle lip lobe", crown, p + Vector((0, -.018, -.023)),
+                 p + Vector((0, -.097, -.106 * size)), .034 * size, .010,
+                 [petals_palette[0], petals_palette[2]], normal=(0, -1, 0), rows=8, sides=8,
+                 markings=lambda row, col: int(row < 4 and col in (1, 2, 3)))
 
 
 def african_violet(crown):
@@ -278,6 +360,30 @@ def african_violet(crown):
         p = ray(angle, .15 + .06 * (i % 5), .61 + .10 * (i % 4))
         stem("Flower stalk", [(0, 0, .15), p], .017, foliage[1], crown, [1, .72])
         petals(crown, p, bloom[i % 3], bloom[3], radius=.15 - .007 * (i % 3), start=i * .31)
+
+
+def begonia_spots(leaf, base, end, tangent, normal, silver):
+    surface = BVHTree.FromPolygons(
+        [vertex.co for vertex in leaf.data.vertices], [polygon.vertices[:] for polygon in leaf.data.polygons],
+    )
+    axis = (end - base).normalized()
+    points, faces = [], []
+    positions = ((.20, -.065), (.28, .072), (.40, -.091), (.48, .104), (.63, -.062), (.76, .047))
+    for i, (t, u) in enumerate(positions):
+        center = base.lerp(end, t) + tangent * u
+        radius = (.012 + .003 * (i % 3)) * (1 - .28 * t)
+        outline = [center + radius * (
+            axis * (1.15 * cos(angle)) + tangent * sin(angle)
+        ) for angle in (tau * j / 12 for j in range(12))]
+        start = len(points)
+        for sample in (center, *outline):
+            hit, _, _, _ = surface.ray_cast(sample + normal * .4, -normal, .8)
+            if hit is None:
+                raise ValueError(f"Silver spot extends beyond {leaf.name}")
+            points.append(hit + normal * .0012)
+        for j in range(12):
+            faces.append((start, start + 1 + (j + 1) % 12, start + 1 + j))
+    return mesh("Silver leaf pigmentation", points, faces, silver, leaf)
 
 
 def polka_begonia(crown):
@@ -300,38 +406,78 @@ def polka_begonia(crown):
             tangent = axis.cross(front).normalized()
             normal = tangent.cross(axis).normalized()
             bulge = normal * .09 + Vector((0, 0, .06))
-            loft("Claret-backed angel wing", crown, base, end, .245 - .03 * level, .023, leaves, normal=front,
-                 bulge=bulge, form=.66, markings=lambda row, col: 1 if col > 4 else 0)
-            for n, (t, u) in enumerate([(.22, -.09), (.32, .08), (.46, -.07), (.53, .12), (.69, -.07), (.78, .05)]):
-                taper = .06 + .94 * sin(pi * (.007 + .986 * t)) ** .66
-                radius = (.245 - .03 * level) * taper
-                roof = .023 * taper * (1 - (u / radius) ** 2) ** .5
-                p = base.lerp(end, t) + bulge * sin(pi * t) + tangent * u + normal * (roof + .002)
-                sphere("Silver spot", p, (.019 + .003 * (n % 3), .006, .018), silver, crown)
+            leaf = loft("Claret-backed angel wing", crown, base, end, .185 - .025 * level, .017, leaves,
+                        normal=front, bulge=bulge, form=.66, rows=18, sides=16, wing_bias=.7 * direction,
+                        markings=lambda row, col: int(col >= 8))
+            begonia_spots(leaf, base, end, tangent, normal, silver)
 
 
 def thanksgiving(crown):
-    foliage = palette("Scalloped cladode colors", "397d55", "4e9560", "657733")
-    flower = palette("Swept back magenta flower", "b73462", "d55782", "f2b29f", "efd26b")
+    foliage = [material("Mature cactus cuticle", "3e7856", .53, .12),
+               material("Young cactus cuticle", "568760", .49, .14)]
+    flower = palette("Pink flower", "a62d5b", "cf4c78", "ef9ba9", "ecce84")
+    # The proximal face is narrow. The shoulders project toward the distal
+    # joint with a steep notch behind each point.
+    pad_profile = (
+        (0, .18), (.10, .39), (.24, .62), (.28, .43), (.42, .80),
+        (.48, .59), (.65, 1), (.71, .69), (.86, .95), (.92, .64), (1, .26),
+    )
     for n in range(7):
         angle = n * 2.39996
-        points = [ray(angle, r, z) for r, z in [(.04, -.05), (.23, .30), (.47, .46),
-                                                    (.73, .42 - .028 * (n % 3)), (.98, .26 - .06 * (n % 4))]]
-        for i in range(len(points) - 1):
-            loft("Flattened toothed segment", crown, points[i], points[i + 1], .116 - .009 * i, .035,
-                 [foliage[(i + n) % 3]], form=.36, normal=(0, -1 + .5 * (n % 2), .6), teeth=3, rows=12, sides=8)
+        points = [
+            ray(angle, .055, -.04), ray(angle, .24, .31),
+            ray(angle + .10, .48, .51 + .034 * (n % 3)),
+            ray(angle + .16, .72, .48 + .065 * (n % 2)),
+            ray(angle + .22, .99 - .04 * (n % 3), .33 + .08 * (n % 4)),
+        ]
+        for i, (a, b) in enumerate(zip(points, points[1:])):
+            axis = (b - a).normalized()
+            side = axis.cross(ray(angle + .77 + .34 * (i % 2), .78, .58)).normalized()
+            normal = side.cross(axis).normalized()
+            vertices = []
+            for t, width in pad_profile:
+                # Both neighboring pads overlap at the shared joint.
+                center = (a - axis * .012).lerp(b + axis * .012, t)
+                center += normal * .026 * sin(pi * t)
+                for j in range(8):
+                    ring = tau * j / 8
+                    vertices.append(center + side * (.125 - .008 * i) * width * cos(ring)
+                                    + normal * (.010 + .020 * sin(pi * t)) * sin(ring))
+            last = len(vertices) - 8
+            faces = [tuple(range(8))]
+            for start in range(0, last, 8):
+                for j in range(8):
+                    k = (j + 1) % 8
+                    faces.append((start + j, start + j + 8, start + k + 8, start + k))
+            faces.append(tuple(range(last + 7, last - 1, -1)))
+            pad = mesh(f"Clawed pad {n + 1}:{i + 1}", vertices, faces, foliage[int(i == 3)], crown)
+            for cap in (pad.data.polygons[0], pad.data.polygons[-1]):
+                cap.use_smooth = False
         if n % 2 == 0:
             base = points[-1]
-            tip = base + ray(angle, .19, -.06)
-            for i in range(7):
-                a = tau * i / 7
-                off = ray(angle + pi / 2, .115 * cos(a), .13 * sin(a))
-                loft("Swept tubular bract", crown, tip, base + off, .051, .018, [flower[i % 3]], rows=6, sides=6)
-            for i in range(5):
-                a = tau * i / 5
-                off = ray(angle + pi / 2, .075 * cos(a), .08 * sin(a))
-                loft("Distal pink petal", crown, base, tip + off, .054, .013, [flower[(i + 1) % 3]], rows=6, sides=6)
-            stem("Projecting golden floral axis", [base, tip + ray(angle, .06, -.02)], .009, flower[3], crown)
+            facing = ray(angle + .22)
+            side = ray(angle + .22 + pi / 2)
+            up = Vector((0, 0, 1))
+            bend = base + facing * .10 + up * .055
+            throat = base + facing * .23 + up * .145
+            stem(f"Flower tube {n + 1}", [base, bend, throat], .044, flower[0], crown, [.42, .91, 1.09])
+            # The two lateral sides mirror each other. The lower lip of the
+            # corolla extends farther than the recurved upper tepals.
+            for anchor, reach, width, tint in ((bend, .10, .048, flower[0]), (throat, .16, .061, flower[1])):
+                for across, rise, sweep in ((0, .14, -.065), (.74, .083, -.035),
+                                            (-.74, .083, -.035), (1, -.037, .036),
+                                            (-1, -.037, .036), (0, -.08, .074)):
+                    spread = side * (reach * across) + up * rise
+                    start = anchor + spread.normalized() * .023
+                    end = anchor + spread + facing * sweep
+                    loft("Recurved tepal", crown, start, end, width, .009, [tint],
+                         bulge=facing * .055, normal=facing, form=.58, rows=8, sides=8)
+            for j in range(5):
+                across = (j - 2) * .020
+                anther = throat + facing * (.095 + .008 * (2 - abs(j - 2))) + side * across + up * .026
+                stem("Exserted filament", [throat, anther], .0045, flower[2], crown, [1, .69])
+                stem("Pale golden anther", [anther, anther + facing * .013], .008, flower[3], crown, [.85, .79])
+            stem("Projecting style", [throat, throat + facing * .158 + up * .039], .006, flower[2], crown, [1, .70])
 
 
 MODELS = [
@@ -347,7 +493,7 @@ MODELS = [
          note="Arching compound stalks with paired glossy leaflets and a terminal leaflet", build=zz_plant, fallback=1),
     dict(id="echeveria", species="Echeveria elegans", common="Mexican Snowball",
          sources=["https://powo.science.kew.org/taxon/86934-2"],
-         note="Low powder-blue rosette formed by thick spoon-like leaves", build=echeveria, fallback=4),
+         note="Overlapping matte spoon leaves with pale new growth and restrained warm tips", build=echeveria, fallback=4),
     dict(id="jade-plant", species="Crassula ovata", common="Jade Plant",
          sources=["https://powo.science.kew.org/taxon/273350-1"],
          note="Asymmetric branched woody habit with opposite fleshy oval leaves", build=jade, fallback=4),
@@ -369,10 +515,10 @@ MODELS = [
     dict(id="golden-barrel", species="Echinocactus grusonii", common="Golden Barrel Cactus",
          accepted="Kroenleinia grusonii", sources=["https://powo.science.kew.org/taxon/77164085-1"],
          pot=("ba8b59", "75513a"),
-         note="Globular green barrel with fourteen pronounced ribs and golden radial spines", build=barrel, fallback=4),
+         note="Globular barrel with twenty ribs and clustered gold spines anchored on felted areoles", build=barrel, fallback=4),
     dict(id="moth-orchid", species="Phalaenopsis amabilis", common="Moth Orchid",
          sources=["https://powo.science.kew.org/taxon/650501-1"], pot=("988aa9", "625572"),
-         note="Leathery basal fan, arching flower sprays, white petals and rose-marked lips", build=moth_orchid, fallback=6),
+         note="Leathery basal fan, velamen-covered aerial roots, attached flower branches and three-lobed lips", build=moth_orchid, fallback=6),
     dict(id="african-violet", species="Streptocarpus ionanthus", common="African Violet",
          sources=["https://powo.science.kew.org/taxon/77117375-1"], pot=("b17f9a", "73556e"),
          note="Shallow rosette of rounded velvet leaves framing violet five-lobed flowers", build=african_violet, fallback=6),
@@ -380,6 +526,8 @@ MODELS = [
          sources=["https://powo.science.kew.org/taxon/105130-1"], pot=("b38584", "6c4b57"),
          note="Upright cane habit with silver-spotted angel wings and claret undersides", build=polka_begonia, fallback=6),
     dict(id="thanksgiving-cactus", species="Schlumbergera truncata", common="Thanksgiving Cactus",
-         sources=["https://powo.science.kew.org/taxon/229597-2"], pot=("83a391", "4d725f"),
-         note="Arching jointed cladodes with pink swept-back blooms at the tips", build=thanksgiving, fallback=4),
+         sources=["https://powo.science.kew.org/taxon/229597-2", "https://plants.ces.ncsu.edu/plants/schlumbergera-truncata/"],
+         pot=("83a391", "4d725f"),
+         note="Arching chains of claw-toothed pads and oblique tubular pink flowers with projecting stamens",
+         build=thanksgiving, fallback=4),
 ]

@@ -12,7 +12,11 @@ const browser = await chromium.launch({
   executablePath: process.env.PETEY_BROWSER_EXECUTABLE,
   args: ['--enable-unsafe-swiftshader'],
 });
-const representativeExpansion = ['swiss-cheese-vine', 'maidenhair-fern', 'polka-dot-begonia'];
+const representativeExpansion = [
+  'swiss-cheese-vine', 'maidenhair-fern', 'polka-dot-begonia', 'rabbits-foot-fern',
+  'moth-orchid', 'golden-barrel', 'echeveria',
+  'mini-monstera', 'dieffenbachia', 'birds-nest-fern', 'rubber-plant', 'thanksgiving-cactus',
+];
 const authoredSpecies = SPECIES_ASSET_MANIFEST.filter(entry =>
   FLAGSHIP_SPECIES_MANIFEST.includes(entry) || representativeExpansion.includes(entry.assetId));
 if (process.env.PETEY_TEST_EXPANSION === '1') {

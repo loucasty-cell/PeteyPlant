@@ -5,7 +5,7 @@
   "commonName": "Thanksgiving Cactus",
   "rank": "species",
   "version": 1,
-  "design": "Arching jointed cladodes with pink swept-back blooms at the tips",
+  "design": "Arching chains of claw-toothed pads and oblique tubular pink flowers with projecting stamens",
   "source": "assets/characters/thanksgiving-cactus/source/thanksgiving-cactus.blend",
   "runtime": "frontend/public/characters/thanksgiving-cactus-v1.glb",
   "thumbnail": "frontend/public/characters/thanksgiving-cactus-v1-preview.webp",
@@ -21,12 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 376368,
-  "triangles": 16900,
+  "glbBytes": 571776,
+  "triangles": 21588,
   "fallback": 4,
-  "stageScale": 1.0931,
+  "stageScale": 1.0357,
+  "runtimePrimitives": 17,
   "identitySources": [
-    "https://powo.science.kew.org/taxon/229597-2"
-  ],
-  "runtimePrimitives": 91
+    "https://powo.science.kew.org/taxon/229597-2",
+    "https://plants.ces.ncsu.edu/plants/schlumbergera-truncata/"
+  ]
 }

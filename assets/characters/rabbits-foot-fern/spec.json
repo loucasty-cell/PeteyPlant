@@ -5,7 +5,7 @@
   "commonName": "Rabbit's Foot Fern",
   "rank": "variety",
   "version": 1,
-  "design": "Lacy divided fronds above exposed earthy creeping rhizomes.",
+  "design": "Finely divided fronds rise in separate stipes from three creeping rhizomes with overlapping pale-edged scales.",
   "source": "assets/characters/rabbits-foot-fern/source/rabbits-foot-fern.blend",
   "runtime": "frontend/public/characters/rabbits-foot-fern-v1.glb",
   "thumbnail": "frontend/public/characters/rabbits-foot-fern-v1-preview.webp",
@@ -21,13 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 978368,
-  "triangles": 38000,
+  "glbBytes": 1124632,
+  "triangles": 40468,
   "fallback": 3,
-  "stageScale": 1.0956,
+  "stageScale": 1.093,
+  "runtimePrimitives": 13,
   "identitySources": [
     "https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:17564870-1",
     "https://davalliacea.linnaeana.nl/linnaeus_ng/app/views/species/nsr_taxon.php?epi=150&id=112773"
-  ],
-  "runtimePrimitives": 12
+  ]
 }

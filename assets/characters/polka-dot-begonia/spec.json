@@ -21,10 +21,10 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 634900,
-  "triangles": 23456,
+  "glbBytes": 363744,
+  "triangles": 13016,
   "fallback": 6,
-  "stageScale": 0.8801,
+  "stageScale": 0.9186,
   "runtimePrimitives": 14,
   "identitySources": [
     "https://powo.science.kew.org/taxon/105130-1"

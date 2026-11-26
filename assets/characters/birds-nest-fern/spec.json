@@ -5,7 +5,7 @@
   "commonName": "Bird's Nest Fern",
   "rank": "species",
   "version": 1,
-  "design": "Funnel rosette of single ruffled straps and dark midribs.",
+  "design": "Three ranks of simple glossy fronds rise from a rosette with rounded dark ribs and distal underside sori.",
   "source": "assets/characters/birds-nest-fern/source/birds-nest-fern.blend",
   "runtime": "frontend/public/characters/birds-nest-fern-v1.glb",
   "thumbnail": "frontend/public/characters/birds-nest-fern-v1-preview.webp",
@@ -21,12 +21,12 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 506276,
-  "triangles": 19756,
+  "glbBytes": 984636,
+  "triangles": 39680,
   "fallback": 3,
-  "stageScale": 0.9127,
+  "stageScale": 0.9485,
+  "runtimePrimitives": 12,
   "identitySources": [
     "https://plants.ces.ncsu.edu/plants/asplenium-nidus/"
-  ],
-  "runtimePrimitives": 12
+  ]
 }

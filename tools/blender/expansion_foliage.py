@@ -38,7 +38,7 @@ def finish(name, points, faces, mat, parent, pigments=None):
     return obj
 
 
-def tube(parent, name, points, radius, mat, sides=7):
+def tube(parent, name, points, radius, mat, sides=7, *, taper=None):
     path = [Vector(p) for p in points]
     verts, faces = [], []
     for i, point in enumerate(path):
@@ -48,7 +48,7 @@ def tube(parent, name, points, radius, mat, sides=7):
         normal = tangent.cross(side).normalized()
         for j in range(sides):
             a = TAU*j/sides
-            width = radius*(1-.44*i/(len(path)-1))
+            width = radius * (taper[i] if taper else 1 - .44 * i / (len(path) - 1))
             verts.append(point + width*(math.cos(a)*side+math.sin(a)*normal))
     for i in range(len(path)-1):
         start = i*sides
@@ -60,6 +60,14 @@ def tube(parent, name, points, radius, mat, sides=7):
         verts.append(endpoint)
         faces.extend((middle, ring+j, ring+(j+1)%sides) for j in range(sides))
     return finish(name, verts, faces, mat, parent)
+
+
+def collar(parent, name, axis, index, radius, mat):
+    tangent = (axis[index + 1] - axis[index - 1]).normalized()
+    at = axis[index]
+    local_radius = radius * (1 - .44 * index / (len(axis) - 1))
+    return tube(parent, name, [at - .018 * tangent, at, at + .014 * tangent],
+                local_radius, mat, 12, taper=(.86, 1.08, .86))
 
 
 def oval(parent, name, at, size, mat, axes=None):
@@ -78,7 +86,15 @@ def shading(t, u, top, colors, pattern, seed):
     color = inner.lerp(edge, clamp(away)) if top else back.lerp(edge, .15)
     midrib = math.exp(-(u/.045)**2)
     lateral = max(math.exp(-((t-(.095+i*.108+.11*margin))/.019)**2) for i in range(8))
+    if pattern in ('cream-flame', 'pinnate'):
+        arc = t - .125 * margin ** 1.18 + .009 * math.sin(25 * t + seed) - .013 * u
+        lateral = max(math.exp(-((arc - (.10 + i * .102)) / .022) ** 2) for i in range(8))
     if not top:
+        if pattern == 'cream-flame':
+            mottled = clamp((.61 - margin + .09 * math.sin(37 * t + u * 6 + seed)) * 2.2)
+            color = color.lerp(ink, .18 * mottled + .15 * lateral)
+        elif pattern == 'pinnate':
+            color = color.lerp(ink, .20 * lateral)
         return color.lerp(ink,.21*midrib)
     if pattern == 'silver-veins':
         color = color.lerp(ink, .93*(1-.63*margin)*(1-.88*lateral)*(1-.86*midrib))
@@ -89,13 +105,20 @@ def shading(t, u, top, colors, pattern, seed):
     elif pattern in ('cream-flame','silver-lance'):
         boundary = .52 + .072*math.sin(t*37+seed) + .10*math.sin(5*t)
         if pattern == 'cream-flame':
-            boundary += .17*math.sin(t*14+u*7) + .085*math.sin(t*73+u*11)
+            boundary += .16*math.sin(t*14+u*7+seed) + .085*math.sin(t*73+u*11)
         color = color.lerp(ink,clamp((boundary-margin)*4.4)*(1-.39*lateral))
     elif pattern == 'zebra':
         stripe = .48 + .05*math.sin(t*10+seed)
         color = color.lerp(ink,clamp((.27-abs(margin-stripe))*8.0))
     elif pattern == 'veins':
         color = color.lerp(ink, max(.91*midrib,.83*lateral))
+    elif pattern == 'fenestrated':
+        # Veins follow the lamina pigment and stop at the modeled holes.
+        arc = t - .105 * margin ** 1.35
+        secondaries = max(math.exp(-((arc - (.13 + i * .115)) / .024) ** 2) for i in range(7))
+        color = color.lerp(ink, max(.55 * midrib, .32 * secondaries * (1 - .35 * margin)))
+    elif pattern == 'pinnate':
+        return color.lerp(ink, max(.53 * midrib, .29 * lateral * (1 - .70 * margin)))
     elif pattern == 'net':
         patches = math.sin(28*t-5*u+seed)*math.cos(10*u+12*t)
         color = color.lerp(ink,.66*clamp(.53+patches))
@@ -108,9 +131,8 @@ def width_at(t, shape):
         spread = math.sin(math.pi*t**.65)**.74
         if shape == 'arrow':
             spread *= 1.22-.55*t
-    elif shape in ('split','tree'):
-        phase = 3.20 if shape == 'split' else 5.15
-        scallop = (.5+.5*math.cos(TAU*(t*phase-.24)))**.78
+    elif shape == 'tree':
+        scallop = (.5+.5*math.cos(TAU*(t*5.15-.24)))**.78
         spread *= (1-.68*scallop*(math.sin(math.pi*t)**.44))
     elif shape == 'spathe':
         spread = math.sin(math.pi*t**.88)**.90
@@ -121,14 +143,20 @@ def width_at(t, shape):
     return max(.038, spread)
 
 
-def blade(parent, name, origin, direction, facing, length, half_width, style, seed=0):
+def blade(parent, name, origin, direction, facing, length, half_width, style, seed=0, *, incisions=None):
     shape, pattern, palette, bend, fold, thickness = style
     start = Vector(origin)
     axis = Vector(direction).normalized()
     side = axis.cross(Vector(facing)).normalized()
     normal = side.cross(axis).normalized()
-    resolution = (30, 18) if shape == 'windows' else (26, 16) if shape in ('split','tree') else (13, 10) if length < .52 else (18, 12)
-    rows, columns = resolution
+    if shape == 'windows':
+        rows, columns = 30, 18
+    elif incisions or pattern == 'cream-flame':
+        rows, columns = 34, 14
+    elif shape == 'tree':
+        rows, columns = 26, 16
+    else:
+        rows, columns = (13, 10) if length < .52 else (18, 12)
     vertices, faces, pigments, index_map = [], [], [], {}
     colors = tuple(map(linear,palette))
     for sign in (1,-1):
@@ -138,11 +166,19 @@ def blade(parent, name, origin, direction, facing, length, half_width, style, se
                 u = 2*col/columns-1
                 width = half_width*width_at(t,shape)
                 width *= 1 + .036*math.sin(15*t+u+seed)
+                if incisions:
+                    slots = incisions[0 if u < 0 else 1]
+                    cut = max((depth * math.exp(-((t - center) / .049) ** 2)
+                               for center, depth in slots), default=0)
+                    width *= 1 - cut * abs(u) ** .38
                 wave = .009*math.sin(t*42+seed+u)*abs(u)**3*math.sin(math.pi*t)
                 lamina = fold*u*u*math.sin(math.pi*t)+wave+bend*t*t
                 petiole_lobe = .51 if shape == 'arrow' else .27 if shape == 'heart' else 0
                 lobe = petiole_lobe*math.exp(-((t-.15)/.14)**2)*abs(u)**1.7
                 ribs = .009*u*u*math.sin(t*44+u*4)*math.sin(math.pi*t) if pattern in ('veins','silver-veins') else 0
+                if pattern in ('cream-flame', 'pinnate'):
+                    centerline = math.exp(-(u / .13) ** 2) * math.sin(math.pi * t)
+                    ribs += centerline * (.013 if sign < 0 or pattern == 'cream-flame' else -.006) * sign
                 point = start+axis*(length*(t-lobe))+side*(u*width)+normal*(lamina+ribs+sign*thickness)
                 index_map[(row,col,sign)] = len(vertices)
                 vertices.append(point)
@@ -344,13 +380,42 @@ def coins(parent):
 
 
 def swiss(parent):
-    climber(parent,'Swiss Cheese Vine',('windows','plain',FOREST,-.12,.032,.009),
+    climber(parent,'Swiss Cheese Vine',('windows','fenestrated',FOREST,-.12,.032,.009),
             [(.62,.22),(.72,.26),(.73,.25),(.76,.27),(.77,.28),(.73,.24),(.65,.22)],1.38,.19)
 
 
 def mini(parent):
-    climber(parent,'Mini Monstera',('split','plain',MOSS,-.08,.045,.012),
-            [(.63,.29),(.64,.31),(.79,.38),(.72,.34),(.84,.36),(.79,.32)],1.50,.12,.48)
+    vine = material('Smooth green Rhaphidophora vine','50683c',.61)
+    cork = material('Subtle cork at Rhaphidophora nodes','7e8350',.73)
+    roots = material('Rhaphidophora aerial roots','7e6b4c',.75)
+    nodes = [Vector(point) for point in ((0,.14,-.06),(-.07,.19,.18),(-.11,.17,.39),
+             (-.06,.19,.58),(.03,.16,.78),(.10,.19,1.00),(.12,.16,1.23),(.08,.14,1.43),(.12,.13,1.57))]
+    radius = .034
+    tube(parent,'Flexuous Rhaphidophora climbing vine',nodes,radius,vine,12)
+    # The uppermost leaf is a younger entire blade on this individual shoot.
+    layouts = (
+        ((-.34,-.22,.25),(-.84,-.36,.25),.49,.22,None),
+        ((.26,-.04,.52),(.79,.19,.38),.63,.30,(((.32,.80),),((.39,.78),))),
+        ((-.36,.01,.68),(-.88,.16,.45),.77,.32,(((.31,.89),(.54,.83)),((.38,.85),(.64,.73)))),
+        ((.34,-.26,.90),(.91,-.42,.19),.83,.36,(((.29,.91),(.50,.81)),((.34,.88),(.60,.87)))),
+        ((-.35,-.19,1.13),(-.77,-.31,.57),.78,.34,(((.35,.86),(.61,.79)),((.40,.90),(.67,.73)))),
+        ((.36,.22,1.32),(.72,.27,.65),.62,.28,(((.40,.77),),((.31,.81),(.58,.72)))),
+        ((-.02,-.04,1.52),(-.21,-.08,1),.41,.16,None),
+    )
+    for i, (point, direction, length, width, slots) in enumerate(layouts, start=1):
+        at = nodes[i]
+        end = Vector(point)
+        collar(parent,f'Rhaphidophora leaf scar {i}',nodes,i,radius,cork)
+        tube(parent,f'Rhaphidophora climbing petiole {i}',
+             [at,at.lerp(end,.37)+UP*.026,at.lerp(end,.81)+UP*.019,end],.021,vine,8)
+        facing = Vector((.40 * math.sin(i * 1.4), -.81, .37 + .23 * math.cos(i * 1.7)))
+        green = ('658f48','315b3b','a5b876','597845') if i == 7 else MOSS
+        blade(parent,f'Rhaphidophora {"split" if slots else "entire"} lamina {i}',end,direction,facing,
+              length,width,('obovate','pinnate',green,-.069,.043,.008),i * .82,incisions=slots)
+    for i, side in ((2, -1), (4, 1), (5, 1)):
+        at = nodes[i]
+        tube(parent,f'Rhaphidophora node root {i}',[at,at+Vector((side*.053,.029,-.073)),
+             at+Vector((side*.070,.048,-.19)),at+Vector((side*.037,.072,-.27))],.012,roots,6)
 
 
 def silver(parent):
@@ -370,13 +435,26 @@ def aglaonema(parent):
 
 def dieffenbachia(parent):
     cane = material('Dieffenbachia mature cane','557b53',.72)
-    tube(parent,'Thick upright cane',[(0,.10,-.025),(-.06,.09,.46),(-.03,.10,.82),(.04,.15,1.11)],.095,cane,12)
-    for i,(x,z,length,width) in enumerate(((-.21,.40,.80,.27),(.23,.67,.79,.30),(-.24,.91,.74,.29),(.26,1.09,.77,.28),(-.12,1.19,.60,.25))):
-        at = Vector((x,-.030-.11*math.sin(i*1.41+.5),z))
-        tube(parent,f"Short cane petiole {i}",[(0,.10,z-.09),at*.64+UP*z*.32,at],.049,cane)
-        facing = Vector((.38*math.sin(i*1.7),-.82,.48*math.sin(i*1.5+.75)))
-        blade(parent,f"Cane leaf {i}",at,(x*4.3,-.34-.14*(i%3),.45),facing,length,width,
-              ('lance','cream-flame',CREAM,-.14,.045,.012),i)
+    scars = material('Pale annular Dieffenbachia leaf scars','879663',.73)
+    sheaths = material('Yellow-green sheathing petiole bases','648b4b',.64)
+    radius = .091
+    nodes = [Vector(point) for point in ((0,.10,-.058),(-.013,.092,.12),(-.045,.09,.28),(-.056,.09,.44),
+             (-.049,.10,.60),(-.033,.11,.78),(-.01,.12,.93),(.015,.14,1.09),(.03,.14,1.19),(.04,.15,1.28))]
+    tube(parent,'Annular-scarred upright cane',nodes,radius,cane,12)
+    for i in range(1,len(nodes)-1):
+        collar(parent,f'Dieffenbachia leaf scar {i}',nodes,i,radius,scars)
+    layouts = ((-.23,-.08,.51,.69,.26),(.22,-.19,.69,.80,.30),(-.24,.19,.93,.77,.30),
+               (.26,.22,1.10,.73,.28),(-.15,-.16,1.25,.67,.24),(.035,.055,1.34,.49,.151))
+    for i, (x,y,z,length,width) in enumerate(layouts, start=3):
+        at = nodes[i]
+        end = Vector((x,y,z))
+        shoulder = at.lerp(end,.36) + UP*.038
+        tube(parent,f'Dieffenbachia petiole {i}',
+             [at,shoulder,shoulder.lerp(end,.58)+UP*.028,end],.050,sheaths,9,taper=(1.10,.86,.61,.44))
+        facing = Vector((.44*math.sin(i*1.7),-.81,.32+.39*math.sin(i*1.5+.75)))
+        tip = UP + FRONT*.11 if i == 8 else Vector((x*4.3,2.6*y-.16,.51))
+        blade(parent,f'Dieffenbachia cream-splashed blade {i}',end,tip,facing,length,width,
+              ('obovate','cream-flame',CREAM,-.115,.039,.010),i * 1.35)
 
 
 def anthurium(parent):
@@ -439,11 +517,11 @@ def peperomia(parent):
 MODELS = [dict(id=slug,species=species,common=common,note=note,build=builder,fallback=fallback) for
           slug,species,common,note,builder,fallback in (
     ('swiss-cheese-vine','Monstera adansonii','Swiss Cheese Vine','Narrow climbing leaves with enclosed paired fenestrations and aerial roots.',swiss,0),
-    ('mini-monstera','Rhaphidophora tetrasperma','Mini Monstera','Alternating climbing leaves split cleanly from the margins.',mini,0),
+    ('mini-monstera','Rhaphidophora tetrasperma','Mini Monstera','Flexuous vine with scarred nodes, attached aerial roots, entire young leaves, and staggered marginal splits.',mini,0),
     ('silver-monstera','Monstera siltepecana','Silver Monstera','Juvenile lanceolate leaves with a silver field and dark reticulated ribs.',silver,0),
     ('split-leaf-philodendron','Thaumatophyllum bipinnatifidum','Split-Leaf Philodendron','A self-heading rosette with deeply pinnatifid, broad leaves.',split_leaf,0),
     ('chinese-evergreen','Aglaonema commutatum','Chinese Evergreen','A silver-splashed lanceolate clump with deep green margins.',aglaonema,7),
-    ('dieffenbachia','Dieffenbachia seguine','Dieffenbachia','A thick upright cane with broad leaves and an irregular cream center.',dieffenbachia,7),
+    ('dieffenbachia','Dieffenbachia seguine','Dieffenbachia','Scarred upright cane with attached sheathing petioles and broad cream-variegated leaves.',dieffenbachia,7),
     ('flamingo-flower','Anthurium andraeanum','Flamingo Flower','Glossy heart foliage with rose-red heart-shaped spathes and projecting golden spadices.',anthurium,1),
     ('peace-lily','Spathiphyllum wallisii','Peace Lily','Fountain of ribbed narrow leaves with upright cream-white spathes.',peace_lily,7),
     ('arrowhead-plant','Syngonium podophyllum','Arrowhead Plant','Juvenile pointed arrowheads with backward basal lobes and soft center variegation.',arrowhead,1),
@@ -470,7 +548,10 @@ IDENTITY_SOURCES = {
     'green-velvet-alocasia': ['https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A84208-1/general-information'],
     'string-of-hearts': ['https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A95848-1'],
     'silver-monstera': ['https://plants.ces.ncsu.edu/plants/monstera-siltepecana/'],
-    'mini-monstera': ['https://plants.ces.ncsu.edu/plants/rhaphidophora-tetrasperma/common-name/dwarf-monstera/'],
+    'mini-monstera': ['https://plants.ces.ncsu.edu/plants/rhaphidophora-tetrasperma/common-name/dwarf-monstera/',
+                     'https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:88594-1/general-information'],
+    'dieffenbachia': ['https://plants.ces.ncsu.edu/plants/dieffenbachia-seguine/',
+                     'https://monografiasfloradobrasil.jbrj.gov.br/dieffenbachia.pdf'],
     'split-leaf-philodendron': ['https://powo.science.kew.org/taxon/urn%3Alsid%3Aipni.org%3Anames%3A77306988-1/general-information'],
     'satin-pothos': ['https://plants.ces.ncsu.edu/plants/scindapsus-pictus/'],
     'silver-inch-plant': ['https://plants.ces.ncsu.edu/plants/tradescantia-zebrina/'],

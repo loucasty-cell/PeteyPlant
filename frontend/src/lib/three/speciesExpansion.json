@@ -31,8 +31,8 @@
     "speciesId": "Asplenium nidus",
     "acceptedName": "Asplenium nidus",
     "commonName": "Bird's Nest Fern",
-    "design": "Funnel rosette of single ruffled straps and dark midribs.",
-    "stageScale": 0.9127,
+    "design": "Three ranks of simple glossy fronds rise from a rosette with rounded dark ribs and distal underside sori.",
+    "stageScale": 0.9485,
     "fallback": 3
   },
   {
@@ -85,8 +85,8 @@
     "speciesId": "Dieffenbachia seguine",
     "acceptedName": "Dieffenbachia seguine",
     "commonName": "Dieffenbachia",
-    "design": "A thick upright cane with broad leaves and an irregular cream center.",
-    "stageScale": 0.8867,
+    "design": "Scarred upright cane with attached sheathing petioles and broad cream-variegated leaves.",
+    "stageScale": 0.8111,
     "fallback": 7
   },
   {
@@ -112,8 +112,8 @@
     "speciesId": "Echeveria elegans",
     "acceptedName": "Echeveria elegans",
     "commonName": "Mexican Snowball",
-    "design": "Low powder-blue rosette formed by thick spoon-like leaves",
-    "stageScale": 1.5203,
+    "design": "Overlapping matte spoon leaves with pale new growth and restrained warm tips",
+    "stageScale": 1.5191,
     "fallback": 4
   },
   {
@@ -148,8 +148,8 @@
     "speciesId": "Echinocactus grusonii",
     "acceptedName": "Kroenleinia grusonii",
     "commonName": "Golden Barrel Cactus",
-    "design": "Globular green barrel with fourteen pronounced ribs and golden radial spines",
-    "stageScale": 0.9916,
+    "design": "Globular barrel with twenty ribs and clustered gold spines anchored on felted areoles",
+    "stageScale": 0.9887,
     "fallback": 4
   },
   {
@@ -220,8 +220,8 @@
     "speciesId": "Rhaphidophora tetrasperma",
     "acceptedName": "Rhaphidophora tetrasperma",
     "commonName": "Mini Monstera",
-    "design": "Alternating climbing leaves split cleanly from the margins.",
-    "stageScale": 0.931,
+    "design": "Flexuous vine with scarred nodes, attached aerial roots, entire young leaves, and staggered marginal splits.",
+    "stageScale": 0.786,
     "fallback": 0
   },
   {
@@ -238,8 +238,8 @@
     "speciesId": "Phalaenopsis amabilis",
     "acceptedName": "Phalaenopsis amabilis",
     "commonName": "Moth Orchid",
-    "design": "Leathery basal fan, arching flower sprays, white petals and rose-marked lips",
-    "stageScale": 0.8419,
+    "design": "Leathery basal fan, velamen-covered aerial roots, attached flower branches and three-lobed lips",
+    "stageScale": 0.8725,
     "fallback": 6
   },
   {
@@ -275,7 +275,7 @@
     "acceptedName": "Begonia maculata",
     "commonName": "Polka Dot Begonia",
     "design": "Upright cane habit with silver-spotted angel wings and claret undersides",
-    "stageScale": 0.8801,
+    "stageScale": 0.9186,
     "fallback": 6
   },
   {
@@ -292,8 +292,8 @@
     "speciesId": "Davallia fejeensis",
     "acceptedName": "Davallia solida var. fejeensis",
     "commonName": "Rabbit's Foot Fern",
-    "design": "Lacy divided fronds above exposed earthy creeping rhizomes.",
-    "stageScale": 1.0956,
+    "design": "Finely divided fronds rise in separate stipes from three creeping rhizomes with overlapping pale-edged scales.",
+    "stageScale": 1.093,
     "fallback": 3
   },
   {
@@ -310,8 +310,8 @@
     "speciesId": "Ficus elastica",
     "acceptedName": "Ficus elastica",
     "commonName": "Rubber Plant",
-    "design": "One stout upright leader with waxy oval foliage and a scarlet new-leaf sheath.",
-    "stageScale": 0.8156,
+    "design": "Waxy elliptic leaves and alternate petioles on a scarred upright leader ending in one red stipule.",
+    "stageScale": 0.781,
     "fallback": 7
   },
   {
@@ -391,8 +391,8 @@
     "speciesId": "Schlumbergera truncata",
     "acceptedName": "Schlumbergera truncata",
     "commonName": "Thanksgiving Cactus",
-    "design": "Arching jointed cladodes with pink swept-back blooms at the tips",
-    "stageScale": 1.0931,
+    "design": "Arching chains of claw-toothed pads and oblique tubular pink flowers with projecting stamens",
+    "stageScale": 1.0357,
     "fallback": 4
   },
   {

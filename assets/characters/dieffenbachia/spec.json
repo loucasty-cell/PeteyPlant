@@ -5,7 +5,7 @@
   "commonName": "Dieffenbachia",
   "rank": "species",
   "version": 1,
-  "design": "A thick upright cane with broad leaves and an irregular cream center.",
+  "design": "Scarred upright cane with attached sheathing petioles and broad cream-variegated leaves.",
   "source": "assets/characters/dieffenbachia/source/dieffenbachia.blend",
   "runtime": "frontend/public/characters/dieffenbachia-v1.glb",
   "thumbnail": "frontend/public/characters/dieffenbachia-v1-preview.webp",
@@ -21,9 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 305056,
-  "triangles": 12398,
+  "glbBytes": 542004,
+  "triangles": 20996,
   "fallback": 7,
-  "stageScale": 0.8867,
-  "runtimePrimitives": 22
+  "stageScale": 0.8111,
+  "runtimePrimitives": 15,
+  "identitySources": [
+    "https://plants.ces.ncsu.edu/plants/dieffenbachia-seguine/",
+    "https://monografiasfloradobrasil.jbrj.gov.br/dieffenbachia.pdf"
+  ]
 }

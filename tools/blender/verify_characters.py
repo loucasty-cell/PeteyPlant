@@ -1,9 +1,10 @@
-"""Check saved source Idle actions and the Ficus branch joints in Blender."""
+"""Check saved source Idle actions and plant attachment points in Blender."""
 
 import json
 from pathlib import Path
 
 import bpy
+from mathutils import Vector
 
 ROOT = Path(__file__).resolve().parents[2]
 POSE_TOLERANCE = 1e-5
@@ -73,6 +74,54 @@ def verify_begonia(scene):
         assert min((point - start).length for point in anchors) < 1e-6, f"{petiole.name} starts off the cane"
 
 
+def verify_orchid(scene):
+    def named(prefix):
+        return [obj for obj in scene.objects if obj.name.startswith(prefix)]
+
+    def points(curve):
+        return [point.co for point in curve.data.splines[0].bezier_points]
+
+    spikes = named("Arching flowering spike")
+    pedicels = named("Attached flower pedicel")
+    roots = named("Aerial root with silver velamen")
+    tips = named("Living green root tip")
+    assert len(spikes) == 2 and len(pedicels) == 6
+    assert len(roots) == len(tips) == 5
+    for branches, anchors in ((pedicels, [p for s in spikes for p in points(s)]),
+                              (tips, [points(root)[-1] for root in roots])):
+        for branch in branches:
+            assert branch.parent == spikes[0].parent, f"{branch.name} has a different motion pivot"
+            assert min((point - points(branch)[0]).length for point in anchors) < 1e-6, (
+                f"{branch.name} has a gap at its attachment"
+            )
+
+
+def verify_thanksgiving_cactus(scene):
+    def pad_cap(pad, index):
+        vertices = pad.data.polygons[index].vertices
+        return sum((pad.data.vertices[i].co for i in vertices), Vector()) / len(vertices)
+
+    for shoot in range(1, 8):
+        pads = [scene.objects[f"Clawed pad {shoot}:{number}"] for number in range(1, 5)]
+        assert pad_cap(pads[0], 0).z < 0, f"Shoot {shoot} starts above its soil line"
+        for parent, child in zip(pads, pads[1:]):
+            assert child.parent == parent.parent, f"{child.name} has a different motion pivot"
+            # Measure the two cap centers after undoing the modeled overlap.
+            a = pad_cap(parent, -1)
+            b = pad_cap(child, 0)
+            parent_axis = (a - pad_cap(parent, 0)).normalized()
+            child_axis = (pad_cap(child, -1) - b).normalized()
+            assert ((a - parent_axis * .012) - (b + child_axis * .012)).length < 1e-6, (
+                f"{child.name} has a pad joint gap"
+            )
+        tube = scene.objects.get(f"Flower tube {shoot}")
+        if shoot % 2:
+            assert tube and tube.parent == pads[-1].parent, f"Missing terminal tube for shoot {shoot}"
+            tip = pad_cap(pads[-1], -1)
+            axis = (tip - pad_cap(pads[-1], 0)).normalized()
+            assert (tip - axis * .012 - tube.data.splines[0].bezier_points[0].co).length < 1e-6
+
+
 def main():
     specs = sorted((ROOT / "assets/characters").glob("*/spec.json"))
     assert specs, "Missing character specs"
@@ -86,6 +135,10 @@ def main():
                 verify_ficus(scene)
             if spec["id"] == "polka-dot-begonia":
                 verify_begonia(scene)
+            if spec["id"] == "moth-orchid":
+                verify_orchid(scene)
+            if spec["id"] == "thanksgiving-cactus":
+                verify_thanksgiving_cactus(scene)
         except AssertionError as error:
             raise AssertionError(f"{spec['id']}: {error}") from error
         print(f"{spec['id']}: Idle seam {seam:.7f}, sampled motion {motion:.5f}", flush=True)

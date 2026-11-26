@@ -5,7 +5,7 @@
   "commonName": "Rubber Plant",
   "rank": "species",
   "version": 1,
-  "design": "One stout upright leader with waxy oval foliage and a scarlet new-leaf sheath.",
+  "design": "Waxy elliptic leaves and alternate petioles on a scarred upright leader ending in one red stipule.",
   "source": "assets/characters/rubber-plant/source/rubber-plant.blend",
   "runtime": "frontend/public/characters/rubber-plant-v1.glb",
   "thumbnail": "frontend/public/characters/rubber-plant-v1-preview.webp",
@@ -21,12 +21,12 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 303804,
-  "triangles": 11304,
+  "glbBytes": 639712,
+  "triangles": 25352,
   "fallback": 7,
-  "stageScale": 0.8156,
+  "stageScale": 0.781,
+  "runtimePrimitives": 13,
   "identitySources": [
     "https://plants.ces.ncsu.edu/plants/ficus-elastica/"
-  ],
-  "runtimePrimitives": 12
+  ]
 }

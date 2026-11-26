@@ -5,7 +5,7 @@
   "commonName": "Mini Monstera",
   "rank": "species",
   "version": 1,
-  "design": "Alternating climbing leaves split cleanly from the margins.",
+  "design": "Flexuous vine with scarred nodes, attached aerial roots, entire young leaves, and staggered marginal splits.",
   "source": "assets/characters/mini-monstera/source/mini-monstera.blend",
   "runtime": "frontend/public/characters/mini-monstera-v1.glb",
   "thumbnail": "frontend/public/characters/mini-monstera-v1-preview.webp",
@@ -21,12 +21,13 @@
   "visualReview": "awaiting-owner-review",
   "provenance": "Original Blender geometry, materials, and keyframes.",
   "blender": "5.2.2 LTS",
-  "glbBytes": 432260,
-  "triangles": 18660,
+  "glbBytes": 518292,
+  "triangles": 20188,
   "fallback": 0,
-  "stageScale": 0.931,
+  "stageScale": 0.786,
+  "runtimePrimitives": 15,
   "identitySources": [
-    "https://plants.ces.ncsu.edu/plants/rhaphidophora-tetrasperma/common-name/dwarf-monstera/"
-  ],
-  "runtimePrimitives": 26
+    "https://plants.ces.ncsu.edu/plants/rhaphidophora-tetrasperma/common-name/dwarf-monstera/",
+    "https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:88594-1/general-information"
+  ]
 }

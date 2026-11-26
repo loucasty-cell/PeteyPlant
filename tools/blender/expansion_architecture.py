@@ -32,33 +32,38 @@ class Foliage:
         self.faces = []
         self.colors = []
 
-    def sweep(self, rings, colors, first, last):
+    def sweep(self, rings, colors, first=None, last=None):
         start = len(self.vertices)
         size = len(rings[0])
         for points, row in zip(rings, colors):
             self.vertices.extend(points)
             self.colors.extend(row)
+        loop = first is None
+        for row in range(len(rings) if loop else len(rings) - 1):
+            a = start + row * size
+            b = start + ((row + 1) % len(rings)) * size
+            for column in range(size):
+                after = (column + 1) % size
+                self.faces.append((a + column, a + after, b + after, b + column))
+        if loop:
+            return
         bottom = len(self.vertices)
         top = bottom + 1
         self.vertices.extend((first, last))
         self.colors.extend((colors[0][size // 4], colors[-1][size // 4]))
-        for row in range(len(rings) - 1):
-            a = start + row * size
-            b = a + size
-            for column in range(size):
-                after = (column + 1) % size
-                self.faces.append((a + column, a + after, b + after, b + column))
         far = start + (len(rings) - 1) * size
         for column in range(size):
             after = (column + 1) % size
             self.faces.extend(((bottom, start + after, start + column), (top, far + column, far + after)))
 
-    def tube(self, points, breadth, shade, taper=.36, sides=8):
+    def tube(self, points, breadth, shade, taper=.36, sides=8, *, loop=False):
         points = tuple(Vector(point) for point in points)
         rings, colors = [], []
         for index, point in enumerate(points):
-            axis = (points[min(index + 1, len(points) - 1)] - points[max(index - 1, 0)]).normalized()
-            right = axis.cross(Vector((0, -1, 0)))
+            following = (index + 1) % len(points) if loop else min(index + 1, len(points) - 1)
+            previous = index - 1 if loop else max(index - 1, 0)
+            axis = (points[following] - points[previous]).normalized()
+            right = axis.cross(UP if loop else Vector((0, -1, 0)))
             if right.length_squared < .035:
                 right = axis.cross(Vector((1, 0, 0)))
             right.normalize()
@@ -68,8 +73,11 @@ class Foliage:
             rings.append([point + radius * (right * math.cos(math.tau * i / sides) + front * math.sin(math.tau * i / sides))
                           for i in range(sides)])
             colors.append([shade * (.89 + .16 * math.cos(math.tau * i / sides)) for i in range(sides)])
-        self.sweep(rings, colors, points[0] - (points[1] - points[0]).normalized() * .002,
-                   points[-1] + (points[-1] - points[-2]).normalized() * .002)
+        if loop:
+            self.sweep(rings, colors)
+        else:
+            self.sweep(rings, colors, points[0] - (points[1] - points[0]).normalized() * .002,
+                       points[-1] + (points[-1] - points[-2]).normalized() * .002)
 
     def blade(self, base, tip, width, palette, *, normal=(0, -1, .65), kind="oval", pattern=None,
               seed=0, fold=.07, bow=.08, wave=0, rows=8, columns=5):
@@ -84,12 +92,17 @@ class Foliage:
         perimeter = [(u, face) for face, strip in ((1, edges), (-1, reversed(edges))) for u in strip]
         top, highlight, dark, vein, reverse = palette
         rings, colors = [], []
+        nest = pattern in {'nest', 'nest-sori'}
         for index in range(rows):
             t = .018 + .963 * index / (rows - 1)
             if kind == 'ribbon':
                 breadth = math.sin(math.pi * t ** .56) ** .72
+            elif nest:
+                breadth = math.sin(math.pi * t ** 1.02) ** .61
             elif kind == 'rounded':
                 breadth = math.sin(math.pi * t ** .83) ** .54
+            elif kind == 'rubber':
+                breadth = math.sin(math.pi * t ** .91) ** .55 * (1 - .49 * ease((t - .86) / .12))
             elif kind == 'fanlet':
                 breadth = math.sin(math.pi * t ** 2.1) ** .52
             else:
@@ -104,7 +117,14 @@ class Foliage:
                     ripple *= 1 - .41 * max(math.exp(-((t - cut) / .015) ** 2) for cut in cuts) * edge ** 2
                 x = width * breadth * u * ripple
                 thickness = max(.0018, width * .017) * (.63 + .62 * (1 - u * u))
-                center = start + direction * t + front * (bow * arch - fold * u * u * arch)
+                center = start + direction * t
+                if nest:
+                    lift = .24 if pattern == 'nest-sori' else .11
+                    center = start + Vector((direction.x * t ** .91, direction.y * t ** .91,
+                                             direction.z * t + lift * arch))
+                    if face < 0:
+                        thickness += .012 * math.exp(-((u / .10) ** 2)) * (1 - t)
+                center += front * (bow * arch - fold * u * u * arch)
                 points.append(center + right * (x + .030 * arch * math.sin(seed)) + front * (face * thickness))
                 shade = top.lerp(highlight, ease(.22 + .27 * math.sin(math.pi * t) - .26 * edge + .07 * math.sin(19 * t + u * 7 + seed)))
                 stripe = t - .10 * edge + .012 * math.sin(9 * u + seed)
@@ -122,11 +142,27 @@ class Foliage:
                 elif pattern == 'maranta':
                     shade = shade.lerp(dark, .74 * ease((edge - .15) * 2.1))
                     shade = shade.lerp(vein, .88 * ease((pigment_band - .82) * 5.5) * ease((.93 - edge) * 4))
+                elif pattern == 'maidenhair':
+                    # Fine forked veins spreading out into each fanlet.
+                    ray = .5 + .5 * math.cos(math.pi * u * (3 + 2 * t))
+                    shade = shade.lerp(vein, .34 * ray ** 4 * math.sin(math.pi * t))
+                elif pattern == 'rubber-venation':
+                    ray = .5 + .5 * math.cos(math.tau * (t - .12 * edge ** .84) * 17)
+                    shade = shade.lerp(highlight, .15 * ray ** 3 * arch * (1 - edge ** 3))
+                elif nest:
+                    ray = .5 + .5 * math.cos(math.tau * (t - .10 * edge) * 16)
+                    shade = shade.lerp(highlight, .16 * ray ** 3 * arch)
                 if not (pattern == 'stromanthe'):
-                    shade = shade.lerp(vein, midrib * (.78 if pattern in {'maranta', 'nest'} else .51))
+                    shade = shade.lerp(vein, midrib * (.88 if nest else .78 if pattern == 'maranta' else .51))
                 shade = shade.lerp(dark, ease((edge - .90) * 6) * .34)
                 if face < 0:
                     shade = reverse.lerp(shade, .18 + .12 * midrib)
+                    if nest:
+                        shade = shade.lerp(vein, .70 * midrib)
+                    if pattern == 'nest-sori':
+                        mask = ease((t - .50) / .10) * ease((.94 - t) / .13)
+                        mask *= ease((edge - .12) / .063) * ease((.59 - edge) / .13)
+                        shade = shade.lerp(dark, .74 * mask * ray ** 4)
                 tones.append(shade)
             rings.append(points)
             colors.append(tones)
@@ -245,16 +281,22 @@ def boston(crown):
 
 def bird_nest(crown):
     fern = Foliage()
-    tones = pigment('579249 8fb850 34713c 4f4b32 557638')
-    for i in range(11):
-        direction = radial(i * GOLDEN)
+    mature = pigment('407647 83a758 674e2a 373326 7f9961')
+    young = pigment('699950 a6bd65 528249 52482f 8fa66c')
+    fern.tube(((0, 0, -.060), (0, 0, .012), (.013, .011, .070)),
+              .080, mature[3], .50, 10)
+    for i in range(12):
+        direction = radial(i * GOLDEN + .09 * math.sin(i * 2.1))
         layer = i % 3
-        base = direction * (.037 + i % 2 * .044) - UP * .027
-        tip = direction * ((1.08, .80, .50)[layer]) + UP * ((.88, 1.26, 1.52)[layer])
-        normal = direction * -.82 + UP * .81
-        fern.blade(base, tip, (.26, .23, .16)[layer], tones, normal=normal, pattern='nest', kind='ribbon',
-                   wave=.19, rows=26, columns=11, bow=.22, fold=.105, seed=i * .92)
-    fern.finish(crown, "Bird's nest funnel and dark midribs", .41)
+        base = direction * (.027 + i % 2 * .025) - UP * .043
+        reach = (1.22, .86, .49)[layer] * (1 + .10 * math.sin(i * 1.8))
+        rise = (.74, 1.30, 1.21)[layer] * (1 + .10 * math.cos(i * 1.5))
+        tip = direction * reach + UP * rise
+        normal = direction * -.64 + UP * .90
+        fern.blade(base, tip, (.255, .22, .137)[layer], young if layer == 2 else mature,
+                   normal=normal, pattern='nest-sori' if layer == 0 else 'nest',
+                   wave=.10 - .028 * layer, rows=52, columns=13, bow=.048, fold=.065, seed=i * .92)
+    fern.finish(crown, "Asplenium crown and fronds with rounded backs", .39)
 
 
 def maidenhair(crown):
@@ -276,36 +318,94 @@ def maidenhair(crown):
                     start = junction.lerp(fan, .37 + .26 * k)
                     tip = start + heading * (.13 + .021 * k) + across * (side * (.14 - .021 * k)) + UP * .035
                     fern.blade(start, tip, .087 - j * .005, tones, kind='fanlet', normal=(.10 * side, -.47, .92),
-                               rows=6, columns=5, wave=.11, bow=.018, fold=.019, seed=i + j + k)
+                               pattern='maidenhair', rows=6, columns=5, wave=.11, bow=.018, fold=.019, seed=i + j + k)
     fern.finish(crown, "Maidenhair black wires and fanlets", .59)
+
+
+def davallia_runner(rhizomes, heading, drift, drop):
+    """Create a creeping stem with overlapping, pale-edged papery scales."""
+    foot, dark, edge, tip = pigment('9a6e51 624130 c89c78 d8b89a')
+    across = UP.cross(heading)
+    points = []
+    breadth = .041
+    taper = .49
+    for i in range(21):
+        t = i / 20
+        sweep = heading * (.09 + .80 * t) + across * (drift * math.sin(t * math.pi * .90))
+        sweep.y *= .92
+        height = .006 + .115 * ease((t - .46) / .38) - drop * ease((t - .83) / .17)
+        points.append(sweep + UP * height)
+    rhizomes.tube(points, breadth, foot, taper, 10)
+
+    # Walk by distance so tighter bends and the hanging section stay covered.
+    distances = [0.0]
+    for previous, current in zip(points, points[1:]):
+        distances.append(distances[-1] + (current - previous).length)
+    rows = math.ceil(distances[-1] / .029)
+    segment = 0
+    for i in range(1, rows):
+        distance = distances[-1] * i / rows
+        while distances[segment + 1] < distance:
+            segment += 1
+        fraction = (distance - distances[segment]) / (distances[segment + 1] - distances[segment])
+        point = points[segment].lerp(points[segment + 1], fraction)
+        axis = (points[segment + 1] - points[segment]).normalized()
+        side = axis.cross(UP).normalized()
+        top = side.cross(axis).normalized()
+        radius = breadth * (1 - (1 - taper) * (segment + fraction) / 20)
+        scale_edge = edge.lerp(tip, ease((i / rows - .56) / .44))
+        for j in range(8):
+            angle = math.tau * j / 8 + i * .73
+            normal = side * math.cos(angle) + top * math.sin(angle)
+            lateral = axis.cross(normal)
+            start = point + normal * (radius - .003)
+            mid = start + axis * .012 + normal * .006
+            apex = start + axis * (.039 + .009 * math.sin(i * 1.81 + j)) + normal * .008
+            index = len(rhizomes.vertices)
+            rhizomes.vertices.extend((start, mid - lateral * .010, mid + normal * .004,
+                                      mid + lateral * .010, apex))
+            rhizomes.colors.extend((dark, scale_edge, foot.lerp(dark, .36), scale_edge, scale_edge))
+            rhizomes.faces.extend(tuple(index + n for n in face) for face in
+                                  ((0, 2, 1), (0, 3, 2), (1, 2, 4), (2, 3, 4)))
+    return points
 
 
 def rabbit_fern(crown):
     fern = Foliage()
-    tones = pigment('428354 79a971 285f45 84a473 4e7751')
-    root = linear_color('a97859')
-    for i in range(7):
+    rhizomes = Foliage()
+    tones = pigment('3c774e 76a36a 285f45 84a473 668751')
+    runners = (
+        davallia_runner(rhizomes, radial(-.72), .096, .32),
+        davallia_runner(rhizomes, radial(-2.56), -.073, .19),
+        davallia_runner(rhizomes, radial(1.12), .112, .28),
+    )
+    for i, (runner, joint) in enumerate(((0, 3), (1, 4), (2, 2), (0, 7), (1, 8), (2, 6), (2, 10))):
         heading = radial(i * GOLDEN + .2)
         across = Vector((-heading.y, heading.x, 0))
-        path = frond_path(heading * .074 - UP * .033, heading, .76 + .095 * (i % 3), 1.22 - .11 * (i % 3), .27)
+        # The first stipe ring overlaps its own runner with the same sway pivot.
+        start = runners[runner][joint] + UP * .016
+        path = frond_path(start, heading, .69 + .10 * (i % 3), 1.19 - .14 * (i % 3), .29)
         fern.tube([path(t / 10) for t in range(11)], .015, tones[3], .24)
         for j in range(4):
-            t = .31 + j * .17
+            t = .34 + j * .17
             for side in (-1, 1):
                 at = path(t + side * .010)
                 outward = (across * side + heading * .36).normalized()
-                length = .42 - j * .063
+                length = (.43, .34, .25, .14)[j]
                 tip = at + outward * length + UP * .07
                 fern.tube((at, at.lerp(tip, .60), tip), .007, tones[3], .27, 6)
-                for l in range(4):
-                    base = at.lerp(tip, .13 + l * .24)
+                for l in range(4 - (j == 3)):
+                    base = at.lerp(tip, .14 + l * .25)
                     for flip in (-1, 1):
-                        end = base + outward * .084 + heading * (flip * (.10 - l * .013)) + UP * .025
-                        fern.blade(base, end, .033 - .003 * l, tones, normal=(0, -.49, .85), rows=5, columns=3,
-                                   bow=.020, fold=.013, wave=.19, seed=i + j + l)
-        fern.tube((heading * .10 - UP * .025, heading * .36 + UP * .030, heading * .55 + UP * .018,
-                   heading * .68 - UP * .086, heading * .73 - UP * (.19 + .035 * (i % 3))), .040, root, .69, 10)
-    fern.finish(crown, "Rabbit's foot lace and exposed rhizomes", .58)
+                        size = 1 - .11 * l - .13 * j
+                        end = base + (outward * .103 + heading * (flip * .10)) * size + UP * .023
+                        fern.blade(base, end, .030 * size, tones, normal=(0, -.37, .92), rows=5, columns=3,
+                                   bow=.012, fold=.009, wave=.20, seed=i + j + l)
+        fern.blade(path(.90), path(1) + heading * .079, .026, tones, normal=(0, -.37, .92),
+                   rows=5, columns=3, bow=.008, fold=.008, wave=.13, seed=i)
+    fern.finish(crown, "Davallia dissected fronds and attached stipes", .47)
+    scales = rhizomes.finish(crown, "Davallia creeping stems and papery scales", .78)
+    scales.data.materials[0].use_backface_culling = False
 
 
 def parlor(crown):
@@ -361,21 +461,41 @@ def lady(crown):
 
 def rubber(crown):
     leaves = Foliage()
-    tones = pigment('355c43 557b4c 214735 8f9b69 654442')
-    bark = linear_color('876a51')
-    leaves.tube(((0,0,-.032),(.034,.016,.39),(-.05,.015,.9),(-.075,.064,1.51)), .067, bark, .46, 11)
-    for i in range(7):
-        height = .34 + i * .17
+    stems = Foliage()
+    tones = pigment('2f5740 62844e 224633 8f9b69 80946b')
+    new_leaf = pigment('597341 8f9960 38593a bf8d73 987b66')
+    bark, scar = pigment('826550 ac8e68')
+    trunk = [Vector((0, 0, -.052))]
+    trunk.extend(Vector((.060 * math.sin(.81 * i), .034 * math.sin(.56 * i), .29 + .182 * i))
+                 for i in range(7))
+    trunk.append(Vector((-.043, -.018, 1.545)))
+    stems.tube(trunk, .067, bark, .45, 12)
+    for i, junction in enumerate(trunk[1:-1]):
         heading = radial(i * GOLDEN + .31)
-        junction = Vector((-.012 - .034 * height, .027, height))
         base = junction + heading * .22 + UP * .056
-        tip = base + heading * (.82 - .065 * i) + UP * (.27 - .018 * i)
-        leaves.tube((junction, junction.lerp(base, .47), base + heading * .043), .026, bark, .52)
-        leaves.blade(base, tip, .23 + .035 * math.sin(i * .62), tones, normal=heading * -.35 + UP,
-                     rows=14, columns=9, fold=.073, bow=.065, seed=i)
+        tip = base + heading * (.84 - .067 * i) + UP * (.24 - .015 * i)
+        stem_end = base + (tip - base).normalized() * .045
+        stems.tube((junction, junction.lerp(base, .47), stem_end), .025 - .002 * i, bark, .46)
+        leaves.blade(base, tip, .228 + .029 * math.sin(i * .66) - .007 * i,
+                     tones if i < 6 else new_leaf, normal=heading * -.35 + UP,
+                     kind='rubber', pattern='rubber-venation', rows=45, columns=13,
+                     fold=.065, bow=.041, wave=.03, seed=i)
+        # Fine lasting traces of shed stipules, registered to the same leader.
+        if i < 5:
+            axis = (trunk[i + 2] - trunk[i]).normalized()
+            side = axis.cross(heading).normalized()
+            round_axis = axis.cross(side)
+            ring_radius = .067 * (1 - .55 * (i + 1) / 8) + .001
+            ring = [junction + ring_radius * (side * math.cos(k * math.tau / 16)
+                    + round_axis * math.sin(k * math.tau / 16)) for k in range(16)]
+            stems.tube(ring, .0048, scar, 1, 5, loop=True)
     sheath = pigment('a14352 c55c67 71363f b87468 874751')
-    leaves.blade((-.075,.064,1.41),(-.043,.088,1.82),.054,sheath,kind='ribbon',rows=9,columns=5,fold=.025,bow=.025)
-    leaves.finish(crown, "Rubber fig wax blades and scarlet sheath", .31)
+    leaves.blade(trunk[-1], trunk[-1] + Vector((.034, .025, .40)), .044, sheath,
+                 kind='ribbon', rows=16, columns=7, fold=.021, bow=.025)
+    stems.finish(crown, "Ficus elastica stipule scars, leader and joined petioles", .62)
+    wax = leaves.finish(crown, "Ficus elastica wax blades and single apical sheath", .38)
+    shader = next(node for node in wax.data.materials[0].node_tree.nodes if node.type == "BSDF_PRINCIPLED")
+    shader.inputs["Coat Roughness"].default_value = .27
 
 
 def weeping(crown):
@@ -483,11 +603,11 @@ MODELS = [
               "https://powo.science.kew.org/taxon/1211666-2", "https://plants.ces.ncsu.edu/plants/stromanthe-thalia/")),
     model("boston-fern", "Nephrolepis exaltata", "Boston Fern", "A layered fountain of long arching fronds with dense paired pinnae.",
           boston, 3, ("a59277", "7b654a")),
-    model("birds-nest-fern", "Asplenium nidus", "Bird's Nest Fern", "Funnel rosette of single ruffled straps and dark midribs.",
+    model("birds-nest-fern", "Asplenium nidus", "Bird's Nest Fern", "Three ranks of simple glossy fronds rise from a rosette with rounded dark ribs and distal underside sori.",
           bird_nest, 3, ("d8bd86", "94784c"), sources=("https://plants.ces.ncsu.edu/plants/asplenium-nidus/",)),
     model("maidenhair-fern", "Adiantum raddianum", "Maidenhair Fern", "Small fanlets distributed on near-black wiry branchlets.",
           maidenhair, 3, ("adc0b9", "6a918e")),
-    model("rabbits-foot-fern", "Davallia fejeensis", "Rabbit's Foot Fern", "Lacy divided fronds above exposed earthy creeping rhizomes.",
+    model("rabbits-foot-fern", "Davallia fejeensis", "Rabbit's Foot Fern", "Finely divided fronds rise in separate stipes from three creeping rhizomes with overlapping pale-edged scales.",
           rabbit_fern, 3, ("b8a194", "9a7359"), accepted="Davallia solida var. fejeensis", rank="variety", sources=(
               "https://powo.science.kew.org/taxon/urn:lsid:ipni.org:names:17564870-1",
               "https://davalliacea.linnaeana.nl/linnaeus_ng/app/views/species/nsr_taxon.php?epi=150&id=112773")),
@@ -497,7 +617,7 @@ MODELS = [
           kentia, 5, ("859d89", "4c766b")),
     model("lady-palm", "Rhapis excelsa", "Lady Palm", "Multiple cane bases topped by hand-shaped split fans.",
           lady, 5, ("a98a77", "986850")),
-    model("rubber-plant", "Ficus elastica", "Rubber Plant", "One stout upright leader with waxy oval foliage and a scarlet new-leaf sheath.",
+    model("rubber-plant", "Ficus elastica", "Rubber Plant", "Waxy elliptic leaves and alternate petioles on a scarred upright leader ending in one red stipule.",
           rubber, 7, ("a76856", "794f50"), sources=("https://plants.ces.ncsu.edu/plants/ficus-elastica/",)),
     model("weeping-fig", "Ficus benjamina", "Weeping Fig", "Fine arched woody branches and small pointed, drooping leaves.",
           weeping, 7, ("b0a49c", "827771"), sources=("https://plants.ces.ncsu.edu/plants/ficus-benjamina/",)),
