@@ -203,6 +203,7 @@
 
 .companion-stage {
   position: relative;
+  background: var(--petey-surface-dark);
   flex: 0 0 64dvh;
   height: 64dvh;
   min-height: 320px;
@@ -691,7 +692,7 @@
 }
 
 .weather-cat-chip.active {
-  background: #234D36;
+  background: var(--petey-forest);
   border-color: #234D36;
   color: #FFFFFF;
 }
@@ -1210,19 +1211,20 @@
 }
 
 .petey-plant-card {
-  background: var(--petey-white);
+  background: var(--petey-gradient-card);
   border: 1px solid var(--petey-border);
   border-radius: var(--petey-radius-lg);
   padding: 14px;
   display: flex;
   flex-direction: column;
   gap: 12px;
-  transition: border-color var(--petey-duration-fast) ease, box-shadow var(--petey-duration-fast) ease;
+  box-shadow: var(--petey-shadow-sm);
+  transition: border-color var(--petey-duration-fast) ease, box-shadow var(--petey-duration-base) ease, translate var(--petey-duration-base) var(--petey-ease-out);
 }
 
-.petey-plant-card:hover {
-  border-color: var(--petey-forest);
-  box-shadow: var(--petey-shadow-sm);
+.petey-plant-card:focus-within {
+  border-color: var(--petey-border-strong);
+  box-shadow: var(--petey-shadow-md);
 }
 
 .petey-plant-card-head {
@@ -2272,142 +2274,98 @@
   margin: 0 auto;
 }
 
-/* ---------- Duolingo-Inspired Tactile Cards, Buttons & 3-Tile Controls ---------- */
-.duo-card {
-  border-radius: 18px !important;
-  background: var(--petey-white) !important;
-  border: 1.5px solid #DCE4D9 !important;
-  box-shadow: 0 3px 0 #CFD8CB !important;
+/* Garden care controls and surfaces */
+.petey-shell .care-card {
+  border-radius: var(--petey-radius-xl);
+  background: var(--petey-white);
+  border: 1px solid var(--petey-border);
+  box-shadow: var(--petey-shadow-sm);
 }
 
-.duo-btn {
+.care-action {
   position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 48px;
+  min-height: var(--petey-touch-min);
   padding: 0 18px;
   border-radius: 15px;
   font-size: 0.9rem;
   font-weight: 700;
   letter-spacing: -0.005em;
   line-height: 1.1;
-  white-space: nowrap;
+  text-align: center;
   cursor: pointer;
-  margin-bottom: 4px;
   transition:
-    transform 110ms cubic-bezier(0.22, 1, 0.36, 1),
+    translate var(--petey-duration-press) var(--petey-ease-out),
     box-shadow 110ms cubic-bezier(0.22, 1, 0.36, 1),
     background-color 130ms ease,
     border-color 130ms ease;
 }
 
-.duo-btn:disabled {
+.care-action:disabled {
   opacity: 0.56;
   cursor: not-allowed;
-  transform: none !important;
+  transform: none;
 }
 
-.duo-btn-sm {
-  min-height: 40px;
+.care-action-sm {
+  min-height: var(--petey-touch-min);
   padding: 0 14px;
   border-radius: 13px;
   font-size: 0.82rem;
   gap: 6px;
-  margin-bottom: 3px;
 }
 
-.duo-btn-xs {
-  min-height: 32px;
+.care-action-xs {
+  min-height: var(--petey-touch-min);
   padding: 0 11px;
   border-radius: 11px;
   font-size: 0.76rem;
   gap: 5px;
-  margin-bottom: 2px;
 }
 
-.duo-btn-primary {
-  background: #23533A;
-  color: #FFFFFF;
-  border: 1.5px solid #1C442F;
-  box-shadow: 0 4px 0 #143222;
+.care-action-primary {
+  background: var(--petey-gradient-action);
+  color: var(--petey-white);
+  border: 1px solid var(--petey-forest-deep);
+  box-shadow: var(--petey-shadow-primary);
 }
 
-.duo-btn-primary:hover:not(:disabled) {
-  background: #2A6144;
-  transform: translateY(-1px);
-  box-shadow: 0 5px 0 #143222;
+.care-action-secondary {
+  background: var(--petey-white);
+  color: var(--petey-ink);
+  border: 1px solid var(--petey-border);
+  box-shadow: var(--petey-shadow-control);
 }
 
-.duo-btn-primary:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #143222;
+.care-action-sage {
+  background: var(--petey-forest-soft);
+  color: var(--petey-forest-deep);
+  border: 1px solid var(--petey-border-strong);
+  box-shadow: var(--petey-shadow-control);
 }
 
-.duo-btn-secondary {
-  background: #FFFFFF;
-  color: #1F2D24;
-  border: 1.5px solid #D3DDD0;
-  box-shadow: 0 4px 0 #C4CFC0;
+.care-action-amber {
+  background: var(--petey-warning-bg);
+  color: var(--petey-warning-text);
+  border: 1px solid var(--petey-warning-border);
+  box-shadow: var(--petey-shadow-control);
 }
 
-.duo-btn-secondary:hover:not(:disabled) {
-  background: #F6F9F5;
-  border-color: #BFCBB9;
-  transform: translateY(-1px);
-  box-shadow: 0 5px 0 #BFCBB9;
+@media (hover: hover) and (pointer: fine) {
+  :is(.care-action, .care-soil-choice):hover:not(:disabled) {
+    box-shadow: var(--petey-shadow-md);
+  }
 }
 
-.duo-btn-secondary:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #C4CFC0;
+@media (prefers-reduced-motion: no-preference) {
+  :is(.care-action, .care-soil-choice):active:not(:disabled) {
+    translate: 0 0.0625rem;
+    box-shadow: var(--petey-shadow-sm);
+  }
 }
-
-.duo-btn-sage {
-  background: #E8F4EC;
-  color: #19452C;
-  border: 1.5px solid #A3C9AF;
-  box-shadow: 0 4px 0 #89B697;
-}
-
-.duo-btn-sage:hover:not(:disabled) {
-  background: #DDF0E3;
-  transform: translateY(-1px);
-  box-shadow: 0 5px 0 #89B697;
-}
-
-.duo-btn-sage:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #89B697;
-}
-
-.duo-btn-amber {
-  background: #FFF6E3;
-  color: #6B430C;
-  border: 1.5px solid #E0BF80;
-  box-shadow: 0 4px 0 #CCA356;
-}
-
-.duo-btn-amber:hover:not(:disabled) {
-  background: #FEEFD1;
-  transform: translateY(-1px);
-  box-shadow: 0 5px 0 #CCA356;
-}
-
-.duo-btn-amber:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #CCA356;
-}
-
-.duo-btn-sm.duo-btn-primary { box-shadow: 0 3px 0 #143222; }
-.duo-btn-sm.duo-btn-secondary { box-shadow: 0 3px 0 #C4CFC0; }
-.duo-btn-sm.duo-btn-sage { box-shadow: 0 3px 0 #89B697; }
-.duo-btn-sm.duo-btn-amber { box-shadow: 0 3px 0 #CCA356; }
-.duo-btn-sm:active:not(:disabled) { transform: translateY(2px); }
-
-.duo-btn-xs.duo-btn-secondary { box-shadow: 0 2px 0 #C4CFC0; }
-.duo-btn-xs:active:not(:disabled) { transform: translateY(1px); }
 
 /* ---------- Level 1 Home Care Surface (40% Panel) ---------- */
 .lv-care-surface {
@@ -2677,7 +2635,7 @@
   gap: 9px;
 }
 
-.duo-tile {
+.care-soil-choice {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2688,20 +2646,19 @@
   border-radius: 15px;
   text-align: center;
   cursor: pointer;
-  margin-bottom: 4px;
   transition:
-    transform 110ms cubic-bezier(0.22, 1, 0.36, 1),
+    translate var(--petey-duration-press) var(--petey-ease-out),
     box-shadow 110ms cubic-bezier(0.22, 1, 0.36, 1),
     background-color 130ms ease,
     border-color 130ms ease;
 }
 
-.duo-tile:disabled {
+.care-soil-choice:disabled {
   opacity: 0.56;
   cursor: not-allowed;
 }
 
-.duo-tile svg {
+.care-soil-choice svg {
   width: 22px;
   height: 22px;
   padding: 4px;
@@ -2709,87 +2666,54 @@
   box-sizing: content-box;
 }
 
-.duo-tile strong {
+.care-soil-choice strong {
   font-size: 0.86rem;
   font-weight: 750;
   line-height: 1.15;
   letter-spacing: -0.01em;
 }
 
-.duo-tile span {
-  font-size: 0.69rem;
+.care-soil-choice span {
+  font-size: 0.8rem;
   font-weight: 600;
   line-height: 1.15;
   opacity: 0.84;
 }
 
-.duo-tile-dry {
-  background: #FFF9EE;
-  border: 1.5px solid #E5C891;
-  box-shadow: 0 4px 0 #D1AC67;
-  color: #6B420B;
+.care-soil-choice-dry {
+  background: var(--petey-warning-bg);
+  border: 1px solid var(--petey-warning-border);
+  box-shadow: var(--petey-shadow-control);
+  color: var(--petey-warning-text);
 }
 
-.duo-tile-dry svg {
+.care-soil-choice-dry svg {
   background: #FDEBC6;
   color: #9A5B0E;
 }
 
-.duo-tile-dry:hover:not(:disabled) {
-  background: #FFF3DC;
-  transform: translateY(-1px);
-  box-shadow: 0 5px 0 #D1AC67;
+.care-soil-choice-moist {
+  background: var(--petey-forest-soft);
+  border: 1px solid var(--petey-border-strong);
+  box-shadow: var(--petey-shadow-control);
+  color: var(--petey-forest-deep);
 }
 
-.duo-tile-dry:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #D1AC67;
-}
-
-.duo-tile-moist {
-  background: #F0F9F3;
-  border: 1.5px solid #ADD3BA;
-  box-shadow: 0 4px 0 #87B998;
-  color: #1B4B31;
-}
-
-.duo-tile-moist svg {
+.care-soil-choice-moist svg {
   background: #D7EFE0;
   color: #1F5E3C;
 }
 
-.duo-tile-moist:hover:not(:disabled) {
-  background: #E4F4EA;
-  transform: translateY(-1px);
-  box-shadow: 0 5px 0 #87B998;
+.care-soil-choice-unsure {
+  background: var(--petey-surface-subtle);
+  border: 1px solid var(--petey-border);
+  box-shadow: var(--petey-shadow-control);
+  color: var(--petey-ink-secondary);
 }
 
-.duo-tile-moist:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #87B998;
-}
-
-.duo-tile-unsure {
-  background: #F8F9F6;
-  border: 1.5px solid #D4DDD2;
-  box-shadow: 0 4px 0 #BCC8B9;
-  color: #36453C;
-}
-
-.duo-tile-unsure svg {
+.care-soil-choice-unsure svg {
   background: #EAEFE9;
   color: #46584D;
-}
-
-.duo-tile-unsure:hover:not(:disabled) {
-  background: #F0F3EE;
-  transform: translateY(-1px);
-  box-shadow: 0 5px 0 #BCC8B9;
-}
-
-.duo-tile-unsure:active:not(:disabled) {
-  transform: translateY(3px);
-  box-shadow: 0 1px 0 #BCC8B9;
 }
 
 .lv-care-footer {
@@ -2990,8 +2914,9 @@
   gap: 10px;
   padding: 14px;
   border-radius: var(--petey-radius-md);
-  background: var(--petey-surface-subtle);
+  background: var(--petey-gradient-inspector);
   border: 1px solid var(--petey-border);
+  box-shadow: var(--petey-shadow-sm);
 }
 
 .hs-decision-head {
@@ -3153,7 +3078,7 @@
   min-height: 38px;
   padding: 0 14px;
   border-radius: var(--petey-radius-sm);
-  background: var(--petey-forest);
+  background: var(--petey-gradient-action);
   color: var(--petey-white);
   border: 1px solid var(--petey-forest-deep);
   box-shadow: var(--petey-shadow-primary);
@@ -3164,10 +3089,9 @@
   justify-content: center;
   gap: 6px;
   white-space: nowrap;
-  transition: background-color var(--petey-duration-fast) ease, transform var(--petey-duration-fast) ease;
+  transition: filter var(--petey-duration-fast) ease, translate var(--petey-duration-press) var(--petey-ease-out);
 }
-.hs-btn-primary:hover:not(:disabled) { background: var(--petey-forest-hover); }
-.hs-btn-primary:active:not(:disabled) { transform: translateY(0.5px); }
+.hs-btn-primary:hover:not(:disabled) { filter: brightness(1.12); }
 .hs-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .hs-btn-subtle {
@@ -3185,7 +3109,7 @@
   justify-content: center;
   gap: 6px;
   white-space: nowrap;
-  transition: background-color var(--petey-duration-fast) ease;
+  transition: background-color var(--petey-duration-fast) ease, translate var(--petey-duration-press) var(--petey-ease-out);
 }
 .hs-btn-subtle:hover:not(:disabled) { background: var(--petey-ivory); }
 .hs-btn-subtle:disabled { opacity: 0.5; cursor: not-allowed; }
@@ -4091,7 +4015,7 @@
     gap: 9px;
   }
 
-  .duo-tile {
+  .care-soil-choice {
     min-height: 86px;
     padding: 11px 8px;
   }
@@ -4192,12 +4116,9 @@
 @media (prefers-reduced-motion: reduce) {
   .weather-backdrop,
   .petey-nav-lens-disc,
-  .petey-plant-card,
-  .hs-btn-primary,
-  .hs-btn-subtle,
   .hs-other-plant-row,
-  .duo-btn,
-  .duo-tile,
+  .care-action,
+  .care-soil-choice,
   .lv-speech-bubble,
   .lv-biome-cycle-btn,
   .lv-footer-chip {

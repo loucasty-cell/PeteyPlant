@@ -253,16 +253,17 @@ function SpeciesCompanionNode({
  * Understated botanical saucer mat + soft contact shadow so the living plant
  * remains the unmistakable hero without bulky pedestal geometry or pebble clutter.
  */
-function createRadialShadowTexture(innerAlpha: number): THREE.CanvasTexture | null {
+function createRadialShadowTexture(): THREE.CanvasTexture | null {
   if (typeof document === 'undefined') return null;
   const canvas = document.createElement('canvas');
   canvas.width = 128;
   canvas.height = 128;
   const ctx = canvas.getContext('2d');
   if (!ctx) return null;
-  const grad = ctx.createRadialGradient(64, 64, 10, 64, 64, 64);
-  grad.addColorStop(0, `rgba(14, 24, 18, ${innerAlpha})`);
-  grad.addColorStop(0.55, `rgba(14, 24, 18, ${(innerAlpha * 0.45).toFixed(3)})`);
+  const grad = ctx.createRadialGradient(64, 64, 6, 64, 64, 64);
+  grad.addColorStop(0, 'rgba(14, 24, 18, 1)');
+  grad.addColorStop(0.52, 'rgba(14, 24, 18, 0.32)');
+  grad.addColorStop(0.8, 'rgba(14, 24, 18, 0.06)');
   grad.addColorStop(1, 'rgba(14, 24, 18, 0)');
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, 128, 128);
@@ -272,26 +273,20 @@ function createRadialShadowTexture(innerAlpha: number): THREE.CanvasTexture | nu
 }
 
 function BotanicalPedestal({ theme, castShadow }: { theme: WeatherAtmosphereTheme; castShadow: boolean }) {
-  const floorShadowTex = useMemo(() => createRadialShadowTexture(0.38), []);
-  const potShadowTex = useMemo(() => createRadialShadowTexture(0.32), []);
+  const shadow = useMemo(createRadialShadowTexture, []);
 
-  useEffect(() => {
-    return () => {
-      floorShadowTex?.dispose();
-      potShadowTex?.dispose();
-    };
-  }, [floorShadowTex, potShadowTex]);
+  useEffect(() => () => shadow?.dispose(), [shadow]);
 
   return (
-    <group position={[0, 0, 0]}>
+    <group>
       {/* Soft radial floor shadow beneath the saucer */}
-      <mesh position={[0, -0.922, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={0}>
+      <mesh position={[0.055, -0.922, 0.025]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={0}>
         <circleGeometry args={[1.18, 48]} />
         <meshBasicMaterial
-          map={floorShadowTex ?? undefined}
-          color={floorShadowTex ? '#ffffff' : '#182018'}
+          map={shadow ?? undefined}
+          color={shadow ? '#ffffff' : '#182018'}
           transparent
-          opacity={floorShadowTex ? 1 : 0.18}
+          opacity={shadow ? 0.52 : 0.18}
           depthWrite={false}
         />
       </mesh>
@@ -299,10 +294,10 @@ function BotanicalPedestal({ theme, castShadow }: { theme: WeatherAtmosphereThem
       <mesh position={[0, -0.846, 0]} rotation={[-Math.PI / 2, 0, 0]} renderOrder={1}>
         <circleGeometry args={[0.68, 48]} />
         <meshBasicMaterial
-          map={potShadowTex ?? undefined}
-          color={potShadowTex ? '#ffffff' : '#182018'}
+          map={shadow ?? undefined}
+          color={shadow ? '#ffffff' : '#182018'}
           transparent
-          opacity={potShadowTex ? 1 : 0.24}
+          opacity={shadow ? 0.44 : 0.24}
           depthWrite={false}
         />
       </mesh>

@@ -88,6 +88,79 @@ def test_garden_identity_without_a_care_model(clock):
         assert saved.json()["watering_source"] is None
 
 
+def test_wet_mix_and_standing_water_stay_separate_until_observation_expires(clock):
+    key = {"X-Petey-Garden": str(uuid4())}
+    plant_id = str(uuid4())
+    path = ROOT + f"/plants/{plant_id}"
+    with TestClient(app) as client:
+        assert add(client, key, plant_id).status_code == 200
+        observed_at = clock[0] - timedelta(minutes=20)
+        wet_checkup = {"soil": "wet", "based_on": None, "captured_at": observed_at.isoformat()}
+        wet = client.post(path + f"/assessments/{uuid4()}/confirm", headers=key, json=wet_checkup).json()
+        assert wet["active_conditions"] == ["wet_potting_mix"]
+        assert wet["watering_locked"] is False
+        assert wet["lock_reason"] is None
+        assert datetime.fromisoformat(wet["assessment_updated_at"]) == observed_at
+
+        observed_at = clock[0]
+        standing_checkup = {
+            "soil": "wet", "standing_water": "yes",
+            "based_on": wet["history"][0]["id"], "captured_at": observed_at.isoformat(),
+        }
+        both = client.post(path + f"/assessments/{uuid4()}/confirm", headers=key, json=standing_checkup).json()
+        assert both["status"] == "wait"
+        assert both["active_conditions"] == ["standing_water", "wet_potting_mix"]
+        assert both["watering_locked"] is True
+        assert "Empty standing water" in both["lock_reason"]
+        assert both["watering_advice_expires_at"] is None
+        assert client.get(ROOT + "/plants", headers=key).json() == [both]
+
+        clock[0] += timedelta(days=1)
+        recheck = client.get(ROOT + "/plants", headers=key).json()[0]
+        assert recheck["status"] == "check"
+        assert recheck["active_conditions"] == []
+        assert recheck["watering_locked"] is False
+        assert recheck["lock_reason"] is None
+        assert recheck["history"] == both["history"]
+
+
+def test_owner_can_store_or_clear_per_plant_container_context_without_creating_a_dose(clock):
+    headers = {"X-Petey-Garden": str(uuid4())}
+    other = {"X-Petey-Garden": str(uuid4())}
+    plant_id = str(uuid4())
+    path = ROOT + f"/plants/{plant_id}"
+    with TestClient(app) as client:
+        initial = add(client, headers, plant_id).json()
+        assert initial["container_volume_ml"] is None
+        assert initial["potting_mix"] is None
+        for value in (0, -1, 1.5, "1800", True, 1_000_001):
+            assert client.patch(path, headers=headers, json={"container_volume_ml": value}).status_code == 422
+        assert client.patch(path, headers=headers, json={"potting_mix": " "}).status_code == 422
+        assert client.patch(path, headers=other, json={"container_volume_ml": 1800}).status_code == 404
+
+        ready = save_dry_checkup(client, headers, plant_id).json()
+        assert ready["status"] == "ready"
+        updated = client.patch(path, headers=headers, json={
+            "container_volume_ml": 1800,
+            "potting_mix": " Bark and coir ",
+        }).json()
+        assert updated["container_volume_ml"] == 1800
+        assert updated["potting_mix"] == "Bark and coir"
+        assert updated["status"] == "ready"
+        assert updated["history"] == ready["history"]
+        assert not any(field.startswith("recommended_water") for field in updated)
+
+        renamed = client.patch(path, headers=headers, json={"name": "Window Monstera"}).json()
+        assert renamed["container_volume_ml"] == 1800
+        assert renamed["potting_mix"] == "Bark and coir"
+        assert client.get(ROOT + "/plants", headers=headers).json() == [renamed]
+
+        cleared = client.patch(path, headers=headers, json={"container_volume_ml": None, "potting_mix": None}).json()
+        assert cleared["container_volume_ml"] is None
+        assert cleared["potting_mix"] is None
+        assert cleared["history"] == ready["history"]
+
+
 def test_private_gardens_and_cors(clock):
     owner = {"X-Petey-Garden": str(uuid4())}
     other = {"X-Petey-Garden": str(uuid4())}

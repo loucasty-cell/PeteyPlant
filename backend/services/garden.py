@@ -7,7 +7,7 @@ import sqlite3
 from typing import Annotated, Literal
 
 from fastapi import APIRouter, Header, HTTPException
-from pydantic import BaseModel, ConfigDict, StringConstraints, UUID4
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints, UUID4
 
 from data.seed_10k_species import SPECIES
 from services.care_policy import (
@@ -26,7 +26,7 @@ GARDEN_IDENTITIES = {
     "Syngonium podophyllum": "Arrowhead Plant",  # Kew: 89152-1
 }
 CARE_KIND = Literal["dry", "moist", "unsure", "watered"]
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 CHECKUP_CLOCK_SKEW = timedelta(minutes=2)
 GUIDED_SPECIES = {
     "Monstera deliciosa": "Check whether the top quarter to one-third of the mix is dry.",
@@ -47,6 +47,8 @@ class PlantUpdate(BaseModel):
     name: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=60)] | None = None
     species_id: str | None = None
     drainage: DRAINAGE | None = None
+    container_volume_ml: Annotated[int, Field(strict=True, ge=1, le=1_000_000)] | None = None
+    potting_mix: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=80)] | None = None
 
 
 class CareAction(BaseModel):
@@ -55,33 +57,35 @@ class CareAction(BaseModel):
 
 
 def migrate(db):
-    """Apply the first explicit schema version without replacing existing records."""
+    """Apply additive schema changes under one write lock."""
     if db.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSION:
         return
     with db:
         db.execute("BEGIN IMMEDIATE")
         version = db.execute("PRAGMA user_version").fetchone()[0]
-        if version == SCHEMA_VERSION:
-            return
-        if version != 0:
+        if version not in (0, 1, SCHEMA_VERSION):
             raise RuntimeError(f"Unsupported garden schema version: {version}")
-        db.execute("""
-            CREATE TABLE IF NOT EXISTS garden_plants (
-                garden TEXT NOT NULL, id TEXT NOT NULL, name TEXT NOT NULL,
-                species_id TEXT, drainage TEXT NOT NULL, created_at TEXT NOT NULL,
-                PRIMARY KEY (garden, id)
-            )
-        """)
-        db.execute("""
-            CREATE TABLE IF NOT EXISTS garden_care (
-                garden TEXT NOT NULL, plant TEXT NOT NULL, id TEXT NOT NULL,
-                kind TEXT NOT NULL, occurred_at TEXT NOT NULL,
-                PRIMARY KEY (garden, plant, id),
-                FOREIGN KEY (garden, plant) REFERENCES garden_plants (garden, id)
-            )
-        """)
-        db.execute("ALTER TABLE garden_care ADD COLUMN checkup TEXT")
-        db.execute("PRAGMA user_version = 1")
+        if version == 0:
+            db.execute("""
+                CREATE TABLE IF NOT EXISTS garden_plants (
+                    garden TEXT NOT NULL, id TEXT NOT NULL, name TEXT NOT NULL,
+                    species_id TEXT, drainage TEXT NOT NULL, created_at TEXT NOT NULL,
+                    PRIMARY KEY (garden, id)
+                )
+            """)
+            db.execute("""
+                CREATE TABLE IF NOT EXISTS garden_care (
+                    garden TEXT NOT NULL, plant TEXT NOT NULL, id TEXT NOT NULL,
+                    kind TEXT NOT NULL, occurred_at TEXT NOT NULL,
+                    PRIMARY KEY (garden, plant, id),
+                    FOREIGN KEY (garden, plant) REFERENCES garden_plants (garden, id)
+                )
+            """)
+            db.execute("ALTER TABLE garden_care ADD COLUMN checkup TEXT")
+        if version < 2:
+            db.execute("ALTER TABLE garden_plants ADD COLUMN container_volume_ml INTEGER")
+            db.execute("ALTER TABLE garden_plants ADD COLUMN potting_mix TEXT")
+            db.execute("PRAGMA user_version = 2")
 
 
 @contextmanager
@@ -217,6 +221,12 @@ def plant_view(plant, history, timestamp):
     if observed_at and (kind in {"moist", "wet", "watered", "dry"} or standing):
         due = observed_at + timedelta(days=check_delay if kind == "watered" else 1)
     fresh = last_at is not None and last_at <= timestamp < due
+    active_conditions = []
+    if fresh and standing:
+        active_conditions.append("standing_water")
+    if fresh and kind == "wet":
+        active_conditions.append("wet_potting_mix")
+    watering_locked = fresh and standing
 
     watering_suggested = bool(
         kind == "dry" and fresh and source and observation
@@ -260,11 +270,17 @@ def plant_view(plant, history, timestamp):
         "id": plant["id"], "name": plant["name"], "species_id": plant["species_id"],
         "common_name": species.common_name if species else GARDEN_IDENTITIES.get(plant["species_id"]),
         "drainage": plant["drainage"], "status": status, "message": message,
+        "container_volume_ml": plant["container_volume_ml"],
+        "potting_mix": plant["potting_mix"],
         "check_prompt": check or "Feel the potting mix and note whether it feels dry or moist.",
         "next_check_at": None if watering_suggested else due.isoformat(),
         "watering_advice_expires_at": due.isoformat() if watering_suggested else None,
         "watering_guidance": species.verified_watering if source else None,
         "watering_source": source,
+        "active_conditions": active_conditions,
+        "assessment_updated_at": observed_at.isoformat() if observed_at and kind != "watered" else None,
+        "watering_locked": watering_locked,
+        "lock_reason": message if watering_locked else None,
         "history": [serialized_event(row) for row in history],
     }
 
@@ -335,9 +351,12 @@ def update_plant(plant_id: UUID4, payload: PlantUpdate, garden: GardenKey):
         name = payload.name if "name" in fields else plant["name"]
         species_id = payload.species_id if "species_id" in fields else plant["species_id"]
         drainage = payload.drainage if "drainage" in fields else plant["drainage"]
+        container_volume_ml = payload.container_volume_ml if "container_volume_ml" in fields else plant["container_volume_ml"]
+        potting_mix = payload.potting_mix if "potting_mix" in fields else plant["potting_mix"]
         db.execute(
-            "UPDATE garden_plants SET name = ?, species_id = ?, drainage = ? WHERE garden = ? AND id = ?",
-            (name, species_id, drainage, key, plant_key),
+            """UPDATE garden_plants SET name = ?, species_id = ?, drainage = ?, container_volume_ml = ?,
+            potting_mix = ? WHERE garden = ? AND id = ?""",
+            (name, species_id, drainage, container_volume_ml, potting_mix, key, plant_key),
         )
         updated = owned_plant(db, key, plant_key)
         return plant_view(updated, history_for(db, key, plant_key), now())

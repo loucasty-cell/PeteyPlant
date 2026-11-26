@@ -1,5 +1,7 @@
 # slop.md - Petey Plant engineering handoff
 
+The latest review is in [PLANS.md](PLANS.md#2026-11-26-botanical-detail-pot-context-and-release-review). The historical snapshot below predates the greenhouse revisions. The current identity audit and engineering ratchet both pass after the care-control and typography fixes.
+
 Written 2026-11-26. This file is the review artifact. It is written to be executed by an
 agent (Antigravity, Codex, or a human) with no access to the conversation that produced it.
 

@@ -23,8 +23,12 @@
   --petey-surface-card: var(--petey-white);
   --petey-surface-subtle: #F4F5F0;
   --petey-surface-toolbar: rgba(248, 248, 244, 0.92);
-  --petey-surface-dark: #111814;
+  --petey-surface-dark: #111C15;
   --petey-surface-dark-elevated: #1A251F;
+  --petey-forest-lit: #315940;
+  --petey-gradient-action: linear-gradient(145deg, var(--petey-forest-lit), var(--petey-surface-dark));
+  --petey-gradient-card: linear-gradient(160deg, var(--petey-white) 35%, var(--petey-ivory));
+  --petey-gradient-inspector: linear-gradient(150deg, var(--petey-botanical-soft), var(--petey-ivory) 70%);
 
   /* Ink & separators (validated for WCAG 2.2 AA contrast) */
   --petey-ink: #202923;

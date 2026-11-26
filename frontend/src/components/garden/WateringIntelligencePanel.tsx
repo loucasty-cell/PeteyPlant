@@ -162,7 +162,7 @@ export function WateringIntelligencePanel({
           <div className="hs-hold-note" role="status">
             <AlertTriangle className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             <span>
-              Do not water right now. Empty any standing saucer water and recheck the potting mix later.
+              {intel.rationale}
             </span>
           </div>
         )}
@@ -366,7 +366,7 @@ export function WateringIntelligencePanel({
             </p>
           )}
           {(carePendingId === plant.id || (careNotice && !intel.lifecycleBanner)) && (
-            <p className="text-xs font-semibold text-[#234D36] m-0 flex items-center gap-1" role="status">
+            <p className="text-caption font-semibold text-[#234D36] m-0 flex items-center gap-1" role="status">
               {carePendingId === plant.id ? 'Saving observation…' : careNotice}
             </p>
           )}
@@ -446,7 +446,7 @@ export function WateringIntelligencePanel({
             <>
               <div className="hs-kv-row">
                 <dt>Status ID</dt>
-                <dd className="font-mono text-xs">{intel.primaryCondition.id}</dd>
+                <dd className="font-mono text-caption">{intel.primaryCondition.id}</dd>
               </div>
               <div className="hs-kv-row">
                 <dt>Reliability</dt>

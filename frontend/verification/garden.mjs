@@ -41,6 +41,18 @@ try {
 
   await navigation.getByRole('button', { name: 'My Garden', exact: true }).click();
   await profileButton.click();
+  await page.getByRole('button', { name: 'Edit species & pot', exact: true }).click();
+  await page.getByRole('spinbutton', { name: /Inner pot capacity/ }).fill('1.5');
+  await page.getByRole('textbox', { name: 'Potting mix (optional)' }).fill('Bark and coir');
+  await page.getByRole('button', { name: 'Save details', exact: true }).click();
+  const potContext = page.getByRole('region', { name: 'Pot, substrate & environment' });
+  await potContext.getByText(/^1[.,]5\s*[lL]$/).waitFor();
+  await potContext.getByText('Bark and coir', { exact: true }).waitFor();
+  await page.reload();
+  await navigation.getByRole('button', { name: 'My Garden', exact: true }).click();
+  await profileButton.click();
+  await potContext.getByText(/^1[.,]5\s*[lL]$/).waitFor();
+  await potContext.getByText('Bark and coir', { exact: true }).waitFor();
   const checkupButton = page.getByRole('button', { name: 'Update observations', exact: true });
   const dialog = page.getByRole('dialog', { name: 'Window Monstera' });
   const nextStep = dialog.getByRole('button', { name: 'See next step' });
@@ -49,6 +61,10 @@ try {
   const loggedWatering = history.getByText('Owner logged watering', { exact: true });
   await checkupButton.click();
   await dialog.getByRole('radio', { name: 'Wet or soggy' }).check();
+  await nextStep.click();
+  await dialog.getByRole('heading', { name: 'Hold off on watering' }).waitFor();
+  await dialog.getByRole('button', { name: 'Answer follow-up' }).click();
+  await dialog.getByRole('radio', { name: 'Yes', exact: true }).check();
   await nextStep.click();
   await dialog.getByRole('heading', { name: 'Hold off on watering' }).waitFor();
   const confirmRoute = '**/api/v1/garden/plants/*/assessments/*/confirm';
@@ -67,6 +83,34 @@ try {
   assert.equal(await history.getByRole('listitem').count(), 1);
   assert.equal(await loggedWatering.count(), 0);
   assert.equal(await page.getByRole('button', { name: 'Begin watering', exact: true }).count(), 0);
+
+  const conditions = page.getByRole('region', { name: 'Active assessed conditions' });
+  await conditions.getByText('Standing water reported', { exact: true }).waitFor();
+  await conditions.getByText('Wet potting mix reported', { exact: true }).waitFor();
+  await conditions.getByText('Owner reported', { exact: true }).waitFor();
+  await navigation.getByRole('button', { name: 'Home', exact: true }).click();
+  await page.getByRole('button', { name: /Window Monstera says: You spotted water collecting/ }).waitFor();
+  await page.getByText('Hold off on watering', { exact: true }).waitFor();
+  assert.equal(await page.getByRole('button', { name: 'Begin watering', exact: true }).count(), 0);
+  const holdPage = await browser.newPage({
+    viewport: { width: 375, height: 812 },
+    storageState: await page.context().storageState(),
+    reducedMotion: 'reduce',
+  });
+  try {
+    await holdPage.clock.install();
+    await holdPage.goto(url);
+    const holdLabel = holdPage.getByText('Hold off on watering', { exact: true });
+    await holdLabel.waitFor();
+    await holdPage.clock.fastForward(25 * 60 * 60 * 1000);
+    await holdLabel.waitFor({ state: 'hidden' });
+    await holdPage.getByRole('button', { name: 'Open soil checkup', exact: true }).waitFor();
+    assert.equal(await holdPage.getByRole('button', { name: 'Begin watering', exact: true }).count(), 0);
+  } finally {
+    await holdPage.close();
+  }
+  await navigation.getByRole('button', { name: 'My Garden', exact: true }).click();
+  await profileButton.click();
 
   await checkupButton.click();
   await dialog.getByRole('radio', { name: 'Dry', exact: true }).check();
@@ -145,6 +189,22 @@ try {
   assert.equal(await roster.getByRole('article').count(), SPECIES_ASSET_MANIFEST.length);
   assert.equal(await roster.locator('canvas').count(), 0, 'The shelf must not mount one canvas per model');
   assert.equal(await roster.locator('img[loading="lazy"]').count(), SPECIES_ASSET_MANIFEST.length);
+  const rosterCard = roster.getByRole('article').first();
+  const firstCompanion = SPECIES_ASSET_MANIFEST[0];
+  assert(await rosterCard.getByText(firstCompanion.traitLabel, { exact: true }).isVisible());
+  assert(await rosterCard.getByText(`3D: ${firstCompanion.assetStatus}`, { exact: true }).isVisible());
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await rosterCard.hover();
+  await page.waitForFunction(() => {
+    const card = document.querySelector('[aria-labelledby="pals-catalog-heading"] article');
+    return getComputedStyle(card).translate === '0px -2px';
+  });
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  assert.equal(await rosterCard.evaluate(card => getComputedStyle(card).translate), 'none');
+  for (const width of [1024, 768, 390, 320, 375]) {
+    await page.setViewportSize({ width, height: 812 });
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Roster overflows at ${width}px`);
+  }
   if (shots) await page.screenshot({ path: resolve(shots, 'petey-plant-pals-mobile.png'), fullPage: true });
   await page.getByRole('button', { name: 'Open Plant Lab', exact: true }).click();
   await page.getByRole('button', { name: 'Back to Petey Plant' }).waitFor();

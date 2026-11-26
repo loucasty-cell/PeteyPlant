@@ -21,10 +21,14 @@ export interface PlantUpdate {
   name?: string;
   species_id?: string | null;
   drainage?: Drainage;
+  container_volume_ml?: number | null;
+  potting_mix?: string | null;
 }
 
 export interface GardenPlant extends PlantDraft {
   common_name: string | null;
+  container_volume_ml?: number | null;
+  potting_mix?: string | null;
   status: 'check' | 'ready' | 'wait' | 'rest' | 'details';
   message: string;
   check_prompt: string;
@@ -32,6 +36,10 @@ export interface GardenPlant extends PlantDraft {
   watering_advice_expires_at?: string | null;
   watering_guidance: string | null;
   watering_source: string | null;
+  active_conditions?: string[] | null;
+  assessment_updated_at?: string | null;
+  watering_locked?: boolean;
+  lock_reason?: string | null;
   history: { id: string; kind: CareEventKind; occurred_at: string; observation?: Omit<CheckupInput, 'based_on'> | null }[];
 }
 
@@ -539,6 +547,8 @@ export const gardenApi = {
         species_id: nextSpeciesId,
         common_name: nextSpeciesId ? (guide?.name ?? target.common_name) : null,
         drainage: patch.drainage ?? target.drainage,
+        container_volume_ml: 'container_volume_ml' in patch ? patch.container_volume_ml : target.container_volume_ml,
+        potting_mix: 'potting_mix' in patch ? patch.potting_mix : target.potting_mix,
         watering_guidance: verified ? guide.guidance : null,
         watering_source: verified ? guide.source : null,
       };

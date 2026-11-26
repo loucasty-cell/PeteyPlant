@@ -17,6 +17,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const css = fs.readFileSync(path.join(ROOT, 'src/index.css'), 'utf8');
 const gardenCss = fs.readFileSync(path.join(ROOT, 'src/components/garden/garden.css'), 'utf8');
+const tokens = fs.readFileSync(path.join(ROOT, 'src/styles/tokens.css'), 'utf8');
 
 function lum(hex) {
   const h = hex.replace('#', '');
@@ -40,6 +41,12 @@ function btnFill(cls) {
 function gardenToken(name) {
   const color = gardenCss.match(new RegExp('--garden-' + name + ':\\s*(#[0-9a-fA-F]{6})'))?.[1];
   if (!color) throw new Error('Garden color missing: ' + name);
+  return color;
+}
+
+function peteyToken(name) {
+  const color = tokens.match(new RegExp('--petey-' + name + ':\\s*(#[0-9a-fA-F]{6})'))?.[1];
+  if (!color) throw new Error('Petey color missing: ' + name);
   return color;
 }
 
@@ -70,6 +77,9 @@ const PAIRS = [
   ['plant tool secondary button hover', gardenToken('green'), gardenToken('sage')],
   ['plant tool error notice', '#8e2c24', '#f9e7db'],
   ['lens camera placeholder', gardenToken('paper'), '#153327'],
+  ['greenhouse primary, light gradient stop', peteyToken('white'), peteyToken('forest-lit')],
+  ['greenhouse primary, dark gradient stop', peteyToken('white'), peteyToken('surface-dark')],
+  ['garden decision text on sage', peteyToken('ink-secondary'), peteyToken('botanical-soft')],
 ];
 
 let failed = 0;

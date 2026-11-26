@@ -166,7 +166,7 @@ export function CareAlertCenter({
         </div>
         <button
           type="button"
-          className="duo-btn duo-btn-secondary duo-btn-sm"
+          className="care-action care-action-secondary care-action-sm"
           onClick={() => onOpenConditionCheck(plants[0]?.id ?? null)}
         >
           <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
@@ -193,10 +193,10 @@ export function CareAlertCenter({
           <h2 className="petey-card-title">Care schedule unavailable</h2>
           <p className="petey-body-muted">{connectionError}</p>
           <div className="petey-btn-row">
-            <button type="button" className="duo-btn duo-btn-primary duo-btn-sm" onClick={onRetryConnection}>
+            <button type="button" className="care-action care-action-primary care-action-sm" onClick={onRetryConnection}>
               <RefreshCw className="h-4 w-4" aria-hidden="true" /> <span>Retry</span>
             </button>
-            <button type="button" className="duo-btn duo-btn-secondary duo-btn-sm" onClick={onEnablePreview}>
+            <button type="button" className="care-action care-action-secondary care-action-sm" onClick={onEnablePreview}>
               <span>Enable development preview</span>
             </button>
           </div>
@@ -206,7 +206,7 @@ export function CareAlertCenter({
           <h2 className="petey-card-title">Nothing scheduled yet</h2>
           <p className="petey-body-muted">Add a plant to see due checks, alerts, and watering rounds here.</p>
           <div>
-            <button type="button" className="duo-btn duo-btn-primary duo-btn-sm" onClick={onStartAddPlant}>
+            <button type="button" className="care-action care-action-primary care-action-sm" onClick={onStartAddPlant}>
               <Plus className="h-4 w-4" aria-hidden="true" /> <span>Add plant</span>
             </button>
           </div>
@@ -248,19 +248,19 @@ export function CareAlertCenter({
                             ...SLIDE_UP_SPRING,
                             delay: reducedMotion ? 0 : Math.min(index * 0.065, 0.36),
                           }}
-                          className="hs-alert-card duo-card"
+                          className="hs-alert-card care-card"
                         >
                           <div className="petey-care-row-left">
                             <BotanicalThumbnail speciesId={plant.species_id} size={46} />
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
-                                <strong className="text-sm text-[#202923]">{alert.plantName}</strong>
+                                <strong className="text-body text-[#202923]">{alert.plantName}</strong>
                                 <span className="hs-urgency-tag" data-severity={alert.severity}>
                                   {alert.isEmergency && <ShieldAlert className="h-3 w-3" aria-hidden="true" />}
                                   {alert.headline}
                                 </span>
                               </div>
-                              <p className="text-xs text-[#515D55] mt-1 m-0 leading-relaxed">{alert.reason}</p>
+                              <p className="text-caption text-[#515D55] mt-1 m-0 leading-relaxed">{alert.reason}</p>
                             </div>
                           </div>
 
@@ -268,7 +268,7 @@ export function CareAlertCenter({
                             {eligibility === 'eligible' ? (
                               <button
                                 type="button"
-                                className={`duo-btn duo-btn-sm ${inCart ? 'duo-btn-sage' : 'duo-btn-primary'}`}
+                                className={`care-action care-action-sm ${inCart ? 'care-action-sage' : 'care-action-primary'}`}
                                 disabled={busy}
                                 onClick={() => onToggleCartPlant(plant.id)}
                                 aria-pressed={inCart}
@@ -289,7 +289,7 @@ export function CareAlertCenter({
                               <>
                                 <button
                                   type="button"
-                                  className="duo-btn duo-btn-amber duo-btn-sm"
+                                  className="care-action care-action-amber care-action-sm"
                                   disabled={busy}
                                   onClick={() => onRecordCare(plant, 'dry')}
                                 >
@@ -297,7 +297,7 @@ export function CareAlertCenter({
                                 </button>
                                 <button
                                   type="button"
-                                  className="duo-btn duo-btn-sage duo-btn-sm"
+                                  className="care-action care-action-sage care-action-sm"
                                   disabled={busy}
                                   onClick={() => onRecordCare(plant, 'moist')}
                                 >
@@ -307,7 +307,7 @@ export function CareAlertCenter({
                             ) : (
                               <button
                                 type="button"
-                                className="duo-btn duo-btn-primary duo-btn-sm"
+                                className="care-action care-action-primary care-action-sm"
                                 onClick={() => onInspectPlant(plant.id)}
                               >
                                 <span>Open care</span>
@@ -360,22 +360,22 @@ export function CareAlertCenter({
                             ...SLIDE_UP_SPRING,
                             delay: reducedMotion ? 0 : Math.min(index * 0.055, 0.28),
                           }}
-                          className="hs-alert-card duo-card is-acknowledged"
+                          className="hs-alert-card care-card is-acknowledged"
                         >
                           <div className="petey-care-row-left">
                             <BotanicalThumbnail speciesId={plant.species_id} size={40} />
                             <div className="min-w-0">
                               <div className="flex flex-wrap items-center gap-2">
-                                <strong className="text-sm text-[#202923]">{alert.plantName}</strong>
+                                <strong className="text-body text-[#202923]">{alert.plantName}</strong>
                                 <span className="hs-prov-tag">Acknowledged · Still needs care</span>
                               </div>
-                              <p className="text-xs text-[#515D55] mt-0.5 m-0">{alert.headline}</p>
+                              <p className="text-caption text-[#515D55] mt-0.5 m-0">{alert.headline}</p>
                             </div>
                           </div>
                           <div className="hs-action-inline">
                             <button
                               type="button"
-                              className="duo-btn duo-btn-secondary duo-btn-sm"
+                              className="care-action care-action-secondary care-action-sm"
                               onClick={() => onInspectPlant(plant.id)}
                             >
                               <span>Open care</span>
@@ -415,13 +415,13 @@ export function CareAlertCenter({
                           ...SLIDE_UP_SPRING,
                           delay: reducedMotion ? 0 : 0.14 + Math.min(index * 0.05, 0.24),
                         }}
-                        className="petey-care-row duo-card"
+                        className="petey-care-row care-card"
                       >
                         <div className="petey-care-row-left">
                           <BotanicalThumbnail speciesId={plant.species_id} size={42} />
                           <div>
-                            <strong className="block text-sm text-[#202923]">{plant.name}</strong>
-                            <span className="text-xs text-[#515D55]">{nextCheckLabel(plant)}</span>
+                            <strong className="block text-body text-[#202923]">{plant.name}</strong>
+                            <span className="text-caption text-[#515D55]">{nextCheckLabel(plant)}</span>
                           </div>
                         </div>
                         <div className="hs-action-inline">
@@ -462,13 +462,13 @@ export function CareAlertCenter({
                           ...SLIDE_UP_SPRING,
                           delay: reducedMotion ? 0 : 0.18 + Math.min(index * 0.05, 0.24),
                         }}
-                        className="petey-care-row duo-card"
+                        className="petey-care-row care-card"
                       >
                         <div className="petey-care-row-left">
                           <BotanicalThumbnail speciesId={plant.species_id} size={42} />
                           <div>
-                            <strong className="block text-sm text-[#202923]">{plant.name}</strong>
-                            <span className="text-xs text-[#515D55]">{nextCheckLabel(plant)}</span>
+                            <strong className="block text-body text-[#202923]">{plant.name}</strong>
+                            <span className="text-caption text-[#515D55]">{nextCheckLabel(plant)}</span>
                           </div>
                         </div>
                         <span className="hs-prov-tag">No watering needed</span>
@@ -483,7 +483,7 @@ export function CareAlertCenter({
           {/* RIGHT COLUMN (DESKTOP) / TOP TRAY (MOBILE): Hydration Cart Inspector */}
           <aside className="hs-hydration-cart-col" aria-label="Hydration Cart">
             <motion.div
-              className="hs-cart-panel duo-card"
+              className="hs-cart-panel care-card"
               initial={reducedMotion ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ ...SLIDE_UP_SPRING, delay: reducedMotion ? 0 : 0.08 }}
@@ -549,7 +549,7 @@ export function CareAlertCenter({
                   {eligibleReadyPlants.length > 0 && (
                     <button
                       type="button"
-                      className="duo-btn duo-btn-primary duo-btn-sm mt-2"
+                      className="care-action care-action-primary care-action-sm mt-2"
                       disabled={busy}
                       onClick={onQueueAllReady}
                     >
@@ -578,10 +578,10 @@ export function CareAlertCenter({
                             <div className="hs-cart-item-top">
                               <BotanicalThumbnail speciesId={plant.species_id} size={34} />
                               <div className="min-w-0 flex-1">
-                                <strong className="block text-sm text-[#202923] truncate">
+                                <strong className="block text-body text-[#202923] truncate">
                                   {plant.name}
                                 </strong>
-                                <span className="text-xs text-[#515D55] block truncate">
+                                <span className="text-caption text-[#515D55] block truncate">
                                   {intel.volumeGuidance.hasQuantitativeVolume &&
                                   intel.volumeGuidance.formattedAmount
                                     ? intel.volumeGuidance.formattedAmount
@@ -611,7 +611,7 @@ export function CareAlertCenter({
                               </span>
                               <button
                                 type="button"
-                                className="duo-btn duo-btn-secondary duo-btn-xs"
+                                className="care-action care-action-secondary care-action-xs"
                                 disabled={isPending}
                                 onClick={() => onRecordCare(plant, 'watered')}
                               >
@@ -642,13 +642,13 @@ export function CareAlertCenter({
                     {confirmRoundOpen ? (
                       <div className="hs-watering-sheet">
                         <p className="hs-watering-sheet-title">Confirm physical watering</p>
-                        <p className="text-xs text-[#515D55] m-0 leading-relaxed">
+                        <p className="text-caption text-[#515D55] m-0 leading-relaxed">
                           Confirm only after you have watered all {cartPlants.length} queued plants and emptied any standing saucer water.
                         </p>
                         <div className="hs-action-inline">
                           <button
                             type="button"
-                            className="duo-btn duo-btn-primary duo-btn-sm"
+                            className="care-action care-action-primary care-action-sm"
                             disabled={busy}
                             onClick={() => void handleConfirmAll()}
                           >
@@ -657,7 +657,7 @@ export function CareAlertCenter({
                           </button>
                           <button
                             type="button"
-                            className="duo-btn duo-btn-secondary duo-btn-sm"
+                            className="care-action care-action-secondary care-action-sm"
                             disabled={busy}
                             onClick={() => setConfirmRoundOpen(false)}
                           >
@@ -670,7 +670,7 @@ export function CareAlertCenter({
                         {cartPlants.length >= 2 && (
                           <button
                             type="button"
-                            className="duo-btn duo-btn-primary duo-btn-sm flex-1"
+                            className="care-action care-action-primary care-action-sm flex-1"
                             disabled={busy}
                             onClick={() => setConfirmRoundOpen(true)}
                           >

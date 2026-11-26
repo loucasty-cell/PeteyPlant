@@ -1,6 +1,8 @@
 # Petey Plant handoff for Antigravity
 
-Continue in `C:/Users/ASUS/Downloads/PeteyPlant`. The visible branch began at `main` commit `3b11294`. Local working changes include existing README edits, the recovered offline Lens trainer, browser fixes, and the V5 model expansion. Use `git status --short` and preserve those changes. The original V4/V5 stash is still available as a reference. The changes are local and uncommitted.
+The [58-asset detail plan](docs/botanical-art-plan.md) now records 13 deeper botanical passes with editable Blender sources, animated GLBs and transparent previews. The five newest are Mini Monstera, Dieffenbachia, Bird's Nest Fern, Rubber Plant and Thanksgiving Cactus. The live Garden also saves owner-entered pot capacity and potting mix. [PLANS.md](PLANS.md) records the current release checks and remaining work.
+
+Continue in `C:/Users/ASUS/Downloads/PeteyPlant`. The release branch is `petey/greenhouse-polish` based on `34acb8a`. Check `git status --short -b` and fetch `origin/main` to verify checkout and publish state. The original V4/V5 stash is still available as a reference.
 
 ## Blender assets
 
@@ -18,7 +20,7 @@ The app uses the existing single live Three.js stage and lazy WebP thumbnails on
 
 ## Verification commands
 
-Run FastAPI from `backend` against a disposable SQLite database, for example on port 18148. Set `PETEY_BACKEND_URL=http://127.0.0.1:18148` for Vite preview or dev, `PETEY_BROWSER_CHANNEL=msedge` for local Edge and `PETEY_TEST_EXPANSION=1` for browser coverage of the three expansion representatives.
+Run FastAPI from `backend` against a disposable SQLite database, for example on port 18148. Set `PETEY_BACKEND_URL=http://127.0.0.1:18148` for Vite preview or dev and `PETEY_BROWSER_CHANNEL=msedge` for local Edge. The character journey covers eight flagships and all 12 revised expansion representatives.
 
 ```text
 python tools/blender/sync_expansion_registry.py
@@ -27,19 +29,25 @@ node frontend/verification/character-assets.mjs http://127.0.0.1:18148
 node frontend/verification/characters.mjs http://127.0.0.1:15147
 node frontend/verification/garden.mjs http://127.0.0.1:15147
 node frontend/verification/plant-tools.mjs http://127.0.0.1:15147
+node frontend/verification/audit-identity.mjs
+node tools/slop-audit.mjs
 ```
 
 Run `python -m pytest -q` in `backend` and `npm run build` and `npm run verify:contrast` in `frontend`.
 
 ## Work still open
 
+- Apply the calibrated geometry and material techniques to the other 45 Blender sources, using identity-specific references and front, rear and detail views. Bunny Ears and Boston Fern are useful next contrast cases.
+
 - If a GLB is ever regenerated, rerun its budget, actual clip motion, idle seam, and browser stage checks before calling it integrated.
 - Profile GPU frame time, responsiveness and energy on a physical phone. Edge emulation verifies renderer behavior and responsive layout.
 - Build per-plant appearance persistence and reviewed cultivar variants. Keep owner-controlled appearance linked to the plant ID and care history. The V5 request was species art, and the wider 64-species roadmap is a separate milestone.
+
+- Pot capacity and potting mix are optional owner inputs. Watering volume remains open until a validated dose model can use adequate context. Background reminders still need subscription delivery and a service worker.
 - Obtain a rights-reviewed, independently grouped indoor photo corpus. Then run the real Lens training and untouched holdout protocol in `backend/LENS.md`, followed by the hardware and calibration gates. The tiny ONNX test verified export compatibility. Lens production photo matching remains disabled.
 - Keep the live Google Weather provider check, production auth and account recovery, mobile packaging and owner visual review open until tested.
 
-Review artifacts are in `C:/Users/ASUS/Documents/Codex/2026-11-23/help-me-set-up-data-plugin/outputs/petey-v5-roster`. See [PLANS.md](PLANS.md) for the working log.
+Review artifacts are under `C:/Users/ASUS/Documents/Codex/2026-11-23/help-me-set-up-data-plugin/outputs` in `petey-main`, `botanical-calibration` and `mini-monstera-dieffenbachia-detail`. See [PLANS.md](PLANS.md) for the working log.
 
 ## Verified in the handoff session
 

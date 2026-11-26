@@ -74,6 +74,18 @@ function readStoredSelectedPlantId(): string | null {
   }
 }
 
+function careExpiresAt(plant: GardenPlant): number | null {
+  if (plant.status === 'ready') {
+    const expires = Date.parse(plant.watering_advice_expires_at ?? plant.next_check_at ?? '');
+    return Number.isFinite(expires) ? expires : -Infinity;
+  }
+  if (plant.status === 'wait' && plant.active_conditions?.length && plant.next_check_at) {
+    const expires = Date.parse(plant.next_check_at);
+    if (Number.isFinite(expires)) return expires;
+  }
+  return null;
+}
+
 export function useGardenWorkspace() {
   const initialQuery = useMemo(() => new URLSearchParams(window.location.search), []);
 
@@ -93,12 +105,15 @@ export function useGardenWorkspace() {
   const plants = useMemo(
     () =>
       storedPlants.map((plant) => {
-        const expires = Date.parse(plant.watering_advice_expires_at ?? plant.next_check_at ?? '');
-        if (plant.status !== 'ready' || (Number.isFinite(expires) && expires > careClock)) return plant;
+        const expires = careExpiresAt(plant);
+        if (expires === null || expires > careClock) return plant;
         return {
           ...plant,
           status: 'check' as const,
           message: 'The previous soil observation has expired. Check the mix again before watering.',
+          active_conditions: [],
+          watering_locked: false,
+          lock_reason: null,
         };
       }),
     [storedPlants, careClock],
@@ -109,9 +124,8 @@ export function useGardenWorkspace() {
     const refreshClock = () => setCareClock(Date.now());
     document.addEventListener('visibilitychange', refreshClock);
     const expires = storedPlants
-      .filter((plant) => plant.status === 'ready')
-      .map((plant) => Date.parse(plant.watering_advice_expires_at ?? plant.next_check_at ?? ''))
-      .filter((time) => time > careClock);
+      .map(careExpiresAt)
+      .filter((time): time is number => time !== null && time > careClock);
     const timer = expires.length
       ? window.setTimeout(refreshClock, Math.max(0, Math.min(...expires) - Date.now()) + 1)
       : undefined;

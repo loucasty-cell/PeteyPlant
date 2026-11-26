@@ -9,6 +9,7 @@ import { GardenCollectionView } from './GardenCollectionView';
 import { GardenMoreView } from './GardenMoreView';
 import { useGardenWorkspace } from './useGardenWorkspace';
 import './companion-stage.css';
+import './greenhouse.css';
 
 const PeteyLens = lazy(() => import('./PeteyLens'));
 const CheckupDialog = lazy(() => import('./CheckupDialog'));
@@ -19,7 +20,7 @@ export default function GardenApp() {
   const ws = useGardenWorkspace();
 
   const quotaBanner = ws.gmpQuotaExceeded && (
-    <div className="bg-amber-50 border-b border-amber-200 text-amber-900 px-4 py-2 text-xs md:text-sm text-center sticky top-0 z-50">
+    <div className="bg-amber-50 border-b border-amber-200 text-amber-900 px-4 py-2 text-caption md:text-body text-center sticky top-0 z-50">
       <span>
         Google Maps Platform quota reached. If you are the app owner, visit{' '}
         <a
@@ -57,7 +58,7 @@ export default function GardenApp() {
           </button>
           <span className="petey-small-label">Plant Lab · Synthetic experimental demo</span>
         </div>
-        <Suspense fallback={<p className="p-6 text-sm" role="status">Opening Plant Lab…</p>}>
+        <Suspense fallback={<p className="p-6 text-body" role="status">Opening Plant Lab…</p>}>
           <PlantLab />
         </Suspense>
       </div>

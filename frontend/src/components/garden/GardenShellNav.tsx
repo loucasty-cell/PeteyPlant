@@ -53,7 +53,7 @@ export function GardenSidebar({
             <span className="petey-sidebar-item-left">
               <Sprout className="h-4 w-4" aria-hidden="true" /> My Garden
             </span>
-            {plantsCount > 0 && <span className="text-xs font-mono opacity-75">{plantsCount}</span>}
+            {plantsCount > 0 && <span className="text-caption font-mono opacity-75">{plantsCount}</span>}
           </button>
 
           <button

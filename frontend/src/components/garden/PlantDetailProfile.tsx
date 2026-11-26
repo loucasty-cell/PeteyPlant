@@ -42,6 +42,11 @@ const FULL_DATE = new Intl.DateTimeFormat(undefined, {
   hour: 'numeric',
   minute: '2-digit',
 });
+const CAPACITY_FORMAT = new Intl.NumberFormat(undefined, {
+  style: 'unit',
+  unit: 'liter',
+  maximumFractionDigits: 3,
+});
 
 const HISTORY_LABELS: Record<GardenPlant['history'][number]['kind'], string> = {
   wet: 'Reported wet potting mix',
@@ -96,12 +101,16 @@ export function PlantDetailProfile({
   const [editingDetails, setEditingDetails] = useState(false);
   const [editSpeciesId, setEditSpeciesId] = useState<string>(plant.species_id ?? '');
   const [editDrainage, setEditDrainage] = useState<Drainage>(plant.drainage);
+  const [editCapacity, setEditCapacity] = useState('');
+  const [editMix, setEditMix] = useState('');
   const [editBusy, setEditBusy] = useState(false);
   const [editError, setEditError] = useState('');
 
   function openEditor() {
     setEditSpeciesId(plant.species_id ?? '');
     setEditDrainage(plant.drainage);
+    setEditCapacity(plant.container_volume_ml == null ? '' : String(plant.container_volume_ml / 1000));
+    setEditMix(plant.potting_mix ?? '');
     setEditError('');
     setEditingDetails(true);
   }
@@ -112,10 +121,15 @@ export function PlantDetailProfile({
     setEditBusy(true);
     setEditError('');
     try {
-      await onUpdatePlant(plant.id, {
-        species_id: editSpeciesId ? editSpeciesId : null,
-        drainage: editDrainage,
-      });
+      const speciesId = editSpeciesId || null;
+      const volumeMl = editCapacity === '' ? null : Math.round(Number(editCapacity) * 1000);
+      const mix = editMix.trim() || null;
+      const patch: PlantUpdate = {};
+      if (speciesId !== plant.species_id) patch.species_id = speciesId;
+      if (editDrainage !== plant.drainage) patch.drainage = editDrainage;
+      if (volumeMl !== (plant.container_volume_ml ?? null)) patch.container_volume_ml = volumeMl;
+      if (mix !== (plant.potting_mix ?? null)) patch.potting_mix = mix;
+      if (Object.keys(patch).length) await onUpdatePlant(plant.id, patch);
       setEditingDetails(false);
     } catch (failure) {
       setEditError(failure instanceof Error ? failure.message : 'Could not update plant details.');
@@ -171,7 +185,7 @@ export function PlantDetailProfile({
               {plant.species_id ?? 'Unidentified species'}
               {plant.common_name ? ` · ${plant.common_name}` : ''}
             </p>
-            <p className="text-xs text-[#5C6D62] mt-1.5 flex items-center gap-1.5">
+            <p className="text-caption text-[#5C6D62] mt-1.5 flex items-center gap-1.5">
               <Clock className="h-3.5 w-3.5" aria-hidden="true" />
               {intel.lastObservationAt
                 ? `Latest care entry: ${FULL_DATE.format(new Date(intel.lastObservationAt))}`
@@ -184,7 +198,7 @@ export function PlantDetailProfile({
           <span className="wi-urgency-chip" data-severity={intel.urgency}>
             {intel.primaryCondition.label}
           </span>
-          <span className="text-xs text-[#48584E] mt-1">
+          <span className="text-caption text-[#48584E] mt-1">
             {intel.primaryCondition.accessibleText}
           </span>
         </div>
@@ -218,8 +232,8 @@ export function PlantDetailProfile({
                 <ShieldAlert className="h-4 w-4 text-[#234D36]" aria-hidden="true" />
                 Active assessed conditions
               </h2>
-              <span className="provenance-chip" data-provenance="engine_estimated">
-                Engine assessment
+              <span className="provenance-chip" data-provenance={intel.reliability === 'verified_observation' ? 'user_reported' : 'engine_estimated'}>
+                {intel.reliability === 'verified_observation' ? 'Owner reported' : 'Engine assessment'}
               </span>
             </div>
 
@@ -266,7 +280,7 @@ export function PlantDetailProfile({
                   onClick={openEditor}
                 >
                   <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
-                  {plant.species_id === null ? 'Identify plant & drainage' : 'Edit species & drainage'}
+                  {plant.species_id === null ? 'Identify plant & drainage' : 'Edit species & pot'}
                 </button>
               </div>
             )}
@@ -300,6 +314,36 @@ export function PlantDetailProfile({
                     <option value="no">No — no drainage holes</option>
                     <option value="unknown">Not sure</option>
                   </select>
+                </label>
+
+                <label className="petey-field">
+                  Inner pot capacity (litres, optional)
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    min={0.001}
+                    max={1000}
+                    step={0.001}
+                    value={editCapacity}
+                    disabled={editBusy}
+                    aria-describedby="pot-capacity-hint"
+                    onChange={(event) => setEditCapacity(event.target.value)}
+                  />
+                  <span id="pot-capacity-hint" className="petey-body-muted">
+                    Use the capacity on the pot label or a known measurement. Leave blank if unsure.
+                  </span>
+                </label>
+
+                <label className="petey-field">
+                  Potting mix (optional)
+                  <input
+                    type="text"
+                    maxLength={80}
+                    placeholder="e.g. orchid bark mix"
+                    value={editMix}
+                    disabled={editBusy}
+                    onChange={(event) => setEditMix(event.target.value)}
+                  />
                 </label>
 
                 {editError && (
@@ -336,8 +380,12 @@ export function PlantDetailProfile({
                 </dd>
               </div>
               <div>
-                <dt>Pot volume & soil mix</dt>
-                <dd>Not stored by current backend schema</dd>
+                <dt>Inner pot capacity</dt>
+                <dd>{plant.container_volume_ml == null ? 'Not recorded' : CAPACITY_FORMAT.format(plant.container_volume_ml / 1000)}</dd>
+              </div>
+              <div>
+                <dt>Potting mix</dt>
+                <dd className="break-words">{plant.potting_mix ?? 'Not recorded'}</dd>
               </div>
               <div>
                 <dt>Indoor light / sensor</dt>
@@ -372,7 +420,7 @@ export function PlantDetailProfile({
                     Humidity {formatWeatherReading(weather.relativeHumidity, '% RH') ?? 'unavailable'} ·{' '}
                     Wind {formatWeatherReading(weather.windKmh, ' km/h') ?? 'unavailable'}
                   </p>
-                  <p className="text-xs text-[#5C6D62] mt-1 m-0">{weather.careContext}</p>
+                  <p className="text-caption text-[#5C6D62] mt-1 m-0">{weather.careContext}</p>
                 </>
               ) : (
                 <p className="petey-body-muted mt-1">{weather.conditionLabel} preview. Live outdoor measurements are unavailable.</p>

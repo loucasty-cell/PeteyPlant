@@ -1,6 +1,6 @@
 # Petey Plant — Frontend Engineering Handoff (Core Intelligence & Project High Sierra)
 
-> **Status update (2026-11-26):** Historical V2 baseline below. All 58 authored Blender `.glb` companions (note §3 item 4 is now authored) and subsequent Wave 0–4 fixes (care gating, `PATCH` species/drainage editing, unavailable Lens CTA gating, `GardenApp` / `themes.ts` split, UUID/AbortSignal fallbacks, and Checkup modal styling) are recorded in [PLANS.md](PLANS.md), [ANTIGRAVITY_HANDOFF.md](ANTIGRAVITY_HANDOFF.md), and [slop.md](slop.md). Items §3.1–§3.3 below remain open.
+> **Status update (2026-11-26):** Historical V2 baseline below. All 58 authored Blender `.glb` companions (note §3 item 4 is now authored) and subsequent Wave 0–4 fixes (care gating, `PATCH` species/drainage editing, unavailable Lens CTA gating, `GardenApp` / `themes.ts` split, UUID/AbortSignal fallbacks, and Checkup modal styling) are recorded in [PLANS.md](PLANS.md), [ANTIGRAVITY_HANDOFF.md](ANTIGRAVITY_HANDOFF.md), and [slop.md](slop.md). Section 3.2 now includes a verified Garden Checkup implementation for owner observations.
 
 This handoff documents the frontend-only transformation of **Petey Plant** completed on top of the existing Codex repository. No backend routes, SQLite schemas, ONNX/ML adapters, or recommendation formulas were rewritten or fabricated.
 
@@ -61,8 +61,8 @@ This handoff documents the frontend-only transformation of **Petey Plant** compl
 
 ## 3. Missing Backend & 3D Asset Dependencies (For Next Codex Session)
 
-1. **Quantitative Water Volume Engine Fields**: Current `/api/v1/garden/plants` records do not store pot diameter/volume, substrate mix, or return `recommended_water_ml` / `recommended_water_min_ml` / `recommended_water_max_ml`. The frontend adapter (`OptionalEngineWateringFields` in `careIntelligence.ts`) is already typed and unit-tested to display exact `mL` / `fl oz` quantities as soon as the backend provides them.
-2. **Multi-Condition Persistence & Root-Rot Brake Flags**: Backend garden records currently expose a single `status` enum (`check | ready | wait | rest | details`). Adding optional `active_conditions: string[]`, `watering_locked: boolean`, `lock_reason: string`, `earliest_water_at`, `latest_water_at`, and `assessment_updated_at` will unlock simultaneous condition tags and watering-lock enforcement automatically.
+1. **Quantitative water volume.** Plant Profile now persists optional `container_volume_ml` and `potting_mix` via the existing plant PATCH route and additive SQLite v2 migration. Older plants show these details as unrecorded and owners can clear either field. The amount fields await a validated dosing model and adequate inputs. Edge verified editing and reloading a real plant record.
+2. **Checkup conditions and watering hold**. Garden exposes concurrent `standing_water` and `wet_potting_mix` conditions from the latest saved owner observation. Standing water sets `watering_locked` and a reason to empty the saucer or outer pot. The profile shows both observations, the companion uses its concerned expression, and an expired hold returns to a new soil check. The history retains the original report. Production diagnosis and quantitative watering windows still require independent evidence.
 3. **Background Push Notifications & Service Worker**: Browser notifications are currently scoped to active browser sessions. Persistent push reminders while closed require backend Web Push subscription endpoints (VAPID) and a registered service worker.
 4. **Authored GLB 3D Models**: All 8 flagship species currently render via bespoke procedural Three.js rigs (`assetStatus: 'procedural_fallback'` in `speciesAssetRegistry.ts`) until Blender-authored GLB/GLTF assets are exported to `/public/assets/models/`.
 

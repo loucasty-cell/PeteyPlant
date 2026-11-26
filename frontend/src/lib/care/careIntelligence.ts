@@ -58,11 +58,7 @@ export interface OptionalEngineWateringFields {
   recommended_water_max_ml?: number | null;
   earliest_water_at?: string | null;
   latest_water_at?: string | null;
-  active_conditions?: string[] | null;
-  assessment_updated_at?: string | null;
   assessment_confidence?: number | null;
-  watering_locked?: boolean;
-  lock_reason?: string | null;
 }
 
 export type ExtendedGardenPlant = GardenPlant & OptionalEngineWateringFields;
@@ -317,14 +313,14 @@ export function buildWateringIntelligence(
   const weather = options?.weather ?? null;
   const recentAction = options?.justRecordedAction?.plantId === plant.id ? options.justRecordedAction : null;
 
-  // Assemble all real active conditions (primary garden status + any engine conditions + watering lock)
-  const rawStatuses: string[] = [plant.status];
-  if (plant.watering_locked) rawStatuses.push('watering_locked');
-  if (Array.isArray(plant.active_conditions)) {
-    for (const code of plant.active_conditions) {
-      if (typeof code === 'string' && code.trim()) rawStatuses.push(code);
-    }
+  const observedConditions = plant.active_conditions ?? [];
+  const hasStandingWater = observedConditions.includes('standing_water');
+  const hasSpecificHold = hasStandingWater || observedConditions.includes('wet_potting_mix');
+  const rawStatuses: string[] = plant.status === 'wait' && hasSpecificHold ? [] : [plant.status];
+  if (plant.watering_locked && !hasStandingWater) {
+    rawStatuses.push('watering_locked');
   }
+  rawStatuses.push(...observedConditions);
   const activeConditions = resolveMultipleConditions(rawStatuses);
   const primaryCondition = activeConditions[0];
 
@@ -352,7 +348,7 @@ export function buildWateringIntelligence(
   // Timing window (honest distinction between suggested now vs estimated check date)
   let timingSummary = 'Check when convenient';
   if (plant.watering_locked) {
-    timingSummary = 'Paused until soil dries and airflow improves';
+    timingSummary = 'Recheck drainage and potting mix before watering';
   } else if (plant.earliest_water_at && plant.latest_water_at) {
     timingSummary = `Window: ${SHORT_DATE.format(new Date(plant.earliest_water_at))} – ${SHORT_DATE.format(
       new Date(plant.latest_water_at),
@@ -407,7 +403,7 @@ export function buildWateringIntelligence(
     limitationNote:
       hasQuantitativeVolume || plant.watering_locked || plant.status === 'wait' || plant.status === 'rest'
         ? null
-        : 'Exact milliliter volume is not estimated by the current backend service because pot volume and substrate composition are not stored yet.',
+        : 'Petey has no verified milliliter estimate for this plant. Follow its care guidance and check how the pot drains.',
   };
 
   // Reliability assessment (separated from condition severity!)
@@ -416,12 +412,15 @@ export function buildWateringIntelligence(
   if (primaryCondition.domain === 'fallback') {
     reliability = 'unknown';
     reliabilityLabel = 'Unknown status — manual inspection required';
+  } else if (freshness === 'fresh' && hasSpecificHold) {
+    reliability = 'verified_observation';
+    reliabilityLabel = 'Based on your recent observation';
   } else if (plant.history.length === 0 || plant.drainage === 'unknown' || !plant.species_id) {
     reliability = 'limited_data';
     reliabilityLabel = 'Limited plant data — confirm by touching potting mix';
   } else if (freshness === 'fresh' && (lastEvent?.kind === 'dry' || lastEvent?.kind === 'moist')) {
     reliability = 'verified_observation';
-    reliabilityLabel = 'Based on your recent manual soil observation';
+    reliabilityLabel = 'Based on your recent observation';
   } else if (freshness === 'stale') {
     reliability = 'limited_data';
     reliabilityLabel = 'Stale history — touch potting mix for a fresh check';
@@ -473,7 +472,7 @@ export function buildWateringIntelligence(
   // Grounded headline answering "What should I do?"
   let actionHeadline = primaryCondition.label;
   if (plant.watering_locked) {
-    actionHeadline = 'Do not water — root-rot brake active';
+    actionHeadline = 'Do not water yet';
   } else if (plant.status === 'ready') {
     actionHeadline = 'Water now';
   } else if (plant.status === 'wait') {
@@ -509,7 +508,7 @@ export function buildWateringIntelligence(
     plantId: plant.id,
     needsAttention,
     urgency: primaryCondition.severity,
-    actionType: primaryCondition.actionability,
+    actionType: plant.watering_locked ? 'do_not_water' : primaryCondition.actionability,
     actionHeadline,
     timingSummary,
     volumeGuidance,

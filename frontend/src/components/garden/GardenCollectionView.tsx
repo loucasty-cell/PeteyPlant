@@ -144,7 +144,7 @@ export function GardenCollectionView({ ws }: { ws: ReturnType<typeof useGardenWo
                       <BotanicalThumbnail speciesId={plant.species_id} size={46} />
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <h2 className="text-sm font-semibold text-[#202923] m-0 truncate">
+                          <h2 className="text-body font-semibold text-[#202923] m-0 truncate">
                             {plant.name}
                           </h2>
                           <span className="hs-urgency-tag" data-severity={intel.urgency}>
@@ -154,7 +154,7 @@ export function GardenCollectionView({ ws }: { ws: ReturnType<typeof useGardenWo
                         <p className="petey-scientific truncate mt-0.5">
                           {plant.species_id ?? plant.common_name ?? 'Unidentified'}
                         </p>
-                        <p className="text-xs text-[#515D55] m-0 mt-0.5">
+                        <p className="text-caption text-[#515D55] m-0 mt-0.5">
                           {intel.actionHeadline} · {intel.timingSummary}
                         </p>
                       </div>

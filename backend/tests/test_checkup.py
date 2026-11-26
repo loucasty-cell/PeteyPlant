@@ -196,7 +196,8 @@ def test_concurrent_confirmations_from_same_revision_cannot_overwrite_one_anothe
         assert len(client.get(ROOT, headers=key).json()[0]["history"]) == 1
 
 
-def test_legacy_database_is_upgraded_without_losing_saved_plant_or_care(setup):
+@pytest.mark.parametrize("version", [0, 1])
+def test_legacy_database_is_upgraded_without_losing_saved_plant_or_care(setup, version):
     path, _, key = setup
     garden_id = key["X-Petey-Garden"]
     plant_id, care_id = (str(uuid4()) for _ in range(2))
@@ -213,12 +214,17 @@ def test_legacy_database_is_upgraded_without_losing_saved_plant_or_care(setup):
         database.execute("INSERT INTO garden_care VALUES (?, ?, ?, ?, ?)", (
             garden_id, plant_id, care_id, "dry", NOW.isoformat(),
         ))
+        if version == 1:
+            database.execute("ALTER TABLE garden_care ADD COLUMN checkup TEXT")
+            database.execute("PRAGMA user_version = 1")
     with TestClient(app) as client:
         plants = client.get(ROOT, headers=key).json()
         assert [(plant["id"], plant["status"]) for plant in plants] == [(plant_id, "details")]
+        assert plants[0]["container_volume_ml"] is None
+        assert plants[0]["potting_mix"] is None
         assert plants[0]["history"] == [{"id": care_id, "kind": "dry", "occurred_at": NOW.isoformat()}]
     with sqlite3.connect(path) as database:
-        assert database.execute("PRAGMA user_version").fetchone()[0] == 1
+        assert database.execute("PRAGMA user_version").fetchone()[0] == 2
 
 
 def test_capture_age_is_enforced_without_losing_exact_late_retries(setup):

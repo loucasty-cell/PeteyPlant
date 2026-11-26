@@ -88,8 +88,8 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
                       >
                         <BotanicalThumbnail speciesId={p.species_id} size={28} />
                         <span className="min-w-0 flex-1 text-left">
-                          <strong className="block text-xs text-[#202923] truncate">{p.name}</strong>
-                          <small className="block text-[11px] text-[#5C6860] truncate">
+                          <strong className="block text-caption text-[#202923] truncate">{p.name}</strong>
+                          <small className="block text-caption text-[#5C6860] truncate">
                             {STATUS_LABELS[p.status]}
                           </small>
                         </span>
@@ -278,7 +278,7 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
               <div className="flex items-center gap-2 mb-2">
                 <button
                   type="button"
-                  className="duo-btn duo-btn-primary duo-btn-sm flex-1"
+                  className="care-action care-action-primary care-action-sm flex-1"
                   disabled={ws.weatherLoading}
                   onClick={ws.requestUserGpsWeather}
                 >
@@ -287,7 +287,7 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
                 </button>
                 <button
                   type="button"
-                  className="duo-btn duo-btn-sage duo-btn-sm"
+                  className="care-action care-action-sage care-action-sm"
                   onClick={ws.cycleNextNatureTheme}
                 >
                   <Sparkles className="h-4 w-4" aria-hidden="true" />
@@ -410,7 +410,7 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
                 <div className="lv-primary-row mt-2">
                   <button
                     type="button"
-                    className="duo-btn duo-btn-primary duo-btn-sm flex-1"
+                    className="care-action care-action-primary care-action-sm flex-1"
                     onClick={ws.retryBackendConnection}
                   >
                     <RefreshCw className="h-4 w-4" aria-hidden="true" />
@@ -418,7 +418,7 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
                   </button>
                   <button
                     type="button"
-                    className="duo-btn duo-btn-secondary duo-btn-sm flex-1"
+                    className="care-action care-action-secondary care-action-sm flex-1"
                     onClick={() => ws.togglePreviewMode(true)}
                   >
                     <span>Enable preview</span>
@@ -467,7 +467,7 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
                     <div className="lv-primary-row mt-2">
                       <button
                         type="button"
-                        className="duo-btn duo-btn-primary duo-btn-sm flex-1"
+                        className="care-action care-action-primary care-action-sm flex-1"
                         onClick={() => ws.startAddPlant()}
                       >
                         <Plus className="h-4 w-4" aria-hidden="true" />
@@ -475,7 +475,7 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
                       </button>
                       <button
                         type="button"
-                        className="duo-btn duo-btn-secondary duo-btn-sm"
+                        className="care-action care-action-secondary care-action-sm"
                         onClick={() => ws.setView('lens')}
                       >
                         <Camera className="h-4 w-4" aria-hidden="true" />

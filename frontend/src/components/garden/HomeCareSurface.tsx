@@ -92,7 +92,7 @@ function buildPlainLanguageVariant(
   if (intel.actionType === 'do_not_water' || plant.status === 'wait') {
     return {
       heading: 'Hold off on watering',
-      summary: 'The potting mix is still moist. Empty any standing saucer water and wait.',
+      summary: intel.rationale,
       timingLine: nextDateText ? `Next estimated soil check: ${nextDateText}` : 'Check soil again in a few days',
       tone: 'wait',
     };
@@ -134,15 +134,15 @@ function buildPlainLanguageVariant(
   if (plant.status === 'check') {
     return {
       heading: 'Check the soil',
-      summary: 'Touch the top quarter of the potting mix and tap how it feels.',
+      summary: plant.check_prompt,
       timingLine: nextDateText ? `Soil check due · Est. ${nextDateText}` : 'Soil check due today',
       tone: 'check',
     };
   }
 
   return {
-    heading: 'Doing well',
-    summary: 'No watering needed right now.',
+    heading: 'Watering logged',
+    summary: plant.message,
     timingLine: nextDateText ? `Next estimated soil check: ${nextDateText}` : null,
     tone: 'rest',
   };
@@ -304,7 +304,7 @@ export function HomeCareSurface({
         {/* Impactful Duolingo-Inspired Contextual Action Area */}
         <div className="lv-action-zone">
           {showSoilTiles && !isPreviewMode() ? (
-            <button type="button" className="duo-btn duo-btn-primary" disabled={busy}
+            <button type="button" className="care-action care-action-primary" disabled={busy}
               onClick={() => onOpenConditionCheck(plant.id)}>
               <ClipboardCheck className="h-4 w-4" aria-hidden="true" />
               <span>Open soil checkup</span>
@@ -314,7 +314,7 @@ export function HomeCareSurface({
               <div className="lv-soil-grid" role="group" aria-label="How does the potting mix feel?">
                 <button
                   type="button"
-                  className="duo-tile duo-tile-dry"
+                  className="care-soil-choice care-soil-choice-dry"
                   disabled={busy}
                   onClick={() => onRecordCare(plant, 'dry')}
                 >
@@ -324,7 +324,7 @@ export function HomeCareSurface({
                 </button>
                 <button
                   type="button"
-                  className="duo-tile duo-tile-moist"
+                  className="care-soil-choice care-soil-choice-moist"
                   disabled={busy}
                   onClick={() => onRecordCare(plant, 'moist')}
                 >
@@ -334,7 +334,7 @@ export function HomeCareSurface({
                 </button>
                 <button
                   type="button"
-                  className="duo-tile duo-tile-unsure"
+                  className="care-soil-choice care-soil-choice-unsure"
                   disabled={busy}
                   onClick={() => onRecordCare(plant, 'unsure')}
                 >
@@ -357,7 +357,7 @@ export function HomeCareSurface({
             <div className="lv-primary-row">
               <button
                 type="button"
-                className="duo-btn duo-btn-primary flex-1"
+                className="care-action care-action-primary flex-1"
                 disabled={busy}
                 onClick={() => setGuideOpen(true)}
               >
@@ -366,7 +366,7 @@ export function HomeCareSurface({
               </button>
               <button
                 type="button"
-                className={`duo-btn ${inHydrationCart ? 'duo-btn-sage' : 'duo-btn-secondary'}`}
+                className={`care-action ${inHydrationCart ? 'care-action-sage' : 'care-action-secondary'}`}
                 disabled={busy}
                 aria-pressed={inHydrationCart}
                 onClick={() => onToggleHydrationCart(plant.id)}
@@ -379,7 +379,7 @@ export function HomeCareSurface({
             <div className="lv-primary-row">
               <button
                 type="button"
-                className="duo-btn duo-btn-amber flex-1"
+                className="care-action care-action-amber flex-1"
                 disabled={busy}
                 onClick={() => onOpenConditionCheck(plant.id)}
               >
@@ -388,7 +388,7 @@ export function HomeCareSurface({
               </button>
               <button
                 type="button"
-                className="duo-btn duo-btn-secondary"
+                className="care-action care-action-secondary"
                 disabled={busy}
                 onClick={() => onShowCheckChoices(true)}
               >
@@ -400,7 +400,7 @@ export function HomeCareSurface({
               {plant.species_id === null ? (
                 <button
                   type="button"
-                  className="duo-btn duo-btn-primary flex-1"
+                  className="care-action care-action-primary flex-1"
                   disabled={busy}
                   onClick={() => onOpenProfile(plant.id)}
                 >
@@ -410,7 +410,7 @@ export function HomeCareSurface({
               ) : (
                 <button
                   type="button"
-                  className="duo-btn duo-btn-primary flex-1"
+                  className="care-action care-action-primary flex-1"
                   disabled={busy}
                   onClick={() => onOpenConditionCheck(plant.id)}
                 >
@@ -420,7 +420,7 @@ export function HomeCareSurface({
               )}
               <button
                 type="button"
-                className="duo-btn duo-btn-secondary"
+                className="care-action care-action-secondary"
                 disabled={busy}
                 onClick={() => onShowCheckChoices(true)}
               >
@@ -432,7 +432,7 @@ export function HomeCareSurface({
             <div className="lv-primary-row">
               <button
                 type="button"
-                className="duo-btn duo-btn-secondary flex-1"
+                className="care-action care-action-secondary flex-1"
                 disabled={busy}
                 onClick={() => onShowCheckChoices(true)}
               >
@@ -441,7 +441,7 @@ export function HomeCareSurface({
               </button>
               <button
                 type="button"
-                className="duo-btn duo-btn-secondary"
+                className="care-action care-action-secondary"
                 disabled={busy}
                 onClick={() => onOpenConditionCheck(plant.id)}
               >
@@ -508,7 +508,7 @@ export function HomeCareSurface({
       </motion.div>
 
       {/* Desktop-only calm persisted care snapshot with interactive drainage/checkup cell */}
-      <div className="lv-desktop-history-card duo-card" aria-label="Recorded care summary">
+      <div className="lv-desktop-history-card care-card" aria-label="Recorded care summary">
         <div className="lv-desktop-stat">
           <span className="lv-desktop-stat-label">Last watered</span>
           <strong className="lv-desktop-stat-val">{lastWateredLabel}</strong>
@@ -613,7 +613,7 @@ export function HomeCareSurface({
                 {/* When */}
                 <div className="lv-sheet-section">
                   <span className="hs-section-kicker">When</span>
-                  <p className="m-0 text-sm text-[#202923]">{intel.timingSummary}</p>
+                  <p className="m-0 text-body text-[#202923]">{intel.timingSummary}</p>
                 </div>
 
                 {/* How */}
@@ -636,7 +636,7 @@ export function HomeCareSurface({
                 <div className="lv-sheet-actions">
                   <button
                     type="button"
-                    className="duo-btn duo-btn-primary w-full"
+                    className="care-action care-action-primary w-full"
                     disabled={busy}
                     onClick={handleConfirmWatered}
                   >
@@ -645,7 +645,7 @@ export function HomeCareSurface({
                   </button>
                   <button
                     type="button"
-                    className="duo-btn duo-btn-secondary w-full"
+                    className="care-action care-action-secondary w-full"
                     disabled={busy}
                     onClick={() => setGuideOpen(false)}
                   >

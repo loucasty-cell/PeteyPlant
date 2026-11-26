@@ -22,6 +22,8 @@ def _ideal_status_for(species_id: str, now: datetime) -> tuple[str, dict]:
         "species_id": species_id,
         "drainage": "yes",
         "created_at": (now - timedelta(days=60)).isoformat(),
+        "container_volume_ml": None,
+        "potting_mix": None,
     }
     hist = [{
         "id": str(uuid.uuid4()),

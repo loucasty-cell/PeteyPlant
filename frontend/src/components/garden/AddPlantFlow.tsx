@@ -141,7 +141,7 @@ export function AddPlantFlow({
                     <div className="petey-plant-card-head">
                       <BotanicalThumbnail speciesId={species.id} size={48} />
                       <div className="min-w-0">
-                        <strong className="block truncate text-sm text-[#202923]">{species.name}</strong>
+                        <strong className="block truncate text-body text-[#202923]">{species.name}</strong>
                         <span className="petey-scientific block truncate">{species.id}</span>
                       </div>
                     </div>
@@ -149,7 +149,7 @@ export function AddPlantFlow({
                   {species.advice_status && (
                     <span
                       id={badgeId}
-                      className="text-xs px-1 text-[#526156]"
+                      className="text-caption px-1 text-[#526156]"
                       data-advice-status={species.advice_status}
                     >
                       {verifiedAdvice ? 'Verified watering guide' : 'Identity only (manual checks)'}

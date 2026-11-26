@@ -260,7 +260,7 @@ export function GardenMoreView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
             <span className="petey-small-label">
               {registrySummary.counts.authored} Blender companions
             </span>
-            <h2 id="pals-catalog-heading" className="petey-card-title mt-1 text-lg">
+            <h2 id="pals-catalog-heading" className="petey-card-title mt-1 text-subhead">
               Botanical Companion Roster
             </h2>
           </div>
@@ -269,17 +269,17 @@ export function GardenMoreView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
         <div className="petey-garden-grid">
           {SPECIES_ASSET_MANIFEST.map((entry) => (
             <article key={entry.speciesId} className="petey-plant-card">
-              <div className="petey-plant-card-head">
-                <BotanicalThumbnail speciesId={entry.speciesId} size={56} preferRender />
-                <div className="min-w-0">
-                  <span className="petey-small-label">{entry.traitLabel}</span>
-                  <h3 className="petey-card-title truncate">{entry.commonName}</h3>
-                  <p className="petey-scientific truncate">{entry.scientificName}</p>
-                </div>
+              <div className="petey-roster-portrait">
+                <BotanicalThumbnail speciesId={entry.speciesId} size={116} preferRender />
+              </div>
+              <div>
+                <span className="petey-small-label">{entry.traitLabel}</span>
+                <h3 className="petey-card-title">{entry.commonName}</h3>
+                <p className="petey-scientific">{entry.scientificName}</p>
               </div>
               <p className="petey-body-muted">{entry.botanicalSilhouetteNote}</p>
-              <div className="flex items-center justify-between gap-2 pt-2 border-t border-[#DDE2DA]">
-                <span className="text-xs font-mono text-[#515D55]">
+              <div className="petey-roster-action border-t">
+                <span className="text-caption font-mono text-[var(--petey-ink-secondary)]">
                   3D: {entry.assetStatus === 'procedural_fallback' ? 'Procedural rig' : entry.assetStatus}
                 </span>
                 <button
