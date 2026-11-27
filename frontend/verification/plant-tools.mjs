@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { expect } from '@playwright/test';
 import { PNG } from 'pngjs';
 import { resolve } from 'node:path';
 
@@ -32,6 +33,17 @@ async function noOverflow(page) {
 
 async function snapshot(page, name) {
   if (shots) await page.screenshot({ path: resolve(shots, name), fullPage: true });
+}
+
+function changedPixelFraction(first, second) {
+  if (first.width !== second.width || first.height !== second.height) return 1;
+  let changed = 0;
+  for (let i = 0; i < first.data.length; i += 4) {
+    if (Math.abs(first.data[i] - second.data[i]) > 8 ||
+        Math.abs(first.data[i + 1] - second.data[i + 1]) > 8 ||
+        Math.abs(first.data[i + 2] - second.data[i + 2]) > 8) changed++;
+  }
+  return changed / (first.width * first.height);
 }
 
 async function openLens(page) {
@@ -195,11 +207,20 @@ try {
   await previewCanvas.waitFor();
   const frame = await previewCanvas.boundingBox();
   assert(frame && frame.width / frame.height < 0.92, 'Camera reset should be checked in a portrait frame');
-  const initial = await previewCanvas.screenshot();
+  const captureFrame = async () => PNG.sync.read(await previewCanvas.screenshot({ animations: 'disabled' }));
+  let initial = await captureFrame();
+  await expect.poll(async () => {
+    const frame = await captureFrame();
+    const difference = changedPixelFraction(initial, frame);
+    initial = frame;
+    return difference;
+  }, { message: 'Wait for the companion frame to settle' }).toBeLessThan(0.001);
   await page.getByRole('button', { name: 'Rotate companion right' }).click();
-  assert(!(await previewCanvas.screenshot()).equals(initial), 'Rotate should change the rendered view');
+  await expect.poll(async () => changedPixelFraction(initial, await captureFrame()),
+    { message: 'Rotate should change the rendered view' }).toBeGreaterThan(0.05);
   await page.getByRole('button', { name: 'Reset view' }).click();
-  assert((await previewCanvas.screenshot()).equals(initial), 'Reset should restore the original portrait framing');
+  await expect.poll(async () => changedPixelFraction(initial, await captureFrame()),
+    { message: 'Reset should restore the original portrait framing' }).toBeLessThan(0.005);
   await page.setViewportSize({ width: 375, height: 812 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   const confirmPlant = page.getByRole('button', { name: 'Add to my garden' });
