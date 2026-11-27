@@ -205,3 +205,13 @@ The four-week dependency plan and acceptance evidence are recorded in [Project C
 ### Remaining roster · 21 detailed passes
 
 areca-palm, arrowhead-plant, chinese-evergreen, cylindrical-snake, dragon-tree, fishbone-prayer-plant, flamingo-flower, kentia-palm, lady-palm, money-tree, monstera, peace-lily, peacock-plant, pothos, split-leaf-philodendron, stromanthe, wax-plant, weeping-fig, whale-fin, white-bird-of-paradise, zz-plant.
+
+### Next batch source checkpoint
+
+Blender 5.2.2 reopened all three editable masters on November 28. The files had no unpacked external images. These counts describe the source scene before modifiers and export. Each model still awaits its detail pass and visual review.
+
+| Model | Source mesh objects | Detail to review first |
+| --- | ---: | --- |
+| Areca Palm | 31 | Keep the current cane rings and woven sleeve. Compare the clustered crowns, attachment angles and spacing of paired pinnae with the documented recurving fronds and yellow-green axes. [NC State Extension](https://plants.ces.ncsu.edu/plants/chrysalidocarpus-lutescens/) · [NParks](https://www.nparks.gov.sg/florafaunaweb/flora/2/6/2622) |
+| Peacock Plant | 33 | Preserve the named petiole joints and their controls. Review the feather markings at normal stage size and the burgundy reverse at an oblique angle. |
+| Split-Leaf Philodendron | 23 | The source separates petioles from the laminae. Inspect the crown joins from the rear and compare lobe lengths before changing the gloss. |

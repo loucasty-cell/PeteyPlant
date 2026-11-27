@@ -1,0 +1,54 @@
+# Project Connect engineering integrity
+
+The [master plan](MASTER_PLAN.md) owns PP-01–PP-24. This companion records the software checks and ML dependencies introduced by the master engineering and engineering integrity briefs. [Lens](../../backend/LENS.md), its [offline pipeline](../../backend/lens_pipeline/README.md), the [flight report](../FLIGHT_READINESS_REPORT.md), and the [botanical art plan](../botanical-art-plan.md) own their detailed contracts.
+
+## Four-week sequence
+
+| Week | Engineering work | ML and physical evidence | Acceptance milestone |
+| --- | --- | --- | --- |
+| 1 | EI-01. Run the existing care, storage, frontend and asset checks automatically from pinned environments. EI-02. Record authority boundaries, executable journeys and observed gaps. Supports PP-01–06 and PP-22. | Establish rights and consent, canonical IDs, specimen/source/duplicate groups and a private frozen holdout. Keep metadata and image fingerprints with the audit. Define a physical observation protocol for PP-03 and PP-18. | Checkup safety and isolation pass through the actual service. Publish a corpus audit only when approved originals and group evidence exist. |
+| 2 | EI-03. Expand browser failure and accessibility coverage. Establish physical-device render and resource baselines. Supports PP-07–11, PP-19 and PP-21. | ML-01–05. Measure image quality, segmentation, identity, visible symptoms and appearance independently. Compare the current candidate with a frozen probe and other low-cost baselines on the same development groups. In parallel, advance the 21 pending Blender detail passes, starting with Areca Palm, Peacock Plant and Split-Leaf Philodendron. | Reproduce each comparison and record misses and abstention. Review editable masters and real Garden renders. Require verified scale for measurements and owner confirmation for appearance. |
+| 3 | EI-04. Extend invariants as actual state models grow. Prioritize emergency precedence, offline replay and reminder idempotency with PP-12–17. | ML-06–08. Independently evaluate longitudinal condition, dry-down and recommendation ordering. Compare the mechanistic baseline with residual learning only after physical data exist. Calibrate identity and symptom acceptance on development groups, then freeze model and policy. | Test stale, contradictory and missing evidence. Quantitative watering and candidate promotion need their own evidence. Use formal methods only for a named state-machine property that ordinary tests leave unresolved. |
+| 4 | EI-05. Independently review security, accessibility, recovery, rollback and operational evidence for PP-18–24. | Score the frozen candidate on the independent holdout. Measure model parity and latency on target hardware and Garden frame time, heat and responsiveness on physical phones. Run a consenting pilot after the relevant gates pass. | Record software, Lens, physical care and production readiness separately. Close an item when its own evidence exists. |
+
+## Authority contracts
+
+- [Care policy](../../backend/services/care_policy.py) makes watering decisions. A verified guide, current dryness at the appropriate depth, drainage and checked standing-water status are prerequisites. A wet or moist observation or standing water takes precedence. Garden checks ownership, recency and review state before committing a Checkup.
+- Camera results are suggestions. Garden stores confirmed identities. A living companion and its expression use the saved Garden state. Plant Lab inputs remain synthetic. The art pass and camera measurements follow the [asset contract](../botanical-art-plan.md).
+- Keep indoor observations, outdoor weather, source-backed botanical facts, estimates and offline fixtures distinguishable. Physical dry-down and dosing require calibrated measurements on held-out plants.
+- The Lens loader is a version and artifact gate. The [offline evaluator](../../backend/lens_pipeline/README.md) requires a frozen operating point of at least 98% accepted precision and 80% known coverage plus rejection, calibration, group-level bounds and the other applicable qualification checks. Readiness remains **NO-GO** in the [flight report](../FLIGHT_READINESS_REPORT.md).
+
+## Checks and observed gaps
+
+| Rule | Observed baseline and user impact | Regression evidence and owner |
+| --- | --- | --- |
+| EI-01.1 · Automatic software verification | `496f32e` had no tracked GitHub workflow. Local passes depended on a contributor selecting the right commands. | [Software workflow](../../.github/workflows/project-connect.yml) runs on pull requests and pushes to `main`. Integration owns the workflow. Hosted status belongs to the run for the reviewed commit. |
+| EI-01.2 · Repeatable test dependencies | `backend/requirements.txt` left versions floating. Base installs also skip real CPU ONNX fixtures, which exercise the runtime's refusal of invalid release evidence. | CI installs the [pinned backend set](../../backend/requirements-ci.txt) and frontend npm lock. It runs `pip check` and reports pytest skips. PyTorch/Transformers training fixtures run in a separate environment. |
+| EI-02.1 · Care evidence boundaries | The policy already has an exhaustive 648-case matrix. Garden integration tests cover ownership, expiry, replay, concurrent confirmation and migration. | Run [Checkup tests](../../backend/tests/test_checkup.py) with [clock tests](../../backend/tests/test_checkup_clock.py) and [Garden tests](../../backend/tests/test_garden.py). Care and integration review any rule change. |
+| EI-02.2 · Static frontend checks | [TypeScript](../../frontend/tsconfig.json) is strict. The current `lint` script is a typecheck. The existing [ratchet](../../tools/slop-audit.mjs) checks selected textual patterns and budgets. | Preserve these checks in each run. Semantic import, hook and frame-loop rules are proposed. Add narrowly scoped rules after measuring the existing code and recording an actual failure or recurring issue. |
+| EI-03.1 · Reduced-motion state changes | Chromium observed a hovered roster card retain its translation when reduced motion was enabled. The hover rule was conditional, but the transition used to ease back was unconditional. | [Garden browser test](../../frontend/verification/garden.mjs) checks both the card's translation and portrait scale after the preference changes. Frontend owns the [motion rules](../../frontend/src/components/garden/greenhouse.css). |
+
+### Journey and release verification
+
+| Journey | Existing executable evidence | Open qualification |
+| --- | --- | --- |
+| First plant, Home, My Garden, save and reload, Checkup, history and failed-save recovery | [`garden.mjs`](../../frontend/verification/garden.mjs) against a production build and disposable FastAPI/SQLite. Backend tests add rejection and concurrency coverage. | Real offline restart/reconciliation, full screen-reader review and account recovery. |
+| Lens, manual selection and Plant Health | [`plant-tools.mjs`](../../frontend/verification/plant-tools.mjs) exercises manual and unavailable flows plus a fixture match. [`test_lens.py`](../../backend/tests/test_lens.py) tests CPU bundle opening, failure and abstention paths. | Rights-reviewed indoor holdout, real camera data, symptoms and target hardware. |
+| Living stage and text prominence | [`character-assets.mjs`](../../frontend/verification/character-assets.mjs) checks every live asset and clip. [`characters.mjs`](../../frontend/verification/characters.mjs) defaults to 20 representatives and accepts `PETEY_TEST_EXPANSION=1` for all 58. [`contrast.mjs`](../../frontend/verification/contrast.mjs) checks specific color pairs. | Native Blender review, physical GPU and thermal measurements, and direct accessibility checks. |
+| Plant Lab, urgent care and reminders | Garden browser test checks the synthetic label and supported wet-mix/standing-water holds. Backend tests reject extra synthetic or unsupported fields in Checkup. | Broader emergency precedence, background permission and delivery, revocation and idempotency. |
+
+Maintain this map as suites gain coverage. Use the [release handoff](../../ANTIGRAVITY_HANDOFF.md) for ownership, operations and promotion evidence. The workflow uses a temporary Garden database and only read access to the repository. It selects Playwright's full `chromium` channel for the Lens camera fixture. The Windows headless shell rejected the same fake camera with `NotSupportedError`. Enforcing the workflow result as a required check is a separate repository settings decision.
+
+## Dependency refresh
+
+The workflow uses Python 3.14.7 and Node 24.19.0. The backend pin file includes the dependencies of `backend/requirements.txt` plus CPU ONNX verification. From the root, regenerate the package lines using `uv` and keep the header.
+
+```powershell
+@('onnx', 'onnxruntime') | uv pip compile backend/requirements.txt - --python-version 3.14 --universal --no-annotate --no-header
+```
+
+Install the resulting set into a fresh environment and rerun `pip check`, `python -m pytest -q -rs` from `backend`, the frontend build, and the verification workflow. Keep training and promotion runs separate from routine checks. A candidate run should record dataset and artifact digests, source splits, transforms, seed, code and dependency revisions, metrics and failures. Use the existing offline tooling until a demonstrated need requires another tool.
+
+## Next evidence checkpoint
+
+Freeze the launch taxonomy, define specimen grouping before intake and reserve the independent holdout before comparing models. The data owner records permission, original image lineage and review status. The evaluator reports per-species support, overlap and the usable group count. If the group count cannot support the existing lower-bound gate, record that limitation before spending compute. Once development data pass the audit, compare the current candidate, a frozen probe and a lightweight baseline with the same data, compute budget and preprocessing contract. Choose the weakest supported intervention first. Use hard-negative mining, fine-tuning, ensembles, or compression only when the baseline exposes a specific failure or device constraint. The independent evaluator owns final holdout access and the release report.

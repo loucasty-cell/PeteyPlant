@@ -1,0 +1,81 @@
+name: Project Connect software checks
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      PETEY_BACKEND_URL: http://127.0.0.1:8000
+      PETEY_TEST_URL: http://127.0.0.1:3000
+      # The full Chromium channel supports the fake camera used by the Lens journey.
+      PETEY_BROWSER_CHANNEL: chromium
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version: '3.14.7'
+          cache: pip
+          cache-dependency-path: backend/requirements-ci.txt
+      - uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
+        with:
+          node-version: '24.19.0'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install pinned backend and frontend dependencies
+        run: |
+          python -m pip install --no-deps -r backend/requirements-ci.txt
+          python -m pip check
+          npm ci --prefix frontend
+
+      - name: Backend tests and CPU Lens runtime fixtures
+        working-directory: backend
+        env:
+          PETEY_GARDEN_DB: ${{ runner.temp }}/petey-test.sqlite
+        run: python -m pytest -q -rs
+
+      - name: Build and check frontend contracts
+        run: |
+          npm run build
+          npm --prefix frontend run verify:contrast
+          node frontend/verification/audit-identity.mjs
+          node tools/slop-audit.mjs
+
+      - name: Install Chromium
+        working-directory: frontend
+        run: npx playwright install --with-deps --no-shell chromium
+
+      - name: Verify runtime assets and browser journeys
+        shell: bash
+        env:
+          PETEY_GARDEN_DB: ${{ runner.temp }}/petey-browser.sqlite
+        run: |
+          python -m uvicorn main:app --app-dir backend --host 127.0.0.1 --port 8000 > "$RUNNER_TEMP/petey-api.log" 2>&1 &
+          api_pid=$!
+          node frontend/node_modules/vite/bin/vite.js preview frontend --host 127.0.0.1 --port 3000 --strictPort > "$RUNNER_TEMP/petey-web.log" 2>&1 &
+          web_pid=$!
+          cleanup() {
+            status=$?
+            kill "$api_pid" "$web_pid" 2>/dev/null || true
+            if [ "$status" -ne 0 ]; then
+              cat "$RUNNER_TEMP/petey-api.log" "$RUNNER_TEMP/petey-web.log"
+            fi
+          }
+          trap cleanup EXIT
+
+          curl --fail --silent --show-error --retry 20 --retry-connrefused --retry-delay 1 --max-time 3 "$PETEY_BACKEND_URL/api/v1/garden/species" -o /dev/null
+          curl --fail --silent --show-error --retry 20 --retry-connrefused --retry-delay 1 --max-time 3 "$PETEY_TEST_URL" -o /dev/null
+          node frontend/verification/character-assets.mjs "$PETEY_BACKEND_URL"
+          node frontend/verification/garden.mjs
+          node frontend/verification/plant-tools.mjs
+          node frontend/verification/characters.mjs

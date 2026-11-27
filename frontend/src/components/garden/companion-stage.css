@@ -1219,7 +1219,7 @@
   flex-direction: column;
   gap: 12px;
   box-shadow: var(--petey-shadow-sm);
-  transition: border-color var(--petey-duration-fast) ease, box-shadow var(--petey-duration-base) ease, translate var(--petey-duration-base) var(--petey-ease-out);
+  transition: border-color var(--petey-duration-fast) ease, box-shadow var(--petey-duration-base) ease;
 }
 
 .petey-plant-card:focus-within {

@@ -2,9 +2,11 @@
 
 Petey turns a plant owner's observations into one next action. The living companion depicts the confirmed plant and responds to supported care states. Camera evidence, botanical reference facts, owner observations, estimated values, and Plant Lab fixtures have different provenance.
 
+The [engineering integrity plan](ENGINEERING_INTEGRITY.md) adds the EI and ML workstreams from the follow-up briefs. It maps them to the weekly milestones and records the software checks, authority boundaries and release dependencies.
+
 ## Where the project stands
 
-- The previous release wave is on `main` at `a6a790a`. A local FastAPI request returned 84 Garden identities. The repository holds 58 authored companions, and 13 had individual botanical refinements before this wave. The model-by-model backlog and the Blender to Three.js runbook live in the [botanical art plan](../botanical-art-plan.md).
+- The latest botanical wave at `496f32e` brought the total to 37 individually refined companions out of 58 authored models. A local FastAPI request returned 84 Garden identities. The remaining 21 models and the Blender to Three.js runbook live in the [botanical art plan](../botanical-art-plan.md).
 - Garden stores pot capacity, potting mix and confirmed Checkups. The rules hold watering on fresh wet mix or standing water evidence. Quantitative dosing awaits independent physical validation. See [the frontend handoff](../../FRONTEND_HANDOFF.md) and [care policy](../../backend/services/care_policy.py).
 - Lens still requires an independent rights-reviewed indoor corpus, a frozen holdout and a qualifying artifact on representative hardware. The [Lens interface and bundle contract](../../backend/LENS.md), [pipeline](../../backend/lens_pipeline/README.md) and [release report](../FLIGHT_READINESS_REPORT.md) own those details.
 

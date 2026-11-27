@@ -19,7 +19,7 @@
 
 .petey-roster-portrait img {
   filter: drop-shadow(0 0.3rem 0.35rem color-mix(in srgb, var(--petey-surface-dark) 22%, transparent));
-  transition: scale var(--petey-duration-base) var(--petey-ease-out);
+  transition-property: none;
 }
 
 .petey-roster-action {
@@ -50,6 +50,14 @@
   }
 
   @media (hover: hover) and (pointer: fine) {
+    .petey-plant-card {
+      transition: border-color var(--petey-duration-fast) ease, box-shadow var(--petey-duration-base) ease, translate var(--petey-duration-base) var(--petey-ease-out);
+    }
+
+    .petey-roster-portrait img {
+      transition: scale var(--petey-duration-base) var(--petey-ease-out);
+    }
+
     .petey-plant-card:is(button:not(:disabled), :has(button:not(:disabled))):hover {
       translate: 0 -0.125rem;
     }

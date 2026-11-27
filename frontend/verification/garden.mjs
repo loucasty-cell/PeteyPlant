@@ -200,7 +200,15 @@ try {
     return getComputedStyle(card).translate === '0px -2px';
   });
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  assert.equal(await rosterCard.evaluate(card => getComputedStyle(card).translate), 'none');
+  await page.waitForFunction(() => matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const reducedCard = await rosterCard.evaluate(card => {
+    const { translate, transitionProperty } = getComputedStyle(card);
+    const portrait = getComputedStyle(card.querySelector('img'));
+    return { translate, transitionProperty, scale: portrait.scale, portraitTransition: portrait.transitionProperty };
+  });
+  assert.deepEqual(reducedCard, {
+    translate: 'none', transitionProperty: 'border-color, box-shadow', scale: 'none', portraitTransition: 'none',
+  });
   for (const width of [1024, 768, 390, 320, 375]) {
     await page.setViewportSize({ width, height: 812 });
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), `Roster overflows at ${width}px`);

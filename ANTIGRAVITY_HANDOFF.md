@@ -2,6 +2,8 @@
 
 [Project Connect](docs/connect/MASTER_PLAN.md#four-week-execution-plan) contains the four-week dependency plan, all 24 work packages, workstream ownership and release evidence requirements. Use the botanical art plan for per-species construction and the milestone log for completed checks.
 
+The [engineering integrity plan](docs/connect/ENGINEERING_INTEGRITY.md) maps the new engineering and ML work to each week, with a feature-to-test map and [GitHub software workflow](.github/workflows/project-connect.yml). Week 1 automation runs the existing 648-case watering matrix and CPU ONNX release-denial fixtures. Next, obtain a reviewed private indoor corpus and verify its group isolation before any new baseline, and resume the first three remaining botanical models in parallel with that evidence collection.
+
 The [58-asset detail plan](docs/botanical-art-plan.md) now records 37 deeper botanical passes, including the 24 from Project Connect. All 58 have editable Blender sources, animated GLBs and transparent previews. The Garden saves owner-entered pot capacity and potting mix. [PLANS.md](PLANS.md) records verification and remaining work.
 
 Continue in `C:/Users/ASUS/Downloads/PeteyPlant`. Project Connect started on the verified GitHub `main` commit `a6a790a`. Check `git status --short -b` and GitHub `main` before carrying the current work forward. The original V4/V5 stash remains available as a reference.
