@@ -2,6 +2,8 @@
 
 The [Project Connect plan](docs/connect/MASTER_PLAN.md#four-week-execution-plan) records the four-week sequence, all 24 work packages, dependencies and acceptance evidence. The milestones below record completed work and checks.
 
+Use the [engineering improvement playbook](docs/connect/SELF_IMPROVEMENT.md) when recording a reproduced failure, its regression check, or a lesson for future agents.
+
 Product focus: a busy plant owner opens Petey, knows which plant to check, and sees a care record they can trust. The greenhouse collection and character moments support that task. Pricing is out of scope.
 
 ## Repository audit

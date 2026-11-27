@@ -4,6 +4,8 @@ The [master plan](MASTER_PLAN.md) owns PP-01–PP-24. This companion records the
 
 Lauren Tan's trust pyramid informs the order here. Put invariants in the policy or API, catch recurring mistakes in compiler and test checks, and run the real app for behavior that only appears at runtime. Use the journey map below to locate those checks. Review a failed check for its root cause and give future contributors an actionable failure. Reserve manual review for questions such as specimen identity, art quality and release evidence. [AI Engineer talk and transcript](https://ai.engineer/talks/O_zcc6Xl12g-all-code-is-slop-except-mine)
 
+Use the [engineering improvement playbook](SELF_IMPROVEMENT.md) to prepare agent briefs, choose a regression check, and carry verified lessons into the next handoff.
+
 ## Four-week sequence
 
 | Week | Engineering work | ML and physical evidence | Acceptance milestone |

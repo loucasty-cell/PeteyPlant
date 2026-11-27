@@ -1,5 +1,7 @@
 # Petey Plant handoff for Antigravity
 
+Start each resumed or delegated work package with the [repo instructions](AGENTS.md) and the [engineering improvement playbook](docs/connect/SELF_IMPROVEMENT.md). Give the next agent the affected journey, owned files, current evidence, and the acceptance check. Return the tested revision, exact commands and remaining blocker to the integration owner.
+
 [Project Connect](docs/connect/MASTER_PLAN.md#four-week-execution-plan) contains the four-week dependency plan, all 24 work packages, workstream ownership and release evidence requirements. Use the botanical art plan for per-species construction and the milestone log for completed checks.
 
 The [engineering integrity plan](docs/connect/ENGINEERING_INTEGRITY.md) maps the new engineering and ML work to each week, with a feature-to-test map and [GitHub software workflow](.github/workflows/project-connect.yml). Week 1 automation runs the existing 648-case watering matrix and CPU ONNX release-denial fixtures. Next, obtain a reviewed private indoor corpus and verify its group isolation before any new baseline, and resume the first three remaining botanical models in parallel with that evidence collection.

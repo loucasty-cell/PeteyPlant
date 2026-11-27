@@ -250,7 +250,7 @@ node verification/screenshot.mjs                  # 320/768/1440 screenshots
 
 Set `PETEY_BROWSER_CHANNEL=msedge` to run the journeys in an installed Edge instead of the bundled Chromium. `node tools/capture_showcase.mjs` regenerates the screenshots in `docs/images/`.
 
-Recorded evidence for the current working tree includes 395 backend tests, a 58-model asset audit, and the Garden and 3D stage browser checks. The [Antigravity handoff](ANTIGRAVITY_HANDOFF.md) records the exact scope and open work.
+Use the [verification map](docs/connect/ENGINEERING_INTEGRITY.md#journey-and-release-verification) to find the checks for each feature. The [engineering improvement playbook](docs/connect/SELF_IMPROVEMENT.md) explains how contributors and agents reproduce failures and prevent them from recurring. See the [milestone log](PLANS.md) for measured results and the [Antigravity handoff](ANTIGRAVITY_HANDOFF.md) for open work.
 
 ---
 
