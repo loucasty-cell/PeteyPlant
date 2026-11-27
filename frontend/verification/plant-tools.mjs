@@ -153,9 +153,14 @@ try {
   });
 
   await openLens(page);
-  await page.locator('input[type=file]').setInputFiles({ name: 'not-a-photo.png', mimeType: 'image/png', buffer: Buffer.from('test') });
+  const uploadPhoto = page.getByRole('button', { name: 'Upload photo', exact: true });
+  const choosePhoto = async (file) => {
+    const [chooser] = await Promise.all([page.waitForEvent('filechooser'), uploadPhoto.click()]);
+    await chooser.setFiles(file);
+  };
+  await choosePhoto({ name: 'not-a-photo.png', mimeType: 'image/png', buffer: Buffer.from('test') });
   await page.getByText('This image couldn’t be opened.', { exact: false }).waitFor();
-  await page.locator('input[type=file]').setInputFiles(upload);
+  await choosePhoto(upload);
   await page.getByRole('img', { name: 'Captured plant photo ready for review' }).waitFor();
   assert.equal(scans, 0);
   await page.getByRole('button', { name: 'Identify plant' }).click();

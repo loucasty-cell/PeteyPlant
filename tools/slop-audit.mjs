@@ -78,22 +78,11 @@ function measure() {
 
 const args = process.argv.slice(2);
 const initMode = args.includes('--init');
-const authFlag = args.indexOf('--authorities');
 const { metrics, details } = measure();
 
 if (initMode) {
-  let care_decision_authorities = 2;
-  if (authFlag !== -1 && args[authFlag + 1]) {
-    care_decision_authorities = Number(args[authFlag + 1]);
-  } else if (existsSync(budgetPath)) {
-    const prev = JSON.parse(readFileSync(budgetPath, 'utf8'));
-    if (typeof prev.care_decision_authorities === 'number') {
-      care_decision_authorities = prev.care_decision_authorities;
-    }
-  }
-  const budget = { ...metrics, care_decision_authorities };
-  writeFileSync(budgetPath, JSON.stringify(budget, null, 2) + '\n', 'utf8');
-  console.log('Initialized tools/slop-budget.json:', JSON.stringify(budget), details);
+  writeFileSync(budgetPath, JSON.stringify(metrics, null, 2) + '\n', 'utf8');
+  console.log('Initialized tools/slop-budget.json:', JSON.stringify(metrics), details);
   process.exit(0);
 }
 
@@ -111,7 +100,7 @@ for (const [key, actual] of Object.entries(metrics)) {
   }
 }
 
-console.log('Slop audit:', JSON.stringify({ ...metrics, care_decision_authorities: budget.care_decision_authorities }), details);
+console.log('Slop audit:', JSON.stringify(metrics), details);
 if (failures.length > 0) {
   console.error('Slop audit regression:\n  ' + failures.join('\n  '));
   process.exit(1);
