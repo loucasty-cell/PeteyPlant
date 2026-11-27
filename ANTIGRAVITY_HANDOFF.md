@@ -37,7 +37,9 @@ node frontend/verification/audit-identity.mjs
 node tools/slop-audit.mjs
 ```
 
-Run `python -m pytest -q` in `backend` and `npm run build` and `npm run verify:contrast` in `frontend`.
+Run `python -m pytest -q` in `backend` and `npm test`, `npm run build` and `npm run verify:contrast` in `frontend`.
+
+Checkup now binds advice to the plant species and drainage as well as the care history. Garden automatically migrates SQLite v0–v2 to v3. Preserve a v2 database backup before deploying over existing data. A rollback to the earlier backend requires that backup because it rejects the newer schema.
 
 ## Work still open
 

@@ -196,7 +196,94 @@ def test_concurrent_confirmations_from_same_revision_cannot_overwrite_one_anothe
         assert len(client.get(ROOT, headers=key).json()[0]["history"]) == 1
 
 
-@pytest.mark.parametrize("version", [0, 1])
+def test_species_change_invalidates_open_checkup_at_the_old_depth(setup):
+    _, _, key = setup
+    with TestClient(app) as client:
+        path = create(client, key)
+        context = client.get(path + "/checkup", headers=key).json()
+        stale = snapshot(client, path, key, **REPORTED_DRY)
+        assert client.post(path + "/assessments", headers=key, json=stale).json()["code"] == "WATER_IF_APPROPRIATE"
+
+        assert client.patch(path, headers=key, json={"name": "Renamed"}).status_code == 200
+        assert client.get(path + "/checkup", headers=key).json()["based_on"] == context["based_on"]
+        assert client.patch(path, headers=key, json={"species_id": "Epipremnum aureum"}).status_code == 200
+        fresh = client.get(path + "/checkup", headers=key).json()
+        assert fresh["check_prompt"] != context["check_prompt"]
+        assert fresh["based_on"] != context["based_on"]
+
+        assert client.post(path + "/assessments", headers=key, json=stale).status_code == 409
+        assert save(client, path, key, stale).status_code == 409
+        assert client.get(ROOT, headers=key).json()[0]["history"] == []
+        assert save(client, path, key, snapshot(client, path, key, **REPORTED_DRY)).json()["status"] == "ready"
+
+
+@pytest.mark.parametrize("setup_change", [
+    {"species_id": "Epipremnum aureum"},
+    {"drainage": "unknown"},
+])
+def test_setup_changes_retire_water_advice_without_losing_history(setup, setup_change):
+    _, _, key = setup
+    with TestClient(app) as client:
+        path = create(client, key)
+        event_id = uuid4()
+        initial = snapshot(client, path, key, **REPORTED_DRY, drainage="yes")
+        saved = save(client, path, key, initial, event_id).json()
+        assert saved["status"] == "ready"
+
+        patched = client.patch(path, headers=key, json=setup_change).json()
+        assert patched["status"] == "details"
+        assert patched["watering_advice_expires_at"] is None
+        assert patched["history"] == saved["history"]
+        assert save(client, path, key, initial, event_id).json() == patched
+        assert client.get(ROOT, headers=key).json()[0] == patched
+
+        new_evidence = snapshot(client, path, key, **REPORTED_DRY, drainage="yes")
+        assert new_evidence["based_on"] != str(event_id)
+        assert save(client, path, key, new_evidence).json()["status"] == "ready"
+
+
+def test_standing_water_survives_partial_checkups_until_rechecked(setup):
+    _, clock, key = setup
+    with TestClient(app) as client:
+        path = create(client, key)
+        standing = save(client, path, key, snapshot(client, path, key, standing_water="yes")).json()
+        assert standing["watering_locked"]
+        clock[0] += timedelta(minutes=30)
+        partial = snapshot(client, path, key, drainage="yes")
+        result = client.post(path + "/assessments", headers=key, json=partial).json()
+        assert (result["code"], result["question"]) == ("HOLD_WATER", "standing_water")
+        evidence = next(item for item in result["evidence"] if item["field"] == "standing_water")
+        assert evidence["category"] == "HISTORICAL_RECORD"
+        assert datetime.fromisoformat(evidence["observed_at"]) == NOW
+
+        saved = save(client, path, key, partial).json()
+        assert (saved["status"], saved["watering_locked"]) == ("wait", True)
+        assert saved["next_check_at"] == standing["next_check_at"]
+        assert saved["history"][0]["observation"]["standing_water"] == "unknown"
+        assert client.get(ROOT, headers=key).json()[0] == saved
+        recorded = client.post(path + "/care", headers=key, json={"id": str(uuid4()), "kind": "watered"}).json()
+        assert (recorded["history"][0]["kind"], recorded["watering_locked"]) == ("watered", True)
+
+        resolved = save(client, path, key, snapshot(client, path, key, **REPORTED_DRY)).json()
+        assert (resolved["status"], resolved["watering_locked"], resolved["active_conditions"]) == ("ready", False, [])
+
+
+def test_partial_checkups_do_not_extend_standing_water_expiry(setup):
+    _, clock, key = setup
+    with TestClient(app) as client:
+        path = create(client, key)
+        assert save(client, path, key, snapshot(client, path, key, standing_water="yes")).json()["watering_locked"]
+        clock[0] += timedelta(hours=23, minutes=30)
+        partial = snapshot(client, path, key, drainage="yes")
+        preview = client.post(path + "/assessments", headers=key, json=partial).json()
+        assert datetime.fromisoformat(preview["valid_until"]) == NOW + timedelta(days=1)
+        assert save(client, path, key, partial).json()["watering_locked"]
+        clock[0] += timedelta(minutes=30)
+        expired = client.get(ROOT, headers=key).json()[0]
+        assert (expired["status"], expired["watering_locked"], expired["active_conditions"]) == ("check", False, [])
+
+
+@pytest.mark.parametrize("version", [0, 1, 2])
 def test_legacy_database_is_upgraded_without_losing_saved_plant_or_care(setup, version):
     path, _, key = setup
     garden_id = key["X-Petey-Garden"]
@@ -214,17 +301,21 @@ def test_legacy_database_is_upgraded_without_losing_saved_plant_or_care(setup, v
         database.execute("INSERT INTO garden_care VALUES (?, ?, ?, ?, ?)", (
             garden_id, plant_id, care_id, "dry", NOW.isoformat(),
         ))
-        if version == 1:
+        if version >= 1:
             database.execute("ALTER TABLE garden_care ADD COLUMN checkup TEXT")
-            database.execute("PRAGMA user_version = 1")
+        if version == 2:
+            database.execute("ALTER TABLE garden_plants ADD COLUMN container_volume_ml INTEGER")
+            database.execute("ALTER TABLE garden_plants ADD COLUMN potting_mix TEXT")
+            database.execute("UPDATE garden_plants SET container_volume_ml = 500, potting_mix = 'Bark'")
+        database.execute(f"PRAGMA user_version = {version}")
     with TestClient(app) as client:
         plants = client.get(ROOT, headers=key).json()
         assert [(plant["id"], plant["status"]) for plant in plants] == [(plant_id, "details")]
-        assert plants[0]["container_volume_ml"] is None
-        assert plants[0]["potting_mix"] is None
+        assert plants[0]["container_volume_ml"] == (500 if version == 2 else None)
+        assert plants[0]["potting_mix"] == ("Bark" if version == 2 else None)
         assert plants[0]["history"] == [{"id": care_id, "kind": "dry", "occurred_at": NOW.isoformat()}]
     with sqlite3.connect(path) as database:
-        assert database.execute("PRAGMA user_version").fetchone()[0] == 2
+        assert database.execute("PRAGMA user_version").fetchone()[0] == 3
 
 
 def test_capture_age_is_enforced_without_losing_exact_late_retries(setup):

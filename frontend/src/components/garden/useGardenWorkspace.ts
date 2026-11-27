@@ -171,7 +171,7 @@ export function useGardenWorkspace() {
   const [weather, setWeather] = useState<LiveWeatherState>(() => defaultTimeWeather());
   const [weatherLoading, setWeatherLoading] = useState(false);
   const [weatherMenuOpen, setWeatherMenuOpen] = useState(false);
-  const [activeLocationId, setActiveLocationId] = useState<string>('sf');
+  const [activeLocationId, setActiveLocationId] = useState<string | null>(null);
   const [gpsError, setGpsError] = useState('');
   const [gmpQuotaExceeded, setGmpQuotaExceeded] = useState(false);
   const [themeCategoryFilter, setThemeCategoryFilter] = useState<NatureThemeCategory | 'all'>('all');
@@ -201,6 +201,7 @@ export function useGardenWorkspace() {
 
   const reduced = useReducedMotion();
   const toastTimer = useRef<number | null>(null);
+  const weatherRequest = useRef<AbortController | null>(null);
   const careInFlight = useRef(false);
   const deepLinkApplied = useRef(false);
 
@@ -264,16 +265,20 @@ export function useGardenWorkspace() {
 
   useEffect(() => {
     const controller = new AbortController();
+    weatherRequest.current = controller;
     const initialLoc = WEATHER_LOCATIONS[0];
     setWeatherLoading(true);
     void fetchGoogleWeather(initialLoc.lat, initialLoc.lng, initialLoc.label, controller.signal)
       .then((live) => {
-        if (!controller.signal.aborted && live) setWeather(live);
+        if (!controller.signal.aborted && live) {
+          setWeather(live);
+          setActiveLocationId(initialLoc.id);
+        }
       })
       .finally(() => {
         if (!controller.signal.aborted) setWeatherLoading(false);
       });
-    return () => controller.abort();
+    return () => weatherRequest.current?.abort();
   }, []);
 
   useEffect(() => {
@@ -415,20 +420,36 @@ export function useGardenWorkspace() {
     void loadGardenData();
   }
 
-  async function selectLocationPreset(presetId: string) {
-    const preset = WEATHER_LOCATIONS.find((l) => l.id === presetId);
-    if (!preset) return;
-    setActiveLocationId(preset.id);
+  function startWeatherRequest() {
+    weatherRequest.current?.abort();
+    const controller = new AbortController();
+    weatherRequest.current = controller;
     setGpsError('');
     setWeatherLoading(true);
-    const live = await fetchGoogleWeather(preset.lat, preset.lng, preset.label);
+    return controller.signal;
+  }
+
+  async function loadSelectedWeather(
+    location: { id: string; lat: number; lng: number; label: string },
+    signal: AbortSignal,
+  ) {
+    if (signal.aborted) return;
+    const live = await fetchGoogleWeather(location.lat, location.lng, location.label, signal);
+    if (signal.aborted) return;
     setWeatherLoading(false);
     if (live) {
       setWeather(live);
-      flashStageToast(`Live weather · ${preset.label}`);
+      setActiveLocationId(location.id);
+      if (location.id === 'gps') setWeatherMenuOpen(false);
+      flashStageToast(`Live weather · ${location.label}`);
     } else {
-      setGpsError('Live Google Weather is unavailable right now — try an atmosphere preview below.');
+      setGpsError(`Live weather for ${location.label} is unavailable. You can still choose a theme below.`);
     }
+  }
+
+  function selectLocationPreset(presetId: string) {
+    const preset = WEATHER_LOCATIONS.find((l) => l.id === presetId);
+    if (preset) void loadSelectedWeather(preset, startWeatherRequest());
   }
 
   function requestUserGpsWeather() {
@@ -436,31 +457,24 @@ export function useGardenWorkspace() {
       setGpsError('Geolocation is not supported in this browser.');
       return;
     }
-    setGpsError('');
-    setWeatherLoading(true);
+    const signal = startWeatherRequest();
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        setActiveLocationId('gps');
-        const live = await fetchGoogleWeather(pos.coords.latitude, pos.coords.longitude, 'Your location');
-        setWeatherLoading(false);
-        if (live) {
-          setWeather(live);
-          setWeatherMenuOpen(false);
-          flashStageToast(`Synced live weather · ${live.conditionLabel}`);
-        } else {
-          setGpsError('Could not load Google Weather for your coordinates.');
-        }
+      ({ coords }) => {
+        void loadSelectedWeather({ id: 'gps', lat: coords.latitude, lng: coords.longitude, label: 'Your location' }, signal);
       },
       () => {
+        if (signal.aborted) return;
         setWeatherLoading(false);
-        setGpsError('Location permission declined — pick a city or weather preview instead.');
+        setGpsError('Could not get your location. Pick a city or a weather preview.');
       },
       { enableHighAccuracy: false, timeout: 8000 },
     );
   }
 
   function selectAtmospherePreview(id: WeatherAtmosphereId) {
-    setActiveLocationId(`preview:${id}`);
+    weatherRequest.current?.abort();
+    setWeatherLoading(false);
+    setActiveLocationId(null);
     setGpsError('');
     setWeather(createPreviewWeather(id));
   }
@@ -512,12 +526,14 @@ export function useGardenWorkspace() {
   );
 
   useEffect(() => {
+    if (connection !== 'ready') return;
+    if (validCartPlantIds.length !== cartPlantIds.length) setCartPlantIds(validCartPlantIds);
     try {
       sessionStorage.setItem('petey-hydration-cart-v1', JSON.stringify(validCartPlantIds));
     } catch {
       // Ignore storage quota errors
     }
-  }, [validCartPlantIds]);
+  }, [cartPlantIds, connection, validCartPlantIds]);
 
   function toggleCartPlant(plantId: string) {
     const plant = plants.find((p) => p.id === plantId);

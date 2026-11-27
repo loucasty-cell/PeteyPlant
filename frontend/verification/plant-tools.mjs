@@ -84,6 +84,15 @@ try {
   ]);
   await page.getByRole('button', { name: 'Open camera' }).click();
   await page.waitForFunction(() => document.querySelector('video')?.videoWidth > 0);
+  const corruptPhoto = { name: 'not-a-photo.png', mimeType: 'image/png', buffer: Buffer.from('test') };
+  const [cameraLibrary] = await Promise.all([
+    page.waitForEvent('filechooser'),
+    page.getByRole('button', { name: 'Upload photo from library' }).click(),
+  ]);
+  await cameraLibrary.setFiles(corruptPhoto);
+  await page.getByRole('alert').getByText('This image couldn’t be opened.', { exact: false }).waitFor();
+  assert(await page.evaluate(() => document.querySelector('video')?.srcObject
+    ?.getVideoTracks().some((track) => track.readyState === 'live')), 'An unreadable library photo must leave the live camera available');
   await page.getByRole('button', { name: 'Capture plant photo' }).click();
   await page.getByRole('img', { name: 'Captured plant photo ready for review' }).waitFor();
   await page.waitForFunction(() => window.peteyTestStreams.length > 0
@@ -158,8 +167,13 @@ try {
     const [chooser] = await Promise.all([page.waitForEvent('filechooser'), uploadPhoto.click()]);
     await chooser.setFiles(file);
   };
-  await choosePhoto({ name: 'not-a-photo.png', mimeType: 'image/png', buffer: Buffer.from('test') });
+  await choosePhoto(corruptPhoto);
   await page.getByText('This image couldn’t be opened.', { exact: false }).waitFor();
+  const panorama = new PNG({ width: 640, height: 160 });
+  panorama.data.fill(255);
+  await choosePhoto({ ...upload, buffer: PNG.sync.write(panorama) });
+  await page.getByRole('alert').getByText('This photo is unusually narrow.', { exact: false }).waitFor();
+  assert.equal(scans, 0);
   await choosePhoto(upload);
   await page.getByRole('img', { name: 'Captured plant photo ready for review' }).waitFor();
   assert.equal(scans, 0);
@@ -173,11 +187,20 @@ try {
   await page.getByRole('heading', { name: 'Compare botanical traits' }).waitFor();
   assert.equal(await page.getByRole('link', { name: 'NC State Extension reference' }).count(), 2);
   await page.getByRole('button', { name: 'Possible matches', exact: true }).click();
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.setViewportSize({ width: 320, height: 812 });
   await page.getByRole('button', { name: 'Preview Monstera' }).click();
   await page.getByRole('heading', { name: 'Confirm your companion' }).waitFor();
-  await page.locator('canvas[data-stage-model="monstera"]').waitFor();
+  const previewCanvas = page.locator('canvas[data-stage-model="monstera"]');
+  await previewCanvas.waitFor();
+  const frame = await previewCanvas.boundingBox();
+  assert(frame && frame.width / frame.height < 0.92, 'Camera reset should be checked in a portrait frame');
+  const initial = await previewCanvas.screenshot();
   await page.getByRole('button', { name: 'Rotate companion right' }).click();
+  assert(!(await previewCanvas.screenshot()).equals(initial), 'Rotate should change the rendered view');
   await page.getByRole('button', { name: 'Reset view' }).click();
+  assert((await previewCanvas.screenshot()).equals(initial), 'Reset should restore the original portrait framing');
+  await page.setViewportSize({ width: 375, height: 812 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
   const confirmPlant = page.getByRole('button', { name: 'Add to my garden' });
   const [confirmBounds, navBounds] = await Promise.all([confirmPlant.boundingBox(), navigation.boundingBox()]);

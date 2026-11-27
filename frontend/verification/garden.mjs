@@ -11,12 +11,59 @@ const browser = await chromium.launch({
 });
 const errors = [];
 try {
+  const weatherPage = await browser.newPage({ viewport: { width: 390, height: 844 } });
+  try {
+    const lookup = /\/api\/weather\?lat=/;
+    const startupLookup = /\/api\/weather\?lat=37\.7694/;
+    await weatherPage.route(lookup, (route) => {
+      if (startupLookup.test(route.request().url())) return;
+      const city = new URL(route.request().url()).searchParams.get('lat');
+      return city === '51.5072'
+        ? route.fulfill({ json: { weatherCondition: { type: 'CLEAR' }, isDaytime: true, temperature: { degrees: 18 } } })
+        : route.fulfill({ status: 503, json: { error: 'Weather fixture unavailable' } });
+    });
+    const startup = weatherPage.waitForRequest(startupLookup);
+    await weatherPage.goto(url);
+    await startup;
+    const weatherTrigger = weatherPage.getByRole('button', { name: 'Outdoor weather atmosphere settings' });
+    await weatherTrigger.click();
+    const atmosphere = weatherPage.getByRole('dialog', { name: 'Outdoor weather atmosphere' });
+    const sanFrancisco = atmosphere.getByRole('button', { name: 'San Francisco', exact: true });
+    const london = atmosphere.getByRole('button', { name: 'London', exact: true });
+    const tokyo = atmosphere.getByRole('button', { name: 'Tokyo', exact: true });
+    assert.equal(await sanFrancisco.getAttribute('aria-pressed'), 'false');
+    const cancelled = weatherPage.waitForEvent('requestfailed', (request) => startupLookup.test(request.url()));
+    await atmosphere.getByRole('button', { name: 'Next biome' }).click();
+    await cancelled;
+    await atmosphere.getByRole('button', { name: 'Live GPS', exact: true }).waitFor();
+    assert.equal((await weatherTrigger.innerText()).trim(), 'Preview');
+    assert.equal(await atmosphere.locator('.weather-theme-card[aria-pressed="true"]').count(), 1);
+    await london.click();
+    await atmosphere.getByText(/^London · /).waitFor();
+    assert.match(await weatherTrigger.innerText(), /18°C/);
+    assert.equal(await london.getAttribute('aria-pressed'), 'true');
+    await tokyo.click();
+    await atmosphere.getByRole('alert').getByText(/Live weather for Tokyo is unavailable/).waitFor();
+    assert.equal(await tokyo.getAttribute('aria-pressed'), 'false');
+    assert.equal(await london.getAttribute('aria-pressed'), 'true');
+    assert(await atmosphere.getByText(/^London · /).isVisible());
+    await tokyo.focus();
+    await weatherPage.keyboard.press('Escape');
+    await atmosphere.waitFor({ state: 'hidden' });
+    assert.equal(await weatherTrigger.evaluate((button) => button === document.activeElement), true);
+  } finally {
+    await weatherPage.close();
+  }
+
   const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
   page.on('pageerror', (error) => errors.push(error.message));
   await page.goto(url);
   const firstPlant = page.getByRole('button', { name: 'Add your plant', exact: true });
   await firstPlant.waitFor();
-  if (shots) await page.screenshot({ path: resolve(shots, 'petey-garden-desktop.png'), fullPage: true });
+  if (shots) {
+    await page.locator('canvas[data-stage-model="monstera"]').waitFor();
+    await page.screenshot({ path: resolve(shots, 'petey-garden-desktop.png'), fullPage: true });
+  }
 
   for (const width of [320, 375, 390, 768, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 });
@@ -41,6 +88,7 @@ try {
 
   await navigation.getByRole('button', { name: 'My Garden', exact: true }).click();
   await profileButton.click();
+  await page.locator('.profile-hero-left img[src*="monstera"]').waitFor();
   await page.getByRole('button', { name: 'Edit species & pot', exact: true }).click();
   await page.getByRole('spinbutton', { name: /Inner pot capacity/ }).fill('1.5');
   await page.getByRole('textbox', { name: 'Potting mix (optional)' }).fill('Bark and coir');
@@ -115,6 +163,10 @@ try {
   await checkupButton.click();
   await dialog.getByRole('radio', { name: 'Dry', exact: true }).check();
   await nextStep.click();
+  await dialog.getByRole('heading', { name: 'Hold off on watering' }).waitFor();
+  await dialog.getByRole('button', { name: 'Answer follow-up' }).click();
+  await dialog.getByRole('radio', { name: 'I looked and saw none' }).check();
+  await nextStep.click();
   await dialog.getByRole('heading', { name: 'Check below the surface' }).waitFor();
   await dialog.getByRole('button', { name: 'Answer follow-up' }).click();
   await dialog.getByRole('radio', { name: 'At the surface only' }).check();
@@ -125,10 +177,6 @@ try {
 
   await dialog.getByRole('button', { name: 'Answer follow-up' }).click();
   await dialog.getByRole('radio', { name: 'At the depth described above' }).check();
-  await nextStep.click();
-  await dialog.getByRole('heading', { name: 'Look for standing water' }).waitFor();
-  await dialog.getByRole('button', { name: 'Answer follow-up' }).click();
-  await dialog.getByRole('radio', { name: 'I looked and saw none' }).check();
   await nextStep.click();
   await dialog.getByRole('heading', { name: 'The mix is ready for watering' }).waitFor();
   await saveObservation.click();
@@ -153,6 +201,32 @@ try {
   } finally {
     await expiryPage.close();
   }
+
+  await navigation.getByRole('button', { name: 'Home', exact: true }).click();
+  await page.getByRole('button', { name: 'Add to cart', exact: true }).click();
+  const cart = page.getByRole('button', { name: /queued in Hydration Cart/ });
+  await cart.waitFor();
+  const cartStorageKey = 'petey-hydration-cart-v1';
+  const savedCart = await page.evaluate((key) => sessionStorage.getItem(key), cartStorageKey);
+  assert.equal(JSON.parse(savedCart).length, 1);
+  const releasePlants = Promise.withResolvers();
+  const plantsPath = /\/api\/v1\/garden\/plants$/;
+  await page.route(plantsPath, async (route) => {
+    await releasePlants.promise;
+    await route.continue();
+  }, { times: 1 });
+  try {
+    const loadingPlants = page.waitForRequest(plantsPath);
+    await page.reload();
+    await loadingPlants;
+    await navigation.waitFor();
+    assert.equal(await page.evaluate((key) => sessionStorage.getItem(key), cartStorageKey), savedCart);
+  } finally {
+    releasePlants.resolve();
+  }
+  await cart.waitFor();
+  await navigation.getByRole('button', { name: 'My Garden', exact: true }).click();
+  await profileButton.click();
 
   const carePath = /\/api\/v1\/garden\/plants\/[^/]+\/care$/;
   let committedCare;

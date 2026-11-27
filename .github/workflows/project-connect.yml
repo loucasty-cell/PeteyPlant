@@ -47,6 +47,7 @@ jobs:
       - name: Build and check frontend contracts
         run: |
           npm run build
+          npm --prefix frontend test
           npm --prefix frontend run verify:contrast
           node frontend/verification/audit-identity.mjs
           node tools/slop-audit.mjs

@@ -89,7 +89,7 @@ export const plantToolsApi = {
         status: 'unavailable',
         model_version: null,
         taxonomy_version: 'unavailable',
-        message: 'Photo identification is offline while the FastAPI backend is not running. You can still test the camera or search manually by species name.',
+        message: 'Photo matching is offline. You can still search by plant name.',
       };
     }
     return request<LensCapability>('/lens/status', signal);

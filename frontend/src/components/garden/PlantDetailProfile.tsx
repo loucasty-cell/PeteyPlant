@@ -170,13 +170,10 @@ export function PlantDetailProfile({
       {/* Individual Plant Identity Header */}
       <header className="petey-card profile-hero-card">
         <div className="profile-hero-left">
-          <BotanicalThumbnail speciesId={plant.species_id} size={78} />
+          <BotanicalThumbnail speciesId={plant.species_id} size={78} preferRender />
           <div className="min-w-0">
             <div className="flex flex-wrap items-center gap-2 mb-1">
               <span className="petey-small-label">Individual plant profile</span>
-              <span className="provenance-chip" data-provenance="engine_estimated">
-                ID: {plant.id.slice(0, 8)}
-              </span>
             </div>
             <h1 id="plant-detail-heading" className="petey-page-title mt-0">
               {plant.name}

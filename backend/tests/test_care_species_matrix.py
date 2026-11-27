@@ -24,6 +24,8 @@ def _ideal_status_for(species_id: str, now: datetime) -> tuple[str, dict]:
         "created_at": (now - timedelta(days=60)).isoformat(),
         "container_volume_ml": None,
         "potting_mix": None,
+        "checkup_reset_id": None,
+        "checkup_reset_after": None,
     }
     hist = [{
         "id": str(uuid.uuid4()),
@@ -32,7 +34,7 @@ def _ideal_status_for(species_id: str, now: datetime) -> tuple[str, dict]:
         "checkup": obs.model_dump_json(),
     }]
     view = G.plant_view(plant, hist, now)
-    assess = G.assess_for(plant, pid, obs)
+    assess = G.assess_for(plant, pid, obs, hist, now)
     return view["status"], {"code": assess.code, "explanation": assess.explanation, "view": view}
 
 

@@ -27,6 +27,7 @@ The report must use the `test` split, pin the audited data and decoded-image fin
 | `heldout_known_groups`, `heldout_unknown_groups` | At least 100 independent known groups and 60 independent unknown groups |
 | `known_support_by_species` | At least 10 held-out photos per launch species |
 | `accepted_precision`, `accepted_precision_ci95` | At least 0.98 accepted precision with a reported interval |
+| `accepted_groups`, `clean_accepted_groups` | One-sided 95% Wilson lower bound of at least 0.98 for independent accepted groups with no wrong accepted matches |
 | `coverage` | At least 0.80 acceptance coverage on known species |
 | `unknown_false_acceptance` | Less than 0.05 at the frozen policy |
 | `ece`, `ece_bins` | Less than 0.04 top-label expected calibration error in 15 bins |

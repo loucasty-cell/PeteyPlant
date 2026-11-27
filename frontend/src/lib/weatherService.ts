@@ -3,13 +3,13 @@
  * backed by the Google Maps Platform Weather API (currentConditions:lookup).
  */
 
-export * from './weather/themes';
+export * from './weather/themes.ts';
 import {
   ALL_ATMOSPHERE_IDS,
   WEATHER_THEMES,
   type LiveWeatherState,
   type WeatherAtmosphereId,
-} from './weather/themes';
+} from './weather/themes.ts';
 
 
 function buildCareContext(
@@ -259,7 +259,7 @@ export async function fetchGoogleWeather(
       { signal },
     );
     const data = (await proxyRes.json().catch(() => null)) as GoogleWeatherResponse | null;
-    if (handleQuotaResponse(proxyRes.status, data)) {
+    if (signal?.aborted || handleQuotaResponse(proxyRes.status, data)) {
       return null;
     }
     if (proxyRes.ok && data && data.weatherCondition) {
@@ -270,8 +270,8 @@ export async function fetchGoogleWeather(
   }
 
   // 2. Direct browser fallback when built statically with VITE_GOOGLE_MAPS_API_KEY
-  const clientKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
-  if (!clientKey) return null;
+  const clientKey = import.meta.env?.VITE_GOOGLE_MAPS_API_KEY;
+  if (signal?.aborted || !clientKey) return null;
 
   try {
     const url = new URL('https://weather.googleapis.com/v1/currentConditions:lookup');
@@ -282,7 +282,7 @@ export async function fetchGoogleWeather(
 
     const res = await fetch(url.toString(), { signal });
     const data = (await res.json().catch(() => null)) as GoogleWeatherResponse | null;
-    if (handleQuotaResponse(res.status, data)) {
+    if (signal?.aborted || handleQuotaResponse(res.status, data)) {
       return null;
     }
     if (res.ok && data && data.weatherCondition) {

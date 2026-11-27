@@ -19,7 +19,7 @@
  */
 
 import type { CareEventKind, CareKind, GardenPlant } from '../gardenApi';
-import { formatWeatherReading, type LiveWeatherState } from '../weatherService';
+import { formatWeatherReading, type LiveWeatherState } from '../weatherService.ts';
 import {
   getConditionPresentation,
   resolveMultipleConditions,
@@ -27,7 +27,7 @@ import {
   type ConditionActionability,
   type ConditionPresentation,
   type ConditionSeverity,
-} from './conditionRegistry';
+} from './conditionRegistry.ts';
 
 export type WaterVolumeUnit = 'ml' | 'fl_oz';
 

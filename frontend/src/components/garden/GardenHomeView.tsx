@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useRef } from 'react';
 import {
   ArrowRight,
   Bell,
@@ -31,6 +31,13 @@ const InteractivePlantStage = lazy(() =>
 );
 
 export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspace> }) {
+  const weatherTrigger = useRef<HTMLButtonElement>(null);
+
+  function closeWeatherSettings() {
+    ws.setWeatherMenuOpen(false);
+    weatherTrigger.current?.focus();
+  }
+
   return (
     <div className="hs-home-workspace">
       <header className="hs-toolbar" aria-label="Workspace toolbar">
@@ -123,6 +130,7 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
           <button
             type="button"
             className="hs-toolbar-pill"
+            ref={weatherTrigger}
             onClick={() => {
               ws.setWeatherMenuOpen((open) => !open);
               ws.setSwitcherOpen(false);
@@ -131,8 +139,12 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
             aria-label="Outdoor weather atmosphere settings"
           >
             <WeatherIcon atmosphere={ws.weather.atmosphere} />
-            <span className="font-mono font-semibold">{formatWeatherReading(ws.weather.temperatureC, '°C') ?? '—'}</span>
-            <span className="hs-hide-xs">{ws.weather.source === 'google-weather' ? 'Outdoor' : 'Preview'}</span>
+            {ws.weather.source === 'google-weather' ? (
+              <>
+                <span className="font-mono font-semibold">{formatWeatherReading(ws.weather.temperatureC, '°C') ?? '—'}</span>
+                <span className="hs-hide-xs">Outdoor</span>
+              </>
+            ) : <span>Preview</span>}
           </button>
 
           {ws.validCartPlantIds.length > 0 && (
@@ -181,8 +193,8 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
 
           <Suspense
             fallback={
-              <div className="stage-fallback" aria-label="Loading the plant companion">
-                <BotanicalThumbnail speciesId={ws.activePlant ? ws.activePlant.species_id : 'Monstera deliciosa'} size={160} />
+                <div className="stage-fallback" role="status" aria-label="Loading the plant companion">
+                  <BotanicalThumbnail speciesId={ws.activePlant ? ws.activePlant.species_id : 'Monstera deliciosa'} size={160} preferRender />
               </div>
             }
           >
@@ -239,21 +251,28 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
           )}
 
           {ws.weatherMenuOpen && (
-            <div className="weather-popover" role="dialog" aria-label="Outdoor weather atmosphere">
+            <div
+              className="weather-popover"
+              role="dialog"
+              aria-label="Outdoor weather atmosphere"
+              onKeyDown={(event) => {
+                if (event.key === 'Escape') closeWeatherSettings();
+              }}
+            >
               <div className="weather-popover-head">
                 <div className="min-w-0">
                   <span className="weather-popover-title block truncate">
                     {ws.weather.locationLabel} · {ws.weatherTheme.label}
                   </span>
                   <span className="weather-popover-sub">
-                    32 interactive nature themes · {ATMOSPHERE_LIST.indexOf(ws.weather.atmosphere) + 1} of{' '}
+                    Nature theme {ATMOSPHERE_LIST.indexOf(ws.weather.atmosphere) + 1} of{' '}
                     {ATMOSPHERE_LIST.length}
                   </span>
                 </div>
                 <button
                   type="button"
                   className="weather-popover-close"
-                  onClick={() => ws.setWeatherMenuOpen(false)}
+                  onClick={closeWeatherSettings}
                   aria-label="Close outdoor weather settings"
                 >
                   <X className="h-4 w-4" aria-hidden="true" />
@@ -308,6 +327,7 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
                     key={loc.id}
                     type="button"
                     className={`weather-choice-btn ${ws.activeLocationId === loc.id ? 'active' : ''}`}
+                    aria-pressed={ws.activeLocationId === loc.id}
                     disabled={ws.weatherLoading}
                     onClick={() => void ws.selectLocationPreset(loc.id)}
                   >
@@ -318,7 +338,7 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
 
               <div className="weather-section-bar">
                 <p className="weather-section-label m-0">
-                  32 Nature Biomes (
+                  Nature themes (
                   {ws.themeCategoryFilter === 'all'
                     ? ATMOSPHERE_LIST.length
                     : ATMOSPHERE_LIST.filter((id) => WEATHER_THEMES[id].category === ws.themeCategoryFilter).length}
@@ -326,22 +346,20 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
                 </p>
               </div>
 
-              <div className="weather-category-chips" role="tablist" aria-label="Filter nature biome categories">
+              <div className="weather-category-chips" role="group" aria-label="Filter nature biome categories">
                 <button
                   type="button"
-                  role="tab"
-                  aria-selected={ws.themeCategoryFilter === 'all'}
+                  aria-pressed={ws.themeCategoryFilter === 'all'}
                   className={`weather-cat-chip ${ws.themeCategoryFilter === 'all' ? 'active' : ''}`}
                   onClick={() => ws.setThemeCategoryFilter('all')}
                 >
-                  All (32)
+                  All ({ATMOSPHERE_LIST.length})
                 </button>
                 {NATURE_THEME_CATEGORIES.map((cat) => (
                   <button
                     key={cat}
                     type="button"
-                    role="tab"
-                    aria-selected={ws.themeCategoryFilter === cat}
+                    aria-pressed={ws.themeCategoryFilter === cat}
                     className={`weather-cat-chip ${ws.themeCategoryFilter === cat ? 'active' : ''}`}
                     onClick={() => ws.setThemeCategoryFilter(cat)}
                   >
@@ -355,12 +373,13 @@ export function GardenHomeView({ ws }: { ws: ReturnType<typeof useGardenWorkspac
                   (id) => ws.themeCategoryFilter === 'all' || WEATHER_THEMES[id].category === ws.themeCategoryFilter,
                 ).map((id) => {
                   const t = WEATHER_THEMES[id];
-                  const isSelected = ws.weather.atmosphere === id;
+                  const isSelected = ws.weather.source === 'preview' && ws.weather.atmosphere === id;
                   return (
                     <button
                       key={id}
                       type="button"
                       className={`weather-theme-card ${isSelected ? 'active' : ''}`}
+                      aria-pressed={isSelected}
                       onClick={() => ws.selectAtmospherePreview(id)}
                     >
                       <span

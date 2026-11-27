@@ -15,6 +15,7 @@ DecisionCode = Literal[
 ]
 
 CHECKUP_MAX_AGE = timedelta(hours=1)
+SOIL_RECHECK_DELAY = timedelta(days=1)
 GENERAL_WATERING_SOURCE = "https://extension.umd.edu/resource/watering-indoor-plants"
 
 
@@ -139,8 +140,20 @@ def validate_watering(
 def assess_watering(
     observation: CheckupObservation, plant_id: UUID4, saved_drainage: DRAINAGE,
     source: str | None, reported_at: datetime,
+    standing_water_since: datetime | None = None,
 ) -> AssessmentResult:
-    result = validate_watering(observation, saved_drainage, source)
+    prior_standing = standing_water_since if observation.standing_water == "unknown" else None
+    if prior_standing is not None:
+        result = AssessmentResult(
+            code="HOLD_WATER",
+            headline="Hold off on watering",
+            explanation="Your recent Checkup recorded standing water in the saucer or outer pot.",
+            next_step="Check the saucer or outer pot again and empty any water you find.",
+            source=GENERAL_WATERING_SOURCE,
+            question="standing_water",
+        )
+    else:
+        result = validate_watering(observation, saved_drainage, source)
     if result is None:
         result = AssessmentResult(
             code="WATER_IF_APPROPRIATE", headline="The mix is ready for watering",
@@ -158,6 +171,13 @@ def assess_watering(
         for field, value in observation.model_dump().items()
         if field in CheckupObservation.model_fields and value != "unknown"
     ]
+    if prior_standing is not None:
+        result.valid_until = min(result.valid_until, prior_standing + SOIL_RECHECK_DELAY)
+        result.evidence.append(Evidence(
+            category="HISTORICAL_RECORD", field="standing_water", value="yes", plant_id=plant_id,
+            observed_at=prior_standing, method="Garden Checkup",
+            limitations="Prior report. Check whether standing water is still present.",
+        ))
     if saved_drainage != "unknown":
         result.evidence.append(Evidence(
             category="HISTORICAL_RECORD", field="saved_drainage",

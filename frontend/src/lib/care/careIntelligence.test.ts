@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createPreviewWeather, fetchGoogleWeather } from '../weatherService';
+import { createPreviewWeather, fetchGoogleWeather } from '../weatherService.ts';
 import {
   getConditionPresentation,
   getRegisteredConditionCount,
   resolveMultipleConditions,
-} from './conditionRegistry';
+} from './conditionRegistry.ts';
 import {
   buildHydrationCartSummary,
   buildPlantAlerts,
@@ -18,7 +18,7 @@ import {
   sortPlantsByActionPriority,
   type ExtendedGardenPlant,
   type NotificationPreferences,
-} from './careIntelligence';
+} from './careIntelligence.ts';
 
 function makePlant(overrides: Partial<ExtendedGardenPlant> = {}): ExtendedGardenPlant {
   return {

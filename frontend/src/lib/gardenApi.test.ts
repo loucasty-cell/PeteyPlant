@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyPreviewCare, createUuid, gardenApi, gardenKey, setPreviewMode, withTimeoutSignal, type GardenPlant } from './gardenApi';
+import { applyPreviewCare, createUuid, gardenApi, gardenKey, setPreviewMode, withTimeoutSignal, type GardenPlant } from './gardenApi.ts';
 
 const SAMPLE_PLANT: GardenPlant = {
   id: '00000000-0000-4000-8000-000000000001',

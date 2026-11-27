@@ -491,9 +491,11 @@ function WateringBurst({ trigger, kind, reduced }: { trigger: number; kind: 'pet
 function StageCameraControls({
   preset,
   orbitCommand,
+  reduced,
 }: {
   preset: SpeciesAssetManifestEntry['cameraPreset'];
   orbitCommand: { seq: number; action: 'left' | 'right' | 'reset' };
+  reduced: boolean;
 }) {
   const controlsRef = useRef<ComponentRef<typeof OrbitControls> | null>(null);
   const { camera, size, invalidate } = useThree();
@@ -518,6 +520,7 @@ function StageCameraControls({
     if (ctrl) {
       ctrl.target.set(preset.target[0], targetY, preset.target[2]);
       ctrl.update();
+      ctrl.saveState();
     } else {
       camera.lookAt(preset.target[0], targetY, preset.target[2]);
     }
@@ -531,11 +534,11 @@ function StageCameraControls({
     if (!ctrl) return;
 
     if (orbitCommand.action === 'reset') {
-      const aspect = size.height > 0 ? size.width / size.height : 1;
-      const portraitScale = aspect < 0.92 ? Math.min(1.22, 0.92 / Math.max(0.62, aspect)) : 1;
-      camera.position.set(preset.position[0], preset.position[1], preset.position[2] * portraitScale);
-      ctrl.target.set(...preset.target);
+      const damping = ctrl.enableDamping;
+      ctrl.enableDamping = false;
       ctrl.update();
+      ctrl.reset();
+      ctrl.enableDamping = damping;
       invalidate();
       return;
     }
@@ -546,7 +549,7 @@ function StageCameraControls({
     camera.position.copy(ctrl.target).add(offset);
     ctrl.update();
     invalidate();
-  }, [orbitCommand, camera, preset, size.width, size.height, invalidate]);
+  }, [orbitCommand, camera, invalidate]);
 
   return (
     <OrbitControls
@@ -555,7 +558,7 @@ function StageCameraControls({
       target={preset.target}
       enablePan={false}
       enableZoom={false}
-      enableDamping={!isSoftwareGl}
+      enableDamping={!isSoftwareGl && !reduced}
       dampingFactor={0.07}
       rotateSpeed={0.72}
       minPolarAngle={preset.minPolarAngle}
@@ -729,7 +732,7 @@ export function InteractivePlantStage({
             <WeatherParticles mode={theme.particles} windKmh={windKmh} reduced={reduced} />
           )}
 
-          <StageCameraControls preset={entry.cameraPreset} orbitCommand={orbitCommand} />
+          <StageCameraControls preset={entry.cameraPreset} orbitCommand={orbitCommand} reduced={reduced} />
         </Canvas>
       </StageErrorGuard>
       {contextLost && fallback}

@@ -3,15 +3,20 @@ const maxFileBytes = 8 * 1024 * 1024;
 const maxSourcePixels = 24_000_000;
 const minSourceSide = 160;
 const maxOutputSide = 2048;
+const maxPhotoAspectRatio = 3.5;
 
 export async function encodeLensPhoto(source: CanvasImageSource, width: number, height: number) {
   if (width < minSourceSide || height < minSourceSide) throw new Error('This photo is too small. Try a larger or closer photo.');
   if (width * height > maxSourcePixels) throw new Error('This image is too large. Try a smaller photo.');
   const scale = Math.min(1, maxOutputSide / Math.max(width, height));
+  const outputWidth = Math.round(width * scale);
+  const outputHeight = Math.round(height * scale);
+  if (Math.max(outputWidth, outputHeight) / Math.min(outputWidth, outputHeight) > maxPhotoAspectRatio) {
+    throw new Error('This photo is unusually narrow. Try a less cropped photo.');
+  }
   const canvas = document.createElement('canvas');
-  canvas.width = Math.max(1, Math.round(width * scale));
-  canvas.height = Math.max(1, Math.round(height * scale));
-  if (Math.min(canvas.width, canvas.height) < minSourceSide) throw new Error('This photo is unusually narrow. Try a less cropped photo.');
+  canvas.width = outputWidth;
+  canvas.height = outputHeight;
   const context = canvas.getContext('2d', { alpha: false });
   if (!context) throw new Error('Your browser couldn’t prepare the photo.');
   context.fillStyle = '#fff';

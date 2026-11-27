@@ -321,8 +321,8 @@ export default function PeteyLens({
     const file = event.target.files?.[0];
     event.target.value = '';
     if (!file || capability?.status !== 'available') return;
+    if (activeStateRef.current === 'requesting_permission') transitionTo('idle');
     const operation = ++workRef.current;
-    stopCamera();
     setPreparing(true);
     setError('');
     try {
@@ -330,8 +330,7 @@ export default function PeteyLens({
       if (operation !== workRef.current) return;
       setPhotoSource('gallery');
       setPhoto(prepared);
-      activeStateRef.current = 'preview';
-      setLensState('preview');
+      transitionTo('preview');
     } catch (failure) {
       if (operation === workRef.current) {
         setError(failure instanceof Error ? failure.message : 'Petey could not open that photo. Choose a JPEG, PNG, or WebP image.');
